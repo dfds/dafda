@@ -515,3 +515,4 @@ healthchecksdb
 MigrationBackup/
 
 # End of https://www.gitignore.io/api/node,visualstudio,visualstudiocode,rider
+.output/
