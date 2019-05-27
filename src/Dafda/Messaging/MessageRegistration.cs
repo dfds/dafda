@@ -1,8 +1,8 @@
 using System;
 
-namespace Dafda.DomainEvents
+namespace Dafda.Messaging
 {
-    public class DomainEventRegistration
+    public class MessageRegistration
     {
         public Type HandlerInstanceType { get; set; }
         public Type MessageInstanceType { get; set; }

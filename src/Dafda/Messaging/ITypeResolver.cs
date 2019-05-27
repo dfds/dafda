@@ -1,6 +1,6 @@
 using System;
 
-namespace Dafda.DomainEvents
+namespace Dafda.Messaging
 {
     public interface ITypeResolver
     {

@@ -1,4 +1,4 @@
-namespace Dafda.Consuming
+namespace Dafda.Configuration
 {
     public interface IConfigurationProvider
     {

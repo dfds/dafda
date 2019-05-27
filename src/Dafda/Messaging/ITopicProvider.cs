@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Dafda.DomainEvents
+namespace Dafda.Messaging
 {
     public interface ITopicProvider
     {
