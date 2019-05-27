@@ -9,9 +9,9 @@ namespace Dafda.Messaging
     public class TopicSubscriber
     {
         private readonly IConsumerFactory _consumerFactory;
-        private readonly LocalMessageDispatcher _localMessageDispatcher;
+        private readonly ILocalMessageDispatcher _localMessageDispatcher;
 
-        public TopicSubscriber(IConsumerFactory consumerFactory, LocalMessageDispatcher localMessageDispatcher)
+        public TopicSubscriber(IConsumerFactory consumerFactory, ILocalMessageDispatcher localMessageDispatcher)
         {
             _consumerFactory = consumerFactory;
             _localMessageDispatcher = localMessageDispatcher;
@@ -24,7 +24,7 @@ namespace Dafda.Messaging
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     var consumeResult = consumer.Consume(cancellationToken);
-                    var message = new MessageEmbeddedDocument(consumeResult.Value);
+                    var message = new JsonMessageEmbeddedDocument(consumeResult.Value);
                     
                     await _localMessageDispatcher.Dispatch(message);
                     

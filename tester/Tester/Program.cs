@@ -32,9 +32,9 @@ namespace Tester
             handlerRegistry.Register<PositionMessage, MessageHandler>("p-project.tracking.vehicles", "vehicle_position_changed");
 
             var typeResolver = new HandRolledResolver();
-            var processor = new LocalMessageDispatcher(handlerRegistry, typeResolver);
+            var dispatcher = new LocalMessageDispatcher(handlerRegistry, typeResolver);
 
-            return new TopicSubscriber(factory, processor);
+            return new TopicSubscriber(factory, dispatcher);
         }
     }
 

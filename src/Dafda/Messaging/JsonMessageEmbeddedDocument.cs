@@ -3,11 +3,20 @@ using Newtonsoft.Json.Linq;
 
 namespace Dafda.Messaging
 {
-    public class MessageEmbeddedDocument
+    public interface ITransportLevelMessage
+    {
+        string MessageId { get; }
+        string Type { get; }
+        string CorrelationId { get; }
+        T ReadDataAs<T>() where T : class, new();
+        object ReadDataAs(Type messageInstanceType);
+    }
+
+    public class JsonMessageEmbeddedDocument : ITransportLevelMessage
     {
         private readonly JObject _jObject;
 
-        public MessageEmbeddedDocument(string json)
+        public JsonMessageEmbeddedDocument(string json)
         {
             _jObject = JObject.Parse(json);
         }

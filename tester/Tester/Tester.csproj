@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dafda" Version="0.0.2-ci-1558725173" />
+    <PackageReference Include="Dafda" Version="0.0.2-ci-1558947781" />
   </ItemGroup>
 
 </Project>
