@@ -1,0 +1,12 @@
+name: $(Build.BuildId)
+pool: Docker-pool
+#  vmImage: ubuntu-16.04
+trigger:
+  - master
+
+steps:
+  - bash: |
+      make push
+    env:
+      NUGET_API_KEY: $(NUGET_API_KEY)
+    displayName: 'Build a deployment artifact'
