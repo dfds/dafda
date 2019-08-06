@@ -6,7 +6,7 @@ trigger:
 
 steps:
   - bash: |
-      make push
+      make package push
     env:
       NUGET_API_KEY: $(NUGET_API_KEY)
     displayName: 'Build a deployment artifact'
