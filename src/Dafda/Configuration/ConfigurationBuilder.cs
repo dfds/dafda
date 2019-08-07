@@ -1,15 +1,21 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Dafda.Configuration
 {
+    public delegate string KeyConverter(string keyName);
+
     public class ConfigurationBuilder
     {
-        public static readonly Func<string, string> PassthroughKeyConverter = key => key;
-        public static readonly Func<string, string> EnvVarStyleKeyConverter = key => key.ToUpper().Replace('.', '_');
-        
-        public static readonly string[] DefaultConfigurationKeys = new[]
+        public static readonly KeyConverter PassThroughKeyConverter = key => key;
+        public static readonly KeyConverter EnvVarStyleKeyConverter = key => key.ToUpper().Replace('.', '_');
+
+        public static KeyConverter EnvVarStyleKeyConverterWithPrefix(string prefix)
+        {
+            return keyName => EnvVarStyleKeyConverter(prefix + "_" + keyName);
+        }
+
+        public static readonly string[] DefaultConfigurationKeys =
         {
             "group.id",
             "enable.auto.commit",
@@ -22,38 +28,19 @@ namespace Dafda.Configuration
             "sasl.mechanisms",
             "security.protocol",
         };
-        
+
         private readonly Dictionary<string, string> _configurations = new Dictionary<string, string>();
-        private IConfigurationProvider _configurationProvider;
-        private Func<string, string> _keyConverter = key => key;
+        private readonly IList<IConfigurationProvider> _configurationProviders = new List<IConfigurationProvider>();
 
-        private void AddOrUpdate(IDictionary<string, string> dictionary, string key, string value)
+        public ConfigurationBuilder WithConfigurationProvider(IConfigurationProvider configurationProvider, KeyConverter keyConverter = null)
         {
-            if (dictionary.ContainsKey(key))
-            {
-                dictionary[key] = value;
-            }
-            else
-            {
-                dictionary.Add(key, value);
-            }            
-        }
-        
-        public ConfigurationBuilder WithConfigurationProvider(IConfigurationProvider configurationProvider, Func<string, string> keyConverter = null)
-        {
-            _configurationProvider = configurationProvider;
-
-            if (keyConverter != null)
-            {
-                _keyConverter = keyConverter;
-            }
-            
+            _configurationProviders.Add(new KeyConverterConfigurationProvider(configurationProvider, keyConverter ?? PassThroughKeyConverter));
             return this;
         }
 
         public ConfigurationBuilder WithConfiguration(string key, string value)
         {
-            AddOrUpdate(_configurations, key, value);
+            _configurations[key] = value;
             return this;
         }
 
@@ -61,38 +48,56 @@ namespace Dafda.Configuration
         {
             var finalConfiguration = new Dictionary<string, string>();
 
-            if (_configurationProvider != null)
+            foreach (var key in DefaultConfigurationKeys)
             {
-                foreach (var key in DefaultConfigurationKeys)
+                if (finalConfiguration.ContainsKey(key))
                 {
-                    if (finalConfiguration.ContainsKey(key))
-                    {
-                        continue;
-                    }
-                    
-                    var actualKey = _keyConverter(key);
-                    var value = _configurationProvider.GetByKey(actualKey);
+                    continue;
+                }
+
+                foreach (var myClass in _configurationProviders)
+                {
+                    var value = myClass.GetByKey(key);
 
                     if (value != null)
                     {
-                        AddOrUpdate(finalConfiguration, key, value);
+                        finalConfiguration[key] = value;
+                        break;
                     }
                 }
             }
-            
+
             foreach (var cfg in _configurations)
             {
-                AddOrUpdate(finalConfiguration, cfg.Key, cfg.Value);
+                finalConfiguration[cfg.Key] = cfg.Value;
             }
-            
+
             return new DictionaryConfiguration(finalConfiguration);
+        }
+
+        private class KeyConverterConfigurationProvider : IConfigurationProvider
+        {
+            private readonly IConfigurationProvider _configurationConfigurationProvider;
+            private readonly KeyConverter _keyConverter;
+
+            public KeyConverterConfigurationProvider(IConfigurationProvider configurationProvider, KeyConverter keyConverter)
+            {
+                _configurationConfigurationProvider = configurationProvider;
+                _keyConverter = keyConverter;
+            }
+
+            public string GetByKey(string keyName)
+            {
+                keyName = _keyConverter(keyName);
+                return _configurationConfigurationProvider.GetByKey(keyName);
+            }
         }
 
         private class DictionaryConfiguration : IConfiguration
         {
-            private readonly Dictionary<string, string> _configuration;
+            private readonly IDictionary<string, string> _configuration;
 
-            public DictionaryConfiguration(Dictionary<string, string> configuration)
+            public DictionaryConfiguration(IDictionary<string, string> configuration)
             {
                 _configuration = configuration;
             }
