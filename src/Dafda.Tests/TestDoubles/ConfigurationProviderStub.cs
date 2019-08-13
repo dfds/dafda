@@ -4,7 +4,7 @@ using Dafda.Configuration;
 
 namespace Dafda.Tests.TestDoubles
 {
-    public class ConfigurationProviderStub : IConfigurationProvider
+    public class ConfigurationProviderStub : ConfigurationProvider
     {
         private readonly IDictionary<string, string> _configuration;
 
@@ -13,7 +13,7 @@ namespace Dafda.Tests.TestDoubles
             _configuration = configuration ?? ImmutableDictionary<string, string>.Empty;
         }
 
-        public string GetByKey(string keyName)
+        public override string GetByKey(string keyName)
         {
             _configuration.TryGetValue(keyName, out var value);
             return value;

@@ -9,22 +9,23 @@ namespace Dafda.Tests.Configuration
     public class TestConfigurationBuilder
     {
         [Fact]
-        public void Can_build_empty_configuration()
+        public void Can_validate_configuration()
         {
-            var configuration = new ConfigurationBuilder()
-                .Build();
+            var sut = new ConfigurationBuilder();
 
-            Assert.Empty(configuration);
+            Assert.Throws<InvalidConfigurationException>(() => sut.Build());
         }
-
+        
         [Fact]
-        public void Can_set_configuration_value()
+        public void Can_build_minimal_configuration()
         {
             var configuration = new ConfigurationBuilder()
-                .WithConfiguration("foo", "bar")
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
                 .Build();
 
-            AssertKeyValue(configuration, "foo", "bar");
+            AssertKeyValue(configuration, "group.id", "foo");
+            AssertKeyValue(configuration, "bootstrap.servers", "bar");
         }
 
         private static void AssertKeyValue(IConfiguration configuration, string expectedKey, string expectedValue)
@@ -35,108 +36,97 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Can_build_empty_configuration_with_provider()
-        {
-            var configuration = new ConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub()).Build();
-
-            Assert.Empty(configuration);
-        }
-
-        [Fact]
-        public void Can_pass_through_keys()
-        {
-            Assert.Equal("foo", ConfigurationBuilder.PassThroughKeyConverter("foo"));
-        }
-
-        [Fact]
         public void Can_ignore_values_from_configuration_provider()
         {
             var configuration = new ConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["foo"] = "bar"}))
+                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
+                {
+                    ["group.id"] = "foo",
+                    ["bootstrap.servers"] = "bar",
+                    ["dummy"] = "baz"
+                }))
                 .Build();
 
-            Assert.Empty(configuration);
+            AssertKeyValue(configuration, "dummy", null);
         }
 
         [Fact]
         public void Can_use_configuration_value_from_provider()
         {
             var configuration = new ConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["group.id"] = "foo"}))
+                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
+                {
+                    ["group.id"] = "foo",
+                    ["bootstrap.servers"] = "bar"
+                }))
                 .Build();
 
             AssertKeyValue(configuration, "group.id", "foo");
-        }
-
-        [Fact]
-        public void Can_convert_key_with_environment_naming_convention()
-        {
-            Assert.Equal("GROUP_ID", ConfigurationBuilder.EnvVarStyleKeyConverter("group.id"));
+            AssertKeyValue(configuration, "bootstrap.servers", "bar");
         }
 
         [Fact]
         public void Can_use_configuration_value_from_provider_with_environment_naming_convention()
         {
             var configuration = new ConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["GROUP_ID"] = "foo"}), ConfigurationBuilder.EnvVarStyleKeyConverter)
+                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
+                {
+                    ["GROUP_ID"] = "foo",
+                    ["BOOTSTRAP_SERVERS"] = "bar"
+                }))
+                .WithEnvironmentNamingConvention()
                 .Build();
 
-            Assert.Equal("foo", configuration.First(x => x.Key == "group.id").Value);
-        }
-
-        [Fact]
-        public void Can_convert_key_with_environment_naming_convention_and_prefix()
-        {
-            var sut = ConfigurationBuilder.EnvVarStyleKeyConverterWithPrefix("APP");
-
-            var finalKey = sut("foo.bar");
-
-            Assert.Equal("APP_FOO_BAR", finalKey);
+            AssertKeyValue(configuration, "group.id", "foo");
+            AssertKeyValue(configuration, "bootstrap.servers", "bar");
         }
 
         [Fact]
         public void Can_use_configuration_value_from_provider_with_environment_naming_convention_and_prefix()
         {
             var configuration = new ConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["APP_GROUP_ID"] = "foo"}), ConfigurationBuilder.EnvVarStyleKeyConverterWithPrefix("APP"))
+                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
+                {
+                    ["DEFAULT_KAFKA_GROUP_ID"] = "foo",
+                    ["DEFAULT_KAFKA_BOOTSTRAP_SERVERS"] = "bar"
+                }))
+                .WithEnvironmentNamingConvention("DEFAULT_KAFKA")
                 .Build();
 
-            Assert.Equal("foo", configuration.First(x => x.Key == "group.id").Value);
+            AssertKeyValue(configuration, "group.id", "foo");
+            AssertKeyValue(configuration, "bootstrap.servers", "bar");
         }
 
         [Fact]
         public void Can_overwrite_values_from_provider()
         {
             var configuration = new ConfigurationBuilder()
-                .WithConfiguration("group.id", "bar")
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["group.id"] = "foo"}))
+                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
+                {
+                    ["group.id"] = "foo",
+                    ["bootstrap.servers"] = "bar"
+                }))
+                .WithGroupId("baz")
                 .Build();
 
-            AssertKeyValue(configuration, "group.id", "bar");
-        }
-
-        [Fact]
-        public void Can_get_values_from_multiple_providers()
-        {
-            var configuration = new ConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["bootstrap.servers"] = "foo"}))
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["group.id"] = "bar"}))
-                .Build();
-
-            AssertKeyValue(configuration, "bootstrap.servers", "foo");
-            AssertKeyValue(configuration, "group.id", "bar");
+            AssertKeyValue(configuration, "group.id", "baz");
         }
 
         [Fact]
         public void Only_take_value_from_first_provider_that_matches()
         {
             var configuration = new ConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["group.id"] = "foo"}))
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string> {["group.id"] = "bar"}))
+                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
+                {
+                    ["group.id"] = "foo",
+                    ["bootstrap.servers"] = "bar",
+                    ["GROUP_ID"] = "baz",
+                }))
+                .WithNamingConvention(NamingConvention.Default)
+                .WithEnvironmentNamingConvention()
                 .Build();
 
-            Assert.Equal("foo", configuration.First(x => x.Key == "group.id").Value);
+            AssertKeyValue(configuration, "group.id", "foo");
         }
     }
 }
