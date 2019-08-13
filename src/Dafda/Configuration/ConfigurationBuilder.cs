@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Dafda.Logging;
 
 namespace Dafda.Configuration
 {
@@ -12,6 +13,8 @@ namespace Dafda.Configuration
         private const string ConfigurationKeyGroupId = "group.id";
         private const string ConfigurationKeyBootstrapServers = "bootstrap.servers";
         private const string ConfigurationKeyEnableAutoCommit = "enable.auto.commit";
+
+        private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
         public static readonly KeyConverter PassThroughKeyConverter = key => key;
         public static readonly KeyConverter EnvVarStyleKeyConverter = key => key.ToUpper().Replace('.', '_');
@@ -120,6 +123,7 @@ namespace Dafda.Configuration
                     continue;
                 }
 
+                Logger.Debug("Looking for {Key} in {ProviderName} using keys {AttemptedKeys}", key, GetProviderName(), GetAttemptedKeys(key));
 
                 var value = _namingConventions
                     .Select(namingConvention => namingConvention.GetKey(key))
