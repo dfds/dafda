@@ -6,35 +6,15 @@ using Dafda.Logging;
 
 namespace Dafda.Configuration
 {
-    public delegate string KeyConverter(string keyName);
-
-    public class ConfigurationBuilder
+    public abstract class ConfigurationBuilder
     {
-        private const string ConfigurationKeyGroupId = "group.id";
-        private const string ConfigurationKeyBootstrapServers = "bootstrap.servers";
-        private const string ConfigurationKeyEnableAutoCommit = "enable.auto.commit";
-
         private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
-
-        public static readonly KeyConverter PassThroughKeyConverter = key => key;
-        public static readonly KeyConverter EnvVarStyleKeyConverter = key => key.ToUpper().Replace('.', '_');
-
-        public static KeyConverter EnvVarStyleKeyConverterWithPrefix(string prefix)
-        {
-            return keyName => EnvVarStyleKeyConverter(prefix + "_" + keyName);
-        }
-
-        private static readonly string[] RequiredConfigurationKeys =
-        {
-            ConfigurationKeyGroupId,
-            ConfigurationKeyBootstrapServers
-        };
 
         public static readonly string[] DefaultConfigurationKeys =
         {
-            ConfigurationKeyGroupId,
-            ConfigurationKeyEnableAutoCommit,
-            ConfigurationKeyBootstrapServers,
+            ConfigurationProperties.GroupId,
+            ConfigurationProperties.EnableAutoCommit,
+            ConfigurationProperties.BootstrapServers,
             "broker.version.fallback",
             "api.version.fallback.ms",
             "ssl.ca.location",
@@ -47,21 +27,9 @@ namespace Dafda.Configuration
         private readonly Dictionary<string, string> _configurations = new Dictionary<string, string>();
         private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
 
-        public ConfigurationBuilder WithConfigurationProvider(IConfigurationProvider configurationProvider, KeyConverter keyConverter = null)
-        {
-            _configurationProvider = configurationProvider;
-
-            if (keyConverter != null)
-            {
-                return WithNamingConvention(NamingConvention.UseCustom(s => keyConverter(s)));
-            }
-
-            return this;
-        }
-
         private IConfigurationProvider _configurationProvider = ConfigurationProvider.Null;
 
-        public ConfigurationBuilder WithConfigurationProvider(ConfigurationProvider configurationProvider)
+        public ConfigurationBuilder WithConfigurationProvider(IConfigurationProvider configurationProvider)
         {
             _configurationProvider = configurationProvider ?? ConfigurationProvider.Null;
             return this;
@@ -83,26 +51,6 @@ namespace Dafda.Configuration
             return WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
         }
 
-        public ConfigurationBuilder WithGroupId(string groupId)
-        {
-            return WithConfiguration(ConfigurationKeyGroupId, groupId);
-        }
-
-        public ConfigurationBuilder WithBootstrapServers(string bootstrapServers)
-        {
-            return WithConfiguration(ConfigurationKeyBootstrapServers, bootstrapServers);
-        }
-
-        public ConfigurationBuilder WithBootstrapServers(params string[] bootstrapServers)
-        {
-            return WithBootstrapServers(string.Join(",", bootstrapServers));
-        }
-
-        public ConfigurationBuilder WithEnabledAutoCommit(bool enableAutoCommit)
-        {
-            return WithConfiguration(ConfigurationKeyEnableAutoCommit, enableAutoCommit ? "true" : "false");
-        }
-
         public ConfigurationBuilder WithConfiguration(string key, string value)
         {
             _configurations[key] = value;
@@ -116,7 +64,16 @@ namespace Dafda.Configuration
                 _namingConventions.Add(NamingConvention.Default);
             }
 
-            foreach (var key in DefaultConfigurationKeys)
+            FillConfiguration();
+
+            ValidateConfiguration();
+
+            return new DictionaryConfiguration(_configurations);
+        }
+
+        private void FillConfiguration()
+        {
+            foreach (var key in GetDefaultConfigurationKeys())
             {
                 if (_configurations.ContainsKey(key))
                 {
@@ -135,8 +92,16 @@ namespace Dafda.Configuration
                     _configurations[key] = value;
                 }
             }
+        }
 
-            foreach (var key in RequiredConfigurationKeys)
+        private static IEnumerable<string> GetDefaultConfigurationKeys()
+        {
+            return DefaultConfigurationKeys;
+        }
+
+        private void ValidateConfiguration()
+        {
+            foreach (var key in GetRequiredConfigurationKeys())
             {
                 if (!_configurations.TryGetValue(key, out var value) || string.IsNullOrEmpty(value))
                 {
@@ -144,9 +109,9 @@ namespace Dafda.Configuration
                     throw new InvalidConfigurationException(message);
                 }
             }
-
-            return new DictionaryConfiguration(_configurations);
         }
+
+        protected abstract IEnumerable<string> GetRequiredConfigurationKeys();
 
         private string GetProviderName()
         {
