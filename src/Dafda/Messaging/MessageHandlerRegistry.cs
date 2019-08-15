@@ -11,13 +11,12 @@ namespace Dafda.Messaging
             where THandler : IMessageHandler<TMessage> 
             where TMessage : class, new()
         {
-            var registration = new MessageRegistration
-            {
-                HandlerInstanceType = typeof(THandler),
-                MessageInstanceType = typeof(TMessage),
-                Topic = topic,
-                MessageType = messageType
-            };
+            var registration = new MessageRegistration(
+                handlerInstanceType: typeof(THandler),
+                messageInstanceType: typeof(TMessage),
+                topic: topic,
+                messageType: messageType
+            );
 
             _registrations.Add(registration);
 

@@ -21,13 +21,12 @@ namespace Dafda.Tests
             var sut = new MessageHandlerRegistry();
             var result = sut.Register<FooMessage, FooHandler>("dummy topic", "dummy message type");
 
-            var expected = new MessageRegistration
-            {
-                Topic = "dummy topic",
-                MessageType = "dummy message type",
-                HandlerInstanceType = typeof(FooHandler),
-                MessageInstanceType = typeof(FooMessage)
-            };
+            var expected = new MessageRegistration(
+                topic: "dummy topic",
+                messageType: "dummy message type",
+                handlerInstanceType: typeof(FooHandler),
+                messageInstanceType: typeof(FooMessage)
+            );
             
             Assert.Equal(expected, result, new MessageRegistrationComparer());
         }

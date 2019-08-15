@@ -19,6 +19,12 @@ namespace Dafda.Tests.Builders
             _messageHandlerRegistry = messageHandlerRegistry;
             return this;
         }
+
+        public LocalMessageDispatcherBuilder WithTypeResolver(ITypeResolver typeResolver)
+        {
+            _typeResolver = typeResolver;
+            return this;
+        }
         
         public LocalMessageDispatcher Build()
         {

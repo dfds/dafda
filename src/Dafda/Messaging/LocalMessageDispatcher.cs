@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 
 namespace Dafda.Messaging
@@ -22,14 +21,14 @@ namespace Dafda.Messaging
                 throw new MissingMessageHandlerException($"Error! A handler has not been registered for messages of type \"{message.Type}\". Message \"{message.MessageId}\" was not handled.");
             }
 
-            var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
-
             var handler = _typeResolver.Resolve(registration.HandlerInstanceType);
             if (handler == null)
             {
-                throw new Exception($"Type resolver {_typeResolver.GetType().FullName} resolved handler type {registration.HandlerInstanceType.FullName} to NULL.");
+                throw new UnableToResolveMessageHandlerException($"Type resolver {_typeResolver.GetType().FullName} resolved handler type {registration.HandlerInstanceType.FullName} to NULL.");
             }
-            
+
+            var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
+
             return ExecuteHandler((dynamic)messageInstance, (dynamic)handler);
         }
 
