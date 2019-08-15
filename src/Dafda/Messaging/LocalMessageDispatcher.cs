@@ -19,7 +19,7 @@ namespace Dafda.Messaging
             var registration = _handlerRegistry.GetRegistrationFor(message.Type);
             if (registration == null)
             {
-                throw new Exception($"Error! A handler has not been registered for messages of type \"{message.Type}\". Message \"{message.MessageId}\" was not handled.");
+                throw new MissingMessageHandlerException($"Error! A handler has not been registered for messages of type \"{message.Type}\". Message \"{message.MessageId}\" was not handled.");
             }
 
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
