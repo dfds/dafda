@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Dafda.Messaging
 {
-    public class MessageHandlerRegistry : ITopicProvider
+    public class MessageHandlerRegistry : IMessageHandlerRegistry, ITopicProvider
     {
         private readonly List<MessageRegistration> _registrations = new List<MessageRegistration>();
 

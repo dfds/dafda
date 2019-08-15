@@ -16,6 +16,7 @@ namespace Dafda.Configuration
             config(consumerConfiguration);
 
             services.AddSingleton(handlerRegistry);
+            services.AddSingleton<IMessageHandlerRegistry>(handlerRegistry);
 
             services.AddSingleton(provider =>
             {

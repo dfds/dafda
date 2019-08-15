@@ -5,10 +5,10 @@ namespace Dafda.Messaging
 {
     public class LocalMessageDispatcher : ILocalMessageDispatcher
     {
-        private readonly MessageHandlerRegistry _handlerRegistry;
+        private readonly IMessageHandlerRegistry _handlerRegistry;
         private readonly ITypeResolver _typeResolver;
 
-        public LocalMessageDispatcher(MessageHandlerRegistry handlerRegistry, ITypeResolver typeResolver)
+        public LocalMessageDispatcher(IMessageHandlerRegistry handlerRegistry, ITypeResolver typeResolver)
         {
             _handlerRegistry = handlerRegistry;
             _typeResolver = typeResolver;
