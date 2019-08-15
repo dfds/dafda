@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Dafda.Messaging;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
@@ -51,5 +52,36 @@ namespace Dafda.Tests.Messaging
 
             mock.Verify(x => x.Handle(It.IsAny<object>()), Times.Once);
         }
+
+        [Fact]
+        public async Task handler_exceptions_are_thrown_as_expected()
+        {
+            var transportMessageDummy = new TransportLevelMessageBuilder().Build();
+            var registrationDummy = new MessageRegistrationBuilder().Build();
+
+            var sut = new LocalMessageDispatcherBuilder()
+                .WithTypeResolver(new TypeResolverStub(new ErroneusHandler()))
+                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(registrationDummy))
+                .Build();
+
+            await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(transportMessageDummy));
+        }
+
+        #region private helper classes
+
+        private class ExpectedException : Exception
+        {
+
+        }
+
+        private class ErroneusHandler : IMessageHandler<object>
+        {
+            public Task Handle(object message)
+            {
+                throw new ExpectedException();
+            }
+        }
+
+        #endregion
     }
 }
