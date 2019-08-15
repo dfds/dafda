@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Dafda.Messaging;
+using Dafda.Tests.Builders;
 using Xunit;
 
 namespace Dafda.Tests
@@ -19,15 +19,16 @@ namespace Dafda.Tests
         public void returns_expected_registrations_when_registering_single_handler()
         {
             var sut = new MessageHandlerRegistry();
-            var result = sut.Register<FooMessage, FooHandler>("dummy topic", "dummy message type");
 
-            var expected = new MessageRegistration(
-                topic: "dummy topic",
-                messageType: "dummy message type",
-                handlerInstanceType: typeof(FooHandler),
-                messageInstanceType: typeof(FooMessage)
+            var expected = new MessageRegistrationBuilder().Build();
+
+            var result = sut.Register(
+                handlerInstanceType: expected.HandlerInstanceType,
+                messageInstanceType: expected.MessageInstanceType,
+                topic: expected.Topic,
+                messageType: expected.MessageType
             );
-            
+
             Assert.Equal(expected, result, new MessageRegistrationComparer());
         }
 
@@ -44,19 +45,6 @@ namespace Dafda.Tests
             }
 
             public int GetHashCode(MessageRegistration obj)
-            {
-                throw new NotImplementedException();
-            }
-        }
-        
-        private class FooMessage
-        {
-            
-        }
-        
-        private class FooHandler : IMessageHandler<FooMessage>
-        {
-            public Task Handle(FooMessage message)
             {
                 throw new NotImplementedException();
             }

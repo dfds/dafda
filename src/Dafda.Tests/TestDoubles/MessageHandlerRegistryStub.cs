@@ -14,6 +14,11 @@ namespace Dafda.Tests.TestDoubles
             _result = result;
         }
 
+        public MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType)
+        {
+            throw new NotImplementedException();
+        }
+
         public MessageRegistration Register<TMessage, THandler>(string topic, string messageType) where TMessage : class, new() where THandler : IMessageHandler<TMessage>
         {
             throw new NotImplementedException();

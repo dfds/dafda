@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,9 +12,19 @@ namespace Dafda.Messaging
             where THandler : IMessageHandler<TMessage> 
             where TMessage : class, new()
         {
-            var registration = new MessageRegistration(
+            return Register(
                 handlerInstanceType: typeof(THandler),
                 messageInstanceType: typeof(TMessage),
+                topic: topic,
+                messageType: messageType
+            );
+        }
+
+        public MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType) 
+        {
+            var registration = new MessageRegistration(
+                handlerInstanceType: handlerInstanceType,
+                messageInstanceType: messageInstanceType,
                 topic: topic,
                 messageType: messageType
             );
