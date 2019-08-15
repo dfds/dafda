@@ -5,17 +5,16 @@ namespace Dafda.Tests.TestDoubles
 {
     public class TransportLevelMessageStub : ITransportLevelMessage
     {
-        private readonly object _data;
-
         public TransportLevelMessageStub(object data = null, string type = null)
         {
-            _data = data;
+            Data = data;
             Type = type;
         }
 
-        public string MessageId { get; }
-        public string Type { get; }
-        public string CorrelationId { get; }
+        public string MessageId { get; set; }
+        public string CorrelationId { get; set; }
+        public string Type { get; set; }
+        public object Data { get; set; }
 
         T ITransportLevelMessage.ReadDataAs<T>()
         {
@@ -24,7 +23,7 @@ namespace Dafda.Tests.TestDoubles
 
         public object ReadDataAs(Type messageInstanceType)
         {
-            return _data;
+            return Data;
         }
     }
 }
