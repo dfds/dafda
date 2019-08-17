@@ -42,7 +42,7 @@ namespace Dafda.Configuration
             return services;
         }
 
-        private class DefaultConfigurationProvider : IConfigurationProvider
+        private class DefaultConfigurationProvider : ConfigurationProvider
         {
             private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
@@ -51,7 +51,7 @@ namespace Dafda.Configuration
                 _configuration = configuration;
             }
 
-            public string GetByKey(string keyName)
+            public override string GetByKey(string keyName)
             {
                 return _configuration[keyName];
             }

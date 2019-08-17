@@ -2,12 +2,7 @@ using System;
 
 namespace Dafda.Configuration
 {
-    public interface IConfigurationProvider
-    {
-        string GetByKey(string keyName);
-    }
-
-    public abstract class ConfigurationProvider : IConfigurationProvider
+    public abstract class ConfigurationProvider
     {
         public static readonly ConfigurationProvider Null = new NullConfigurationProvider();
 

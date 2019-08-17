@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Dafda.Messaging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
 {
     public interface IConsumerConfiguration
     {
-        IConsumerConfiguration ConfigureHandlers(Action<IMessageHandlerConfiguration> config);
-
         IMessageHandlerConfiguration Handlers { get; }
 
         IConsumerConfiguration FromEnvironmentWithPrefix(string prefix, params string[] alternativePrefixes);
@@ -19,7 +20,7 @@ namespace Dafda.Configuration
 
     internal class ConsumerConfiguration : IConsumerConfiguration
     {
-        private readonly IList<Action<ConfigurationBuilder, IConfigurationProvider>> _builders = new List<Action<ConfigurationBuilder, IConfigurationProvider>>();
+        private readonly IList<Action<ConsumerConfigurationBuilder, ConfigurationProvider>> _builders = new List<Action<ConsumerConfigurationBuilder, ConfigurationProvider>>();
         private readonly MessageHandlerConfiguration _messageHandlerConfiguration;
 
         public ConsumerConfiguration(MessageHandlerConfiguration messageHandlerConfiguration)
@@ -38,22 +39,22 @@ namespace Dafda.Configuration
 
         public IConsumerConfiguration WithGroupId(string groupId)
         {
-            return WithConfiguration(ConfigurationProperties.GroupId, groupId);
+            return WithConfiguration(ConfigurationKey.GroupId, groupId);
         }
 
         public IConsumerConfiguration WithBootstrapServers(string bootstrapServers)
         {
-            return WithConfiguration(ConfigurationProperties.BootstrapServers, bootstrapServers);
+            return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
         public IConsumerConfiguration WithBootstrapServers(params string[] bootstrapServers)
         {
-            return WithConfiguration(ConfigurationProperties.BootstrapServers, string.Join(",", bootstrapServers));
+            return WithConfiguration(ConfigurationKey.BootstrapServers, string.Join(",", bootstrapServers));
         }
 
         public IConsumerConfiguration WithEnabledAutoCommit(bool enableAutoCommit)
         {
-            return WithConfiguration(ConfigurationProperties.EnableAutoCommit, enableAutoCommit ? "true" : "false");
+            return WithConfiguration(ConfigurationKey.EnableAutoCommit, enableAutoCommit ? "true" : "false");
         }
 
         public IConsumerConfiguration FromEnvironmentWithPrefix(string prefix, params string[] alternativePrefixes)
@@ -61,10 +62,10 @@ namespace Dafda.Configuration
             _builders.Add((builder, provider) =>
             {
                 builder.WithConfigurationProvider(provider);
-                builder.WithEnvironmentNamingConvention(prefix);
+                builder.WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
                 foreach (var alternativePrefix in alternativePrefixes)
                 {
-                    builder.WithEnvironmentNamingConvention(alternativePrefix);
+                    builder.WithNamingConvention(NamingConvention.UseEnvironmentStyle(alternativePrefix));
                 }
             });
 
@@ -77,7 +78,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public IConfiguration BuildConfiguration(IConfigurationProvider defaultConfigurationProvider)
+        public IConfiguration BuildConfiguration(ConfigurationProvider defaultConfigurationProvider)
         {
             var configurationBuilder = new ConsumerConfigurationBuilder();
 

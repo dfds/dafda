@@ -20,12 +20,12 @@ namespace Dafda.Tests.Configuration
         public void Can_build_minimal_configuration()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfiguration(ConfigurationProperties.GroupId, "foo")
-                .WithConfiguration(ConfigurationProperties.BootstrapServers, "bar")
+                .WithConfiguration(ConfigurationKey.GroupId, "foo")
+                .WithConfiguration(ConfigurationKey.BootstrapServers, "bar")
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationProperties.GroupId, "foo");
-            AssertKeyValue(configuration, ConfigurationProperties.BootstrapServers, "bar");
+            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
+            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
 
         private static void AssertKeyValue(IConfiguration configuration, string expectedKey, string expectedValue)
@@ -41,8 +41,8 @@ namespace Dafda.Tests.Configuration
             var configuration = new ConsumerConfigurationBuilder()
                 .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
                 {
-                    [ConfigurationProperties.GroupId] = "foo",
-                    [ConfigurationProperties.BootstrapServers] = "bar",
+                    [ConfigurationKey.GroupId] = "foo",
+                    [ConfigurationKey.BootstrapServers] = "bar",
                     ["dummy"] = "baz"
                 }))
                 .Build();
@@ -56,13 +56,13 @@ namespace Dafda.Tests.Configuration
             var configuration = new ConsumerConfigurationBuilder()
                 .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
                 {
-                    [ConfigurationProperties.GroupId] = "foo",
-                    [ConfigurationProperties.BootstrapServers] = "bar"
+                    [ConfigurationKey.GroupId] = "foo",
+                    [ConfigurationKey.BootstrapServers] = "bar"
                 }))
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationProperties.GroupId, "foo");
-            AssertKeyValue(configuration, ConfigurationProperties.BootstrapServers, "bar");
+            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
+            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
 
         [Fact]
@@ -74,11 +74,11 @@ namespace Dafda.Tests.Configuration
                     ["GROUP_ID"] = "foo",
                     ["BOOTSTRAP_SERVERS"] = "bar"
                 }))
-                .WithEnvironmentNamingConvention()
+                .WithNamingConvention(NamingConvention.UseEnvironmentStyle())
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationProperties.GroupId, "foo");
-            AssertKeyValue(configuration, ConfigurationProperties.BootstrapServers, "bar");
+            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
+            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
 
         [Fact]
@@ -90,11 +90,11 @@ namespace Dafda.Tests.Configuration
                     ["DEFAULT_KAFKA_GROUP_ID"] = "foo",
                     ["DEFAULT_KAFKA_BOOTSTRAP_SERVERS"] = "bar"
                 }))
-                .WithEnvironmentNamingConvention("DEFAULT_KAFKA")
+                .WithNamingConvention(NamingConvention.UseEnvironmentStyle("DEFAULT_KAFKA"))
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationProperties.GroupId, "foo");
-            AssertKeyValue(configuration, ConfigurationProperties.BootstrapServers, "bar");
+            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
+            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
 
         [Fact]
@@ -103,12 +103,12 @@ namespace Dafda.Tests.Configuration
             var configuration = new ConsumerConfigurationBuilder()
                 .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
                 {
-                    [ConfigurationProperties.GroupId] = "foo",
-                    [ConfigurationProperties.BootstrapServers] = "bar"
-                })).WithConfiguration(ConfigurationProperties.GroupId, "baz")
+                    [ConfigurationKey.GroupId] = "foo",
+                    [ConfigurationKey.BootstrapServers] = "bar"
+                })).WithConfiguration(ConfigurationKey.GroupId, "baz")
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationProperties.GroupId, "baz");
+            AssertKeyValue(configuration, ConfigurationKey.GroupId, "baz");
         }
 
         [Fact]
@@ -117,15 +117,15 @@ namespace Dafda.Tests.Configuration
             var configuration = new ConsumerConfigurationBuilder()
                 .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
                 {
-                    [ConfigurationProperties.GroupId] = "foo",
-                    [ConfigurationProperties.BootstrapServers] = "bar",
+                    [ConfigurationKey.GroupId] = "foo",
+                    [ConfigurationKey.BootstrapServers] = "bar",
                     ["GROUP_ID"] = "baz",
                 }))
                 .WithNamingConvention(NamingConvention.Default)
-                .WithEnvironmentNamingConvention()
+                .WithNamingConvention(NamingConvention.UseEnvironmentStyle())
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationProperties.GroupId, "foo");
+            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
         }
     }
 }
