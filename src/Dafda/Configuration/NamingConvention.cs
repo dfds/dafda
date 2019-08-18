@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Dafda.Configuration
 {
-    public class NamingConvention
+    public sealed class NamingConvention
     {
         public static readonly NamingConvention Default = new NamingConvention();
 
@@ -40,7 +40,7 @@ namespace Dafda.Configuration
             _converter = converter ?? (s => s);
         }
 
-        public virtual string GetKey(string key)
+        public string GetKey(string key)
         {
             return _converter(key);
         }
