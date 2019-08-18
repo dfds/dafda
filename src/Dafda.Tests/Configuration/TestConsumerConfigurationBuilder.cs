@@ -14,13 +14,13 @@ namespace Dafda.Tests.Configuration
 
             Assert.Throws<InvalidConfigurationException>(() => sut.Build());
         }
-        
+
         [Fact]
         public void Can_build_minimal_configuration()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfiguration(ConfigurationKey.GroupId, "foo")
-                .WithConfiguration(ConfigurationKey.BootstrapServers, "bar")
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
                 .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");

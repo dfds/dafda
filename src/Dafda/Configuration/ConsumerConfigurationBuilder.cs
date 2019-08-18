@@ -42,6 +42,16 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder WithGroupId(string groupId)
+        {
+            return WithConfiguration(ConfigurationKey.GroupId, groupId);
+        }
+
+        public ConsumerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
+        {
+            return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
+        }
+
         protected override IEnumerable<string> GetRequiredConfigurationKeys()
         {
             return RequiredConfigurationKeys;
