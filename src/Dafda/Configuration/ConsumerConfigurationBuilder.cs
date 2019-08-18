@@ -24,9 +24,9 @@ namespace Dafda.Configuration
             ConfigurationKey.BootstrapServers
         };
 
-        public ConsumerConfigurationBuilder WithConfigurationProvider(ConfigurationProvider configurationProvider)
+        public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
-            SetConfigurationProvider(configurationProvider);
+            SetConfigurationSource(configurationSource);
             return this;
         }
 
@@ -35,7 +35,6 @@ namespace Dafda.Configuration
             AddNamingConvention(namingConvention);
             return this;
         }
-
 
         public ConsumerConfigurationBuilder WithConfiguration(string key, string value)
         {

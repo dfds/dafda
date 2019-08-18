@@ -12,7 +12,7 @@ namespace Dafda.Configuration
         private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
         private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
 
-        private ConfigurationProvider _configurationProvider = ConfigurationProvider.Null;
+        private ConfigurationSource _configurationSource = ConfigurationSource.Null;
 
         private protected ConfigurationBuilderBase()
         {
@@ -23,9 +23,9 @@ namespace Dafda.Configuration
             _configurations[key] = value;
         }
 
-        protected void SetConfigurationProvider(ConfigurationProvider configurationProvider)
+        protected void SetConfigurationSource(ConfigurationSource configurationSource)
         {
-            _configurationProvider = configurationProvider;
+            _configurationSource = configurationSource;
         }
 
         protected void AddNamingConvention(NamingConvention namingConvention)
@@ -75,17 +75,17 @@ namespace Dafda.Configuration
 
         private string GetByKey(string key)
         {
-            Logger.Debug("Looking for {Key} in {ProviderName} using keys {AttemptedKeys}", key, GetProviderName(), GetAttemptedKeys(key));
+            Logger.Debug("Looking for {Key} in {SourceName} using keys {AttemptedKeys}", key, GetSourceName(), GetAttemptedKeys(key));
 
             return _namingConventions
                 .Select(namingConvention => namingConvention.GetKey(key))
-                .Select(actualKey => _configurationProvider.GetByKey(actualKey))
+                .Select(actualKey => _configurationSource.GetByKey(actualKey))
                 .FirstOrDefault(value => value != null);
         }
 
-        private string GetProviderName()
+        private string GetSourceName()
         {
-            return _configurationProvider.GetType().Name;
+            return _configurationSource.GetType().Name;
         }
 
         private IEnumerable<string> GetAttemptedKeys(string key)
@@ -99,7 +99,7 @@ namespace Dafda.Configuration
             {
                 if (!_configurations.TryGetValue(key, out var value) || string.IsNullOrEmpty(value))
                 {
-                    var message = $"Expected key '{key}' not supplied in '{GetProviderName()}' (attempted keys: '{string.Join("', '", GetAttemptedKeys(key))}')";
+                    var message = $"Expected key '{key}' not supplied in '{GetSourceName()}' (attempted keys: '{string.Join("', '", GetAttemptedKeys(key))}')";
                     throw new InvalidConfigurationException(message);
                 }
             }

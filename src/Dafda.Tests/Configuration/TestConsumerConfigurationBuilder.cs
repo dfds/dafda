@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Dafda.Configuration;
 using Dafda.Tests.TestDoubles;
@@ -36,29 +35,27 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Can_ignore_values_from_configuration_provider()
+        public void Can_ignore_out_of_scope_values_from_configuration_source()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
-                {
-                    [ConfigurationKey.GroupId] = "foo",
-                    [ConfigurationKey.BootstrapServers] = "bar",
-                    ["dummy"] = "baz"
-                }))
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar"),
+                    (key: "dummy", value: "baz")
+                ))
                 .Build();
 
             AssertKeyValue(configuration, "dummy", null);
         }
 
         [Fact]
-        public void Can_use_configuration_value_from_provider()
+        public void Can_use_configuration_value_from_source()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
-                {
-                    [ConfigurationKey.GroupId] = "foo",
-                    [ConfigurationKey.BootstrapServers] = "bar"
-                }))
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar")
+                ))
                 .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
@@ -66,14 +63,13 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Can_use_configuration_value_from_provider_with_environment_naming_convention()
+        public void Can_use_configuration_value_from_source_with_environment_naming_convention()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
-                {
-                    ["GROUP_ID"] = "foo",
-                    ["BOOTSTRAP_SERVERS"] = "bar"
-                }))
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: "GROUP_ID", value: "foo"),
+                    (key: "BOOTSTRAP_SERVERS", value: "bar")
+                ))
                 .WithNamingConvention(NamingConvention.UseEnvironmentStyle())
                 .Build();
 
@@ -82,14 +78,13 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Can_use_configuration_value_from_provider_with_environment_naming_convention_and_prefix()
+        public void Can_use_configuration_value_from_source_with_environment_naming_convention_and_prefix()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
-                {
-                    ["DEFAULT_KAFKA_GROUP_ID"] = "foo",
-                    ["DEFAULT_KAFKA_BOOTSTRAP_SERVERS"] = "bar"
-                }))
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: "DEFAULT_KAFKA_GROUP_ID", value: "foo"),
+                    (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
+                ))
                 .WithNamingConvention(NamingConvention.UseEnvironmentStyle("DEFAULT_KAFKA"))
                 .Build();
 
@@ -98,29 +93,27 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Can_overwrite_values_from_provider()
+        public void Can_overwrite_values_from_source()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
-                {
-                    [ConfigurationKey.GroupId] = "foo",
-                    [ConfigurationKey.BootstrapServers] = "bar"
-                })).WithConfiguration(ConfigurationKey.GroupId, "baz")
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar")
+                )).WithConfiguration(ConfigurationKey.GroupId, "baz")
                 .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "baz");
         }
 
         [Fact]
-        public void Only_take_value_from_first_provider_that_matches()
+        public void Only_take_value_from_first_source_that_matches()
         {
             var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationProvider(new ConfigurationProviderStub(new Dictionary<string, string>
-                {
-                    [ConfigurationKey.GroupId] = "foo",
-                    [ConfigurationKey.BootstrapServers] = "bar",
-                    ["GROUP_ID"] = "baz",
-                }))
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar"),
+                    (key: "GROUP_ID", value: "baz")
+                ))
                 .WithNamingConvention(NamingConvention.Default)
                 .WithNamingConvention(NamingConvention.UseEnvironmentStyle())
                 .Build();
