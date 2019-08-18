@@ -70,7 +70,7 @@ namespace Dafda.Tests.Configuration
                     (key: "GROUP_ID", value: "foo"),
                     (key: "BOOTSTRAP_SERVERS", value: "bar")
                 ))
-                .WithNamingConvention(NamingConvention.UseEnvironmentStyle())
+                .UseEnvironmentStyle()
                 .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
@@ -85,7 +85,7 @@ namespace Dafda.Tests.Configuration
                     (key: "DEFAULT_KAFKA_GROUP_ID", value: "foo"),
                     (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
                 ))
-                .WithNamingConvention(NamingConvention.UseEnvironmentStyle("DEFAULT_KAFKA"))
+                .UseEnvironmentStyle("DEFAULT_KAFKA")
                 .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
@@ -115,7 +115,7 @@ namespace Dafda.Tests.Configuration
                     (key: "GROUP_ID", value: "baz")
                 ))
                 .WithNamingConvention(NamingConvention.Default)
-                .WithNamingConvention(NamingConvention.UseEnvironmentStyle())
+                .UseEnvironmentStyle()
                 .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
