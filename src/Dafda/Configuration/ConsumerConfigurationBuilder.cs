@@ -24,25 +24,25 @@ namespace Dafda.Configuration
             ConfigurationKey.BootstrapServers
         };
 
-        public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
+        public ConsumerConfigurationBuilder UseConfigurationSource(ConfigurationSource configurationSource)
         {
             SetConfigurationSource(configurationSource);
             return this;
         }
 
-        public ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
+        public ConsumerConfigurationBuilder AppendNamingConvention(NamingConvention namingConvention)
         {
             AddNamingConvention(namingConvention);
             return this;
         }
 
-        public ConsumerConfigurationBuilder UseEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
+        public ConsumerConfigurationBuilder AppendEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
         {
-            WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
+            AppendNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
 
             foreach (var additionalPrefix in additionalPrefixes)
             {
-                WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
+                AppendNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
             }
 
             return this;
