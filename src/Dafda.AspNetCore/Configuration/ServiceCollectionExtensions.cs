@@ -2,51 +2,54 @@ using System;
 using Dafda.Consuming;
 using Dafda.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using TopicSubscriber = Dafda.Consuming.TopicSubscriber;
 
 namespace Dafda.Configuration
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection ConfigureConsumer(this IServiceCollection services, Action<IConsumerConfiguration> config)
+        public static IMessageHandlerRegistrationBuilder AddConsumer(this IServiceCollection services, Action<ConsumerConfigurationBuilder> options = null)
         {
-            var handlerRegistry = new MessageHandlerRegistry();
-            var handlerConfiguration = new MessageHandlerConfiguration(services, handlerRegistry);
-            var consumerConfiguration = new ConsumerConfiguration(handlerConfiguration);
-            config(consumerConfiguration);
-
-            services.AddSingleton(handlerRegistry);
-            services.AddSingleton<IMessageHandlerRegistry>(handlerRegistry);
-
             services.AddSingleton(provider =>
             {
-                var logger = provider.GetService<ILogger<ConsumerConfiguration>>();
-                var configurationProvider = new DefaultConfigurationProvider(provider.GetService<Microsoft.Extensions.Configuration.IConfiguration>());
+//                var logger = provider.GetService<ILogger<ConsumerConfiguration>>();
 
-                var configuration = consumerConfiguration.BuildConfiguration(configurationProvider);
+                var defaultConfiguration = provider.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
+                var configurationProvider = new DefaultConfigurationSource(defaultConfiguration);
+
+                var configurationBuilder = new ConsumerConfigurationBuilder();
+                configurationBuilder.UseConfigurationSource(configurationProvider);
+
+                options?.Invoke(configurationBuilder);
+
+                var configuration = configurationBuilder.Build();
 
                 foreach (var (key, value) in configuration)
                 {
-                    logger.LogDebug("CFG: {Key}= {Value}", key, value);
+//                    logger.LogDebug("CFG: {Key}= {Value}", key, value);
                 }
 
                 return configuration;
             });
 
+            var handlerRegistry = new MessageHandlerRegistry();
+
+            services.AddSingleton<ITopicProvider>(handlerRegistry);
+            services.AddSingleton<IMessageHandlerRegistry>(handlerRegistry);
             services.AddTransient<IConsumerFactory, ConsumerFactory>();
             services.AddTransient<ILocalMessageDispatcher, LocalMessageDispatcher>();
             services.AddTransient<ITypeResolver, ServiceProviderBasedTypeResolver>();
             services.AddTransient<TopicSubscriber>();
             services.AddHostedService<SubscriberHostedService>();
 
-            return services;
+            return new MessageHandlerRegistrationBuilder(services, handlerRegistry);
         }
 
-        private class DefaultConfigurationProvider : ConfigurationProvider
+        private class DefaultConfigurationSource : ConfigurationSource
         {
             private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
-            public DefaultConfigurationProvider(Microsoft.Extensions.Configuration.IConfiguration configuration)
+            public DefaultConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration)
             {
                 _configuration = configuration;
             }
