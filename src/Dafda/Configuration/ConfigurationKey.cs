@@ -1,16 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace Dafda.Configuration
 {
-    public class ConfigurationKey
+    internal class ConfigurationKey
     {
         public static readonly ConfigurationKey GroupId = new ConfigurationKey("group.id", ConfigurationKeyGroup.ConsumerOnly);
         public static readonly ConfigurationKey EnableAutoCommit = new ConfigurationKey("enable.auto.commit", ConfigurationKeyGroup.ConsumerOnly);
-
         public static readonly ConfigurationKey BootstrapServers = new ConfigurationKey("bootstrap.servers");
-
         public static readonly ConfigurationKey BrokerVersionFallback = new ConfigurationKey("broker.version.fallback");
         public static readonly ConfigurationKey ApiVersionFallbackMs = new ConfigurationKey("api.version.fallback.ms");
         public static readonly ConfigurationKey SslCaLocation = new ConfigurationKey("ssl.ca.location");
@@ -18,6 +17,18 @@ namespace Dafda.Configuration
         public static readonly ConfigurationKey SaslPassword = new ConfigurationKey("sasl.password");
         public static readonly ConfigurationKey SaslMechanisms = new ConfigurationKey("sasl.mechanisms");
         public static readonly ConfigurationKey SecurityProtocol = new ConfigurationKey("security.protocol");
+
+        private static readonly Lazy<ConfigurationKey[]> AllConfigurationKeys = new Lazy<ConfigurationKey[]>(GetAll);
+
+        private static ConfigurationKey[] GetAll()
+        {
+            var type = typeof(ConfigurationKey);
+
+            return type.GetFields(BindingFlags.Static | BindingFlags.Public)
+                .Where(field => field.FieldType == type)
+                .Select(x => (ConfigurationKey) x.GetValue(null))
+                .ToArray();
+        }
 
         private readonly string _key;
         private readonly bool _isConsumer;
@@ -40,26 +51,16 @@ namespace Dafda.Configuration
             return _key;
         }
 
-        public static ConfigurationKey[] GetAll()
-        {
-            var type = typeof(ConfigurationKey);
-
-            return type.GetFields(BindingFlags.Static | BindingFlags.Public)
-                .Where(field => field.FieldType == type)
-                .Select(x => (ConfigurationKey) x.GetValue(null))
-                .ToArray();
-        }
-
         public static ConfigurationKey[] GetAllConsumerKeys()
         {
-            return GetAll()
+            return AllConfigurationKeys.Value
                 .Where(x => x._isConsumer)
                 .ToArray();
         }
 
         public static ConfigurationKey[] GetAllProducerKeys()
         {
-            return GetAll()
+            return AllConfigurationKeys.Value
                 .Where(x => x._isProducer)
                 .ToArray();
         }
