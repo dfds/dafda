@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace Dafda.Messaging
@@ -16,7 +16,7 @@ namespace Dafda.Messaging
             }
 
             if (handlerUnitOfWorkFactory == null)
-            {
+        {
                 throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
             }
 
