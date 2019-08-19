@@ -1,47 +1,16 @@
 using System;
-using Dafda.Consuming;
 using Dafda.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
 {
-    public static class ServiceCollectionExtensions
+    public static class ConsumerConfigurationBuilderExtensions
     {
-        public static IMessageHandlerRegistrationBuilder AddConsumer(this IServiceCollection services, Action<ConsumerConfigurationBuilder> options = null)
+        public static ConsumerConfigurationBuilder WithConfigurationSource(this ConsumerConfigurationBuilder builder, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
-            services.AddSingleton(provider =>
-            {
-//                var logger = provider.GetService<ILogger<ConsumerConfiguration>>();
+            builder.WithConfigurationSource(new DefaultConfigurationSource(configuration));
 
-                var defaultConfiguration = provider.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
-                var configurationProvider = new DefaultConfigurationSource(defaultConfiguration);
-
-                var configurationBuilder = new ConsumerConfigurationBuilder();
-                configurationBuilder.UseConfigurationSource(configurationProvider);
-
-                options?.Invoke(configurationBuilder);
-
-                var configuration = configurationBuilder.Build();
-
-                foreach (var (key, value) in configuration)
-                {
-//                    logger.LogDebug("CFG: {Key}= {Value}", key, value);
-                }
-
-                return configuration;
-            });
-
-            var handlerRegistry = new MessageHandlerRegistry();
-
-            services.AddSingleton<ITopicProvider>(handlerRegistry);
-            services.AddSingleton<IMessageHandlerRegistry>(handlerRegistry);
-            services.AddTransient<IConsumerFactory, ConsumerFactory>();
-            services.AddTransient<ILocalMessageDispatcher, LocalMessageDispatcher>();
-            services.AddTransient<ITypeResolver, ServiceProviderBasedTypeResolver>();
-            services.AddTransient<TopicSubscriber>();
-            services.AddHostedService<SubscriberHostedService>();
-
-            return new MessageHandlerRegistrationBuilder(services, handlerRegistry);
+            return builder;
         }
 
         private class DefaultConfigurationSource : ConfigurationSource
@@ -57,6 +26,27 @@ namespace Dafda.Configuration
             {
                 return _configuration[keyName];
             }
+        }
+    }
+
+    public static class ServiceCollectionExtensions
+    {
+        public static void AddConsumer(this IServiceCollection services, Action<ConsumerConfigurationBuilder> options = null)
+        {
+            var configurationBuilder = new ConsumerConfigurationBuilder();
+            options?.Invoke(configurationBuilder);
+            IConsumerConfiguration configuration = configurationBuilder.Build();
+
+            services.AddSingleton<IConfiguration>(configuration);
+
+            services.AddTransient<ILocalMessageDispatcher>(provider => new LocalMessageDispatcher(configuration.MessageHandlerRegistry, new ServiceProviderBasedTypeResolver(provider)));
+
+//            services.AddSingleton<ITopicProvider>(configuration.MessageHandlerRegistry);
+//            services.AddSingleton<IMessageHandlerRegistry>(configuration.MessageHandlerRegistry);
+//            services.AddTransient<IConsumerFactory, ConsumerFactory>();
+//            services.AddTransient<ITypeResolver, ServiceProviderBasedTypeResolver>();
+//            services.AddTransient<TopicSubscriber>();
+//            services.AddHostedService<SubscriberHostedService>();
         }
 
         private class ServiceProviderBasedTypeResolver : ITypeResolver

@@ -1,9 +1,23 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Dafda.Logging;
+using Dafda.Messaging;
 
 namespace Dafda.Configuration
 {
-    public class ConsumerConfigurationBuilder : ConfigurationBuilderBase
+    public interface IConsumerConfiguration : IConfiguration
     {
+        IMessageHandlerRegistry MessageHandlerRegistry { get; }
+
+        ILocalMessageDispatcher CreateLocalMessageDispatcher();
+    }
+
+    public class ConsumerConfigurationBuilder //: ConfigurationBuilderBase
+    {
+        private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+
         private static readonly string[] DefaultConfigurationKeys =
         {
             ConfigurationKey.GroupId,
@@ -24,25 +38,32 @@ namespace Dafda.Configuration
             ConfigurationKey.BootstrapServers
         };
 
-        public ConsumerConfigurationBuilder UseConfigurationSource(ConfigurationSource configurationSource)
+        private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
+        private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
+        private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
+
+        private ConfigurationSource _configurationSource = ConfigurationSource.Null;
+        private ITypeResolver _typeResolver = new DefaultTypeResolver();
+
+        public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
-            SetConfigurationSource(configurationSource);
+            _configurationSource = configurationSource;
             return this;
         }
 
-        public ConsumerConfigurationBuilder AppendNamingConvention(NamingConvention namingConvention)
+        public ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
         {
-            AddNamingConvention(namingConvention);
+            _namingConventions.Add(namingConvention);
             return this;
         }
 
-        public ConsumerConfigurationBuilder AppendEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
+        public ConsumerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
         {
-            AppendNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
+            WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
 
             foreach (var additionalPrefix in additionalPrefixes)
             {
-                AppendNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
+                WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
             }
 
             return this;
@@ -50,7 +71,7 @@ namespace Dafda.Configuration
 
         public ConsumerConfigurationBuilder WithConfiguration(string key, string value)
         {
-            SetConfigurationValue(key, value);
+            _configurations[key] = value;
             return this;
         }
 
@@ -64,14 +85,113 @@ namespace Dafda.Configuration
             return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
-        protected override IEnumerable<string> GetRequiredConfigurationKeys()
+        public ConsumerConfigurationBuilder WithTypeResolver(ITypeResolver typeResolver)
         {
-            return RequiredConfigurationKeys;
+            _typeResolver = typeResolver;
+            return this;
         }
 
-        protected override IEnumerable<string> GetDefaultConfigurationKeys()
+        public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
+            where TMessage : class, new()
+            where TMessageHandler : IMessageHandler<TMessage>
         {
-            return DefaultConfigurationKeys;
+            _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
+            return this;
+        }
+
+        public IConsumerConfiguration Build()
+        {
+            if (!_namingConventions.Any())
+            {
+                _namingConventions.Add(NamingConvention.Default);
+            }
+
+            FillConfiguration();
+
+            ValidateConfiguration();
+
+            return new ConsumerConfiguration(_configurations, _messageHandlerRegistry, _typeResolver);
+        }
+
+        private void FillConfiguration()
+        {
+            foreach (var key in AllKeys)
+            {
+                if (_configurations.ContainsKey(key))
+                {
+                    continue;
+                }
+
+                var value = GetByKey(key);
+                if (value != null)
+                {
+                    _configurations[key] = value;
+                }
+            }
+        }
+
+        private static IEnumerable<string> AllKeys => DefaultConfigurationKeys.Concat(RequiredConfigurationKeys).Distinct();
+
+        private string GetByKey(string key)
+        {
+            Logger.Debug("Looking for {Key} in {SourceName} using keys {AttemptedKeys}", key, GetSourceName(), GetAttemptedKeys(key));
+
+            return _namingConventions
+                .Select(namingConvention => namingConvention.GetKey(key))
+                .Select(actualKey => _configurationSource.GetByKey(actualKey))
+                .FirstOrDefault(value => value != null);
+        }
+
+        private string GetSourceName()
+        {
+            return _configurationSource.GetType().Name;
+        }
+
+        private IEnumerable<string> GetAttemptedKeys(string key)
+        {
+            return _namingConventions.Select(convention => convention.GetKey(key));
+        }
+
+        private void ValidateConfiguration()
+        {
+            foreach (var key in RequiredConfigurationKeys)
+            {
+                if (!_configurations.TryGetValue(key, out var value) || string.IsNullOrEmpty(value))
+                {
+                    var message = $"Expected key '{key}' not supplied in '{GetSourceName()}' (attempted keys: '{string.Join("', '", GetAttemptedKeys(key))}')";
+                    throw new InvalidConfigurationException(message);
+                }
+            }
+        }
+
+        private class ConsumerConfiguration : IConsumerConfiguration
+        {
+            private readonly IDictionary<string, string> _configuration;
+            private readonly ITypeResolver _typeResolver;
+
+            public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, ITypeResolver typeResolver)
+            {
+                _configuration = configuration;
+                MessageHandlerRegistry = messageHandlerRegistry;
+                _typeResolver = typeResolver;
+            }
+
+            public IMessageHandlerRegistry MessageHandlerRegistry { get; }
+
+            public ILocalMessageDispatcher CreateLocalMessageDispatcher()
+            {
+                return new LocalMessageDispatcher(MessageHandlerRegistry, _typeResolver);
+            }
+
+            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+            {
+                return _configuration.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable) _configuration).GetEnumerator();
+            }
         }
     }
 }

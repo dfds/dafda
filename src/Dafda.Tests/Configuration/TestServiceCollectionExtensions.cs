@@ -14,11 +14,14 @@ namespace Dafda.Tests.Configuration
         public void Can_get_configuration()
         {
             var services = new ServiceCollection();
-            services.AddSingleton<Microsoft.Extensions.Configuration.IConfiguration>(provider => new ConfigurationStub(
-                ("SERVICE_GROUP_ID", "foo"),
-                ("DEFAULT_KAFKA_BOOTSTRAP_SERVERS", "bar"))
-            );
-            services.AddConsumer(options => options.AppendEnvironmentStyle("SERVICE", "DEFAULT_KAFKA"));
+            services.AddConsumer(options =>
+            {
+                options.WithConfigurationSource(new ConfigurationStub(
+                    ("SERVICE_GROUP_ID", "foo"),
+                    ("DEFAULT_KAFKA_BOOTSTRAP_SERVERS", "bar"))
+                );
+                options.WithEnvironmentStyle("SERVICE", "DEFAULT_KAFKA");
+            });
 
             var serviceProvider = services.BuildServiceProvider();
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
@@ -32,8 +35,13 @@ namespace Dafda.Tests.Configuration
         {
             var services = new ServiceCollection();
             services
-                .AddConsumer(options => { options.WithGroupId("foo").WithBootstrapServers("localhost"); })
-                .AddMessageHandlers(config => { config.FromTopic("foo").OnMessage<DummyMessage, DummyMessageHandler>("bar"); });
+                .AddConsumer(options =>
+                {
+                    options.WithGroupId("foo");
+                    options.WithBootstrapServers("localhost");
+                    options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("foo", "bar");
+                });
+
             services.AddSingleton<DummyMessageHandler>(); // NOTE: overwrite as singleton only for testing purposes
             services.AddTransient<IHandlerUnitOfWorkFactory, DefaultUnitOfWorkFactory>();
 
