@@ -35,6 +35,7 @@ namespace Dafda.Tests.Configuration
                 .AddConsumer(options => { options.WithGroupId("foo").WithBootstrapServers("localhost"); })
                 .AddMessageHandlers(config => { config.FromTopic("foo").OnMessage<DummyMessage, DummyMessageHandler>("bar"); });
             services.AddSingleton<DummyMessageHandler>(); // NOTE: overwrite as singleton only for testing purposes
+            services.AddTransient<IHandlerUnitOfWorkFactory, DefaultUnitOfWorkFactory>();
 
             var provider = services.BuildServiceProvider();
             var dispatcher = provider.GetRequiredService<ILocalMessageDispatcher>();

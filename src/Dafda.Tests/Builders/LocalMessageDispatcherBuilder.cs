@@ -1,4 +1,5 @@
-﻿using Dafda.Messaging;
+﻿using System;
+using Dafda.Messaging;
 using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
@@ -6,12 +7,11 @@ namespace Dafda.Tests.Builders
     public class LocalMessageDispatcherBuilder
     {
         private IMessageHandlerRegistry _messageHandlerRegistry;
-        private ITypeResolver _typeResolver;
+        private IHandlerUnitOfWorkFactory _handlerUnitOfWorkFactory;
 
         public LocalMessageDispatcherBuilder()
         {
             _messageHandlerRegistry = Dummy.Of<IMessageHandlerRegistry>();
-            _typeResolver = Dummy.Of<ITypeResolver>();
         }
 
         public LocalMessageDispatcherBuilder WithMessageHandlerRegistry(IMessageHandlerRegistry messageHandlerRegistry)
@@ -20,15 +20,30 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public LocalMessageDispatcherBuilder WithTypeResolver(ITypeResolver typeResolver)
+        public LocalMessageDispatcherBuilder WithHandlerUnitOfWorkFactory(IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
         {
-            _typeResolver = typeResolver;
+            _handlerUnitOfWorkFactory = handlerUnitOfWorkFactory;
             return this;
         }
-        
+
         public LocalMessageDispatcher Build()
         {
-            return new LocalMessageDispatcher(_messageHandlerRegistry, _typeResolver);
+            return new LocalMessageDispatcher(_messageHandlerRegistry, _handlerUnitOfWorkFactory);
+        }
+    }
+
+    public class HandlerUnitOfWorkFactoryStub : IHandlerUnitOfWorkFactory
+    {
+        private readonly IHandlerUnitOfWork _result;
+
+        public HandlerUnitOfWorkFactoryStub(IHandlerUnitOfWork result)
+        {
+            _result = result;
+        }
+
+        public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
+        {
+            return _result;
         }
     }
 }

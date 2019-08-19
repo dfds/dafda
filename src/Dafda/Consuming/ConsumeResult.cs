@@ -1,18 +1,25 @@
-using Confluent.Kafka;
+using System;
+using System.Threading.Tasks;
 
 namespace Dafda.Consuming
 {
     public class ConsumeResult
     {
-        private readonly ConsumeResult<string, string> _result;
+        private static readonly Action EmptyCommitAction = () => { };
+        private readonly Action _onCommit;
 
-        internal ConsumeResult(ConsumeResult<string, string> result)
+        public ConsumeResult(string value, Action onCommit = null)
         {
-            _result = result;
+            Value = value;
+            _onCommit = onCommit ?? EmptyCommitAction;
         }
 
-        public string Value => _result.Value;
-        
-        internal ConsumeResult<string, string> InnerResult => _result;
+        public string Value { get; }
+
+        public Task Commit()
+        {
+            _onCommit();
+            return Task.CompletedTask;
+        }
     }
 }

@@ -14,11 +14,15 @@ namespace Dafda.Tests.Messaging
         public async Task throws_expected_exception_when_dispatching_and_no_handler_has_been_registered()
         {
             var transportMessageStub = new TransportLevelMessageBuilder().Build();
+            var emptyMessageHandlerRegistryStub = new MessageHandlerRegistryStub();
+            var dummyFactory = new HandlerUnitOfWorkFactoryStub(null);
+
             var sut = new LocalMessageDispatcherBuilder()
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub())
+                .WithMessageHandlerRegistry(emptyMessageHandlerRegistryStub)
+                .WithHandlerUnitOfWorkFactory(dummyFactory)
                 .Build();
 
-            await Assert.ThrowsAsync<MissingMessageHandlerException>(() => sut.Dispatch(transportMessageStub));
+            await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.Dispatch(transportMessageStub));
         }
 
         [Fact]
@@ -29,10 +33,10 @@ namespace Dafda.Tests.Messaging
 
             var sut = new LocalMessageDispatcherBuilder()
                 .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
-                .WithTypeResolver(new TypeResolverStub(null))
+                .WithHandlerUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(null))
                 .Build();
 
-            await Assert.ThrowsAsync<UnableToResolveMessageHandlerException>(() => sut.Dispatch(transportMessageStub));
+            await Assert.ThrowsAsync<UnableToResolveUnitOfWorkForHandlerException>(() => sut.Dispatch(transportMessageStub));
         }
 
         [Fact]
@@ -43,9 +47,11 @@ namespace Dafda.Tests.Messaging
             var transportMessageDummy = new TransportLevelMessageBuilder().Build();
             var registrationDummy = new MessageRegistrationBuilder().Build();
 
+            var typeResolverStub = new TypeResolverStub(mock.Object);
+
             var sut = new LocalMessageDispatcherBuilder()
-                .WithTypeResolver(new TypeResolverStub(mock.Object))
                 .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(registrationDummy))
+                .WithHandlerUnitOfWorkFactory(new DefaultUnitOfWorkFactory(typeResolverStub))
                 .Build();
 
             await sut.Dispatch(transportMessageDummy);
@@ -60,8 +66,8 @@ namespace Dafda.Tests.Messaging
             var registrationDummy = new MessageRegistrationBuilder().Build();
 
             var sut = new LocalMessageDispatcherBuilder()
-                .WithTypeResolver(new TypeResolverStub(new ErroneusHandler()))
                 .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(registrationDummy))
+                .WithHandlerUnitOfWorkFactory(new DefaultUnitOfWorkFactory(new TypeResolverStub(new ErroneusHandler())))
                 .Build();
 
             await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(transportMessageDummy));

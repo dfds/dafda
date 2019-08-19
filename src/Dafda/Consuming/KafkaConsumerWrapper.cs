@@ -15,12 +15,11 @@ namespace Dafda.Consuming
         public ConsumeResult Consume(CancellationToken cancellationToken)
         {
             var result = _kafkaConsumer.Consume(cancellationToken);
-            return new ConsumeResult(result);
-        }
 
-        public void Commit(ConsumeResult result)
-        {
-            _kafkaConsumer.Commit(result.InnerResult);
+            return new ConsumeResult(
+                value: result.Value,
+                onCommit: () => _kafkaConsumer.Commit(result)
+            );
         }
 
         public void Dispose()

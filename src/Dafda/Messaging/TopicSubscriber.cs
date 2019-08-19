@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,21 +17,26 @@ namespace Dafda.Messaging
             _consumerFactory = consumerFactory;
             _localMessageDispatcher = localMessageDispatcher;
         }
-        
+
         public async Task Start(IConfiguration configuration, IEnumerable<string> topicNames, CancellationToken cancellationToken)
         {
             using (var consumer = _consumerFactory.CreateConsumer(configuration, topicNames))
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var consumeResult = consumer.Consume(cancellationToken);
-                    var message = new JsonMessageEmbeddedDocument(consumeResult.Value);
-                    
-                    await _localMessageDispatcher.Dispatch(message);
-                    
-                    consumer.Commit(consumeResult);
+                    await ProcessNextMessage(consumer, cancellationToken);
                 }
             }
+        }
+
+        public async Task ProcessNextMessage(IConsumer consumer, CancellationToken cancellationToken)
+        {
+            var consumeResult = consumer.Consume(cancellationToken);
+            var message = new JsonMessageEmbeddedDocument(consumeResult.Value);
+
+            await _localMessageDispatcher.Dispatch(message);
+
+            await consumeResult.Commit();
         }
     }
 }
