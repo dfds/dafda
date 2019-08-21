@@ -56,47 +56,4 @@ namespace Dafda.Messaging
             return handler.Handle(message);
         }
     }
-
-    public interface IHandlerUnitOfWork
-    {
-        Task Run(Func<object, Task> handlingAction);
-    }
-
-    public interface IHandlerUnitOfWorkFactory
-    {
-        IHandlerUnitOfWork CreateForHandlerType(Type handlerType);
-    }
-
-    public class DefaultUnitOfWorkFactory : IHandlerUnitOfWorkFactory
-    {
-        private readonly ITypeResolver _typeResolver;
-
-        public DefaultUnitOfWorkFactory(ITypeResolver typeResolver)
-        {
-            _typeResolver = typeResolver;
-        }
-
-        public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
-        {
-            return new DefaultUnitOfWork(_typeResolver, handlerType);
-        }
-    }
-
-    public class DefaultUnitOfWork : IHandlerUnitOfWork
-    {
-        private readonly ITypeResolver _typeResolver;
-        private readonly Type _handlerType;
-
-        public DefaultUnitOfWork(ITypeResolver typeResolver, Type handlerType)
-        {
-            _typeResolver = typeResolver;
-            _handlerType = handlerType;
-        }
-
-        public async Task Run(Func<object, Task> handlingAction)
-        {
-            var handler = _typeResolver.Resolve(_handlerType);
-            await handlingAction(handler);
-        }
-    }
 }
