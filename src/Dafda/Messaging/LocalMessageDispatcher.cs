@@ -39,10 +39,7 @@ namespace Dafda.Messaging
         public async Task Dispatch(ITransportLevelMessage message)
         {
             var registration = GetMessageRegistrationFor(message);
-
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
-
-            #region handling scope
 
             var unitOfWork = _handlerUnitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType);
 
@@ -52,16 +49,6 @@ namespace Dafda.Messaging
             }
 
             await unitOfWork.Run(handler2 => ExecuteHandler((dynamic)messageInstance, (dynamic)handler2));
-
-            //var handler = _typeResolver.Resolve(registration.HandlerInstanceType);
-            //if (handler == null)
-            //{
-            //    throw new UnableToResolveMessageHandlerException($"Type resolver {_typeResolver.GetType().FullName} resolved handler type {registration.HandlerInstanceType.FullName} to NULL.");
-            //}
-
-            //await ExecuteHandler((dynamic)messageInstance, (dynamic)handler);
-
-            #endregion
         }
 
         private static Task ExecuteHandler<TMessage>(TMessage message, IMessageHandler<TMessage> handler) where TMessage : class, new()
@@ -73,7 +60,6 @@ namespace Dafda.Messaging
     public interface IHandlerUnitOfWork
     {
         Task Run(Func<object, Task> handlingAction);
-        //Task Run<TMessage>(Func<IMessageHandler<TMessage>, Task> handlingAction) where TMessage : class, new();
     }
 
     public interface IHandlerUnitOfWorkFactory
@@ -111,11 +97,6 @@ namespace Dafda.Messaging
         {
             var handler = _typeResolver.Resolve(_handlerType);
             await handlingAction(handler);
-        }
-
-        public Task Run<TMessage>(Func<IMessageHandler<TMessage>, Task> handlingAction) where TMessage : class, new()
-        {
-            throw new NotImplementedException();
         }
     }
 }
