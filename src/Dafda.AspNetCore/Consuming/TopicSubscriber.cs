@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
+    [Obsolete]
     internal class TopicSubscriber
     {
         private readonly ILoggerFactory _loggerFactory;

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
+    [Obsolete]
     internal abstract class MessageProcessingScope : IDisposable
     {
         private readonly IConsumer<string, string> _consumer;
@@ -43,6 +44,7 @@ namespace Dafda.Configuration
         protected abstract void OnDispose();
     }
 
+    [Obsolete]
     internal class ServiceProviderBasedMessageProcessingScope : MessageProcessingScope
     {
         public ServiceProviderBasedMessageProcessingScope(ILoggerFactory loggerFactory, IConsumer<string, string> consumer, IServiceProvider serviceProvider) : base(loggerFactory, consumer)
