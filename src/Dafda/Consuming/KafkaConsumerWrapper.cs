@@ -3,7 +3,7 @@ using Confluent.Kafka;
 
 namespace Dafda.Consuming
 {
-    internal class KafkaConsumerWrapper : IConsumer
+    internal class KafkaConsumerWrapper : IInternalConsumer
     {
         private readonly IConsumer<string, string> _kafkaConsumer;
 

@@ -30,5 +30,10 @@ namespace Dafda.Tests.TestDoubles
         {
             return _result.FirstOrDefault();
         }
+
+        public IEnumerable<string> GetAllSubscribedTopics()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

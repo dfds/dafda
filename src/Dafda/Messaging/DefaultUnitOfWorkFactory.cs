@@ -4,16 +4,22 @@ namespace Dafda.Messaging
 {
     public class DefaultUnitOfWorkFactory : IHandlerUnitOfWorkFactory
     {
-        private readonly ITypeResolver _typeResolver;
+        private readonly Func<Type, IHandlerUnitOfWork> _unitOfWorkFactory;
 
-        public DefaultUnitOfWorkFactory(ITypeResolver typeResolver)
+        public DefaultUnitOfWorkFactory(ITypeResolver typeResolver) 
+            : this(type => new DefaultUnitOfWork(typeResolver, type))
         {
-            _typeResolver = typeResolver;
+
+        }
+
+        public DefaultUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> unitOfWorkFactory)
+        {
+            _unitOfWorkFactory = unitOfWorkFactory;
         }
 
         public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
         {
-            return new DefaultUnitOfWork(_typeResolver, handlerType);
+            return _unitOfWorkFactory(handlerType);
         }
     }
 }

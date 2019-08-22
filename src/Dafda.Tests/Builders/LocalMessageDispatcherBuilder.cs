@@ -26,6 +26,12 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public LocalMessageDispatcherBuilder WithHandlerUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
+        {
+            _handlerUnitOfWorkFactory = new DefaultUnitOfWorkFactory(factory);
+            return this;
+        }
+
         public LocalMessageDispatcher Build()
         {
             return new LocalMessageDispatcher(_messageHandlerRegistry, _handlerUnitOfWorkFactory);

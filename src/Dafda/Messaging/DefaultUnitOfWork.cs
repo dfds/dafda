@@ -20,4 +20,19 @@ namespace Dafda.Messaging
             await handlingAction(handler);
         }
     }
+
+    public class DirectUnitOfWork : IHandlerUnitOfWork
+    {
+        private readonly object _handlerInstance;
+
+        public DirectUnitOfWork(object handlerInstance)
+        {
+            _handlerInstance = handlerInstance;
+        }
+
+        public async Task Run(Func<object, Task> handlingAction)
+        {
+            await handlingAction(_handlerInstance);
+        }
+    }
 }

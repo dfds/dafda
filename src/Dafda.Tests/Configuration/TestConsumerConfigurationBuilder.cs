@@ -138,6 +138,33 @@ namespace Dafda.Tests.Configuration
             Assert.Equal(typeof(DummyMessageHandler), registration.HandlerInstanceType);
         }
 
+        [Fact]
+        public void returns_expected_auto_commit_when_not_set()
+        {
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
+                .Build();
+
+            Assert.True(configuration.EnableAutoCommit);
+        }
+        
+        [Theory]
+        [InlineData("true", true)]
+        [InlineData("TRUE", true)]
+        [InlineData("false", false)]
+        [InlineData("FALSE", false)]
+        public void returns_expected_auto_commit_when_configured_with_valid_value(string configValue, bool expected)
+        {
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
+                .WithConfiguration(ConfigurationKey.EnableAutoCommit, configValue)
+                .Build();
+
+            Assert.Equal(expected, configuration.EnableAutoCommit);
+        }
+        
         public class DummyMessage
         {
         }

@@ -5,12 +5,12 @@ using Dafda.Configuration;
 
 namespace Dafda.Consuming
 {
-    public class ConsumerFactory : IConsumerFactory
+    public class KafkaBasedConsumerFactory : IInternalConsumerFactory
     {
-        public IConsumer CreateConsumer(IConfiguration configuration, IEnumerable<string> topics)
+        public IInternalConsumer CreateConsumer(IConsumerConfiguration configuration)
         {
             var consumer = new ConsumerBuilder<string, string>(configuration).Build();
-            consumer.Subscribe(topics);
+            consumer.Subscribe(configuration.SubscribedTopics);
 
             return new KafkaConsumerWrapper(consumer);
         }

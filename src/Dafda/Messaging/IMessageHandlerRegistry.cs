@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Dafda.Messaging
 {
-    public interface IMessageHandlerRegistry
+    public interface IMessageHandlerRegistry : ITopicProvider
     {
         MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType);
         MessageRegistration Register<TMessage, THandler>(string topic, string messageType) 

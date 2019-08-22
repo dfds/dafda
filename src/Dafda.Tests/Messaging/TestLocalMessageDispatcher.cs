@@ -72,7 +72,7 @@ namespace Dafda.Tests.Messaging
 
             await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(transportMessageDummy));
         }
-
+        
         #region private helper classes
 
         private class ExpectedException : Exception

@@ -2,20 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Dafda.Consuming;
 using Dafda.Logging;
 using Dafda.Messaging;
 
 namespace Dafda.Configuration
 {
-    public interface IConsumerConfiguration : IConfiguration
-    {
-        IMessageHandlerRegistry MessageHandlerRegistry { get; }
-        IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
-
-        ILocalMessageDispatcher CreateLocalMessageDispatcher();
-    }
-
-    public class ConsumerConfigurationBuilder //: ConfigurationBuilderBase
+    public class ConsumerConfigurationBuilder
     {
         private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
@@ -41,10 +34,11 @@ namespace Dafda.Configuration
 
         private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
         private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
-        private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
+        private readonly IMessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
+        private IInternalConsumerFactory _internalConsumerFactory = new KafkaBasedConsumerFactory();
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -92,6 +86,18 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
+        {
+            _unitOfWorkFactory = new DefaultUnitOfWorkFactory(factory);
+            return this;
+        }
+        
+        public ConsumerConfigurationBuilder WithInternalConsumerFactory(IInternalConsumerFactory internalConsumerFactory)
+        {
+            _internalConsumerFactory = internalConsumerFactory;
+            return this;
+        }
+
         public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessage : class, new()
             where TMessageHandler : IMessageHandler<TMessage>
@@ -104,14 +110,18 @@ namespace Dafda.Configuration
         {
             if (!_namingConventions.Any())
             {
-                _namingConventions.Add(NamingConvention.Default);
+                _namingConventions.Add(item: NamingConvention.Default);
             }
 
             FillConfiguration();
-
             ValidateConfiguration();
 
-            return new ConsumerConfiguration(_configurations, _messageHandlerRegistry, _unitOfWorkFactory);
+            return new ConsumerConfiguration(
+                configuration: _configurations, 
+                messageHandlerRegistry: _messageHandlerRegistry, 
+                unitOfWorkFactory: _unitOfWorkFactory, 
+                internalConsumerFactory: _internalConsumerFactory
+            );
         }
 
         private void FillConfiguration()
@@ -169,20 +179,35 @@ namespace Dafda.Configuration
         {
             private readonly IDictionary<string, string> _configuration;
 
-            public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory)
+            public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, 
+                IHandlerUnitOfWorkFactory unitOfWorkFactory, IInternalConsumerFactory internalConsumerFactory)
             {
                 _configuration = configuration;
                 MessageHandlerRegistry = messageHandlerRegistry;
                 UnitOfWorkFactory = unitOfWorkFactory;
+                InternalConsumerFactory = internalConsumerFactory;
             }
 
             public IMessageHandlerRegistry MessageHandlerRegistry { get; }
             public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
+            public IInternalConsumerFactory InternalConsumerFactory { get; }
 
-            public ILocalMessageDispatcher CreateLocalMessageDispatcher()
+            public bool EnableAutoCommit
             {
-                return new LocalMessageDispatcher(MessageHandlerRegistry, UnitOfWorkFactory);
+                get
+                {
+                    const bool defaultAutoCommitStrategy = true;
+                    
+                    if (!_configuration.TryGetValue(ConfigurationKey.EnableAutoCommit, out var value))
+                    {
+                        return defaultAutoCommitStrategy;
+                    }
+
+                    return bool.Parse(value);
+                }
             }
+
+            public IEnumerable<string> SubscribedTopics => MessageHandlerRegistry.GetAllSubscribedTopics(); 
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
             {

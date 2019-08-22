@@ -6,7 +6,7 @@ namespace Dafda.Messaging
     public class LocalMessageDispatcher : ILocalMessageDispatcher
     {
         private readonly IMessageHandlerRegistry _handlerRegistry;
-        private readonly IHandlerUnitOfWorkFactory _handlerUnitOfWorkFactory;
+        private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
 
         public LocalMessageDispatcher(IMessageHandlerRegistry handlerRegistry, IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
         {
@@ -21,7 +21,7 @@ namespace Dafda.Messaging
             }
 
             _handlerRegistry = handlerRegistry;
-            _handlerUnitOfWorkFactory = handlerUnitOfWorkFactory;
+            _unitOfWorkFactory = handlerUnitOfWorkFactory;
         }
 
         private MessageRegistration GetMessageRegistrationFor(ITransportLevelMessage message)
@@ -39,16 +39,15 @@ namespace Dafda.Messaging
         public async Task Dispatch(ITransportLevelMessage message)
         {
             var registration = GetMessageRegistrationFor(message);
-            var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
 
-            var unitOfWork = _handlerUnitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType);
-
+            var unitOfWork = _unitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType);
             if (unitOfWork == null)
             {
                 throw new UnableToResolveUnitOfWorkForHandlerException($"Error! Unable to create unit of work for handler type \"{registration.HandlerInstanceType.FullName}\".");
             }
 
-            await unitOfWork.Run(handler2 => ExecuteHandler((dynamic)messageInstance, (dynamic)handler2));
+            var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
+            await unitOfWork.Run(async handler => await ExecuteHandler((dynamic)messageInstance, (dynamic)handler));
         }
 
         private static Task ExecuteHandler<TMessage>(TMessage message, IMessageHandler<TMessage> handler) where TMessage : class, new()

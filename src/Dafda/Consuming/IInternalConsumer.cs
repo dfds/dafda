@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Dafda.Consuming
 {
-    public interface IConsumer : IDisposable
+    public interface IInternalConsumer : IDisposable
     {
         ConsumeResult Consume(CancellationToken cancellationToken);
     }

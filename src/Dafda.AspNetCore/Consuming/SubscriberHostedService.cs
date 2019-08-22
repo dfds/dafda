@@ -11,13 +11,13 @@ namespace Dafda.Consuming
     {
         private readonly ILogger<SubscriberHostedService> _logger;
         private readonly IApplicationLifetime _applicationLifetime;
-        private readonly TopicSubscriber _topicSubscriber;
+        private readonly NewConsumer _consumer;
 
-        public SubscriberHostedService(ILogger<SubscriberHostedService> logger, IApplicationLifetime applicationLifetime, TopicSubscriber topicSubscriber)
+        public SubscriberHostedService(ILogger<SubscriberHostedService> logger, IApplicationLifetime applicationLifetime, NewConsumer consumer)
         {
             _logger = logger;
             _applicationLifetime = applicationLifetime;
-            _topicSubscriber = topicSubscriber;
+            _consumer = consumer;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,7 +27,7 @@ namespace Dafda.Consuming
                 try
                 {
                     _logger.LogDebug("SubscriberHostedService started");
-                    //await _topicSubscriber.Start(stoppingToken);
+                    await _consumer.ConsumeAll(stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
