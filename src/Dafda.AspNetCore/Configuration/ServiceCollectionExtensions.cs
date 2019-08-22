@@ -2,7 +2,6 @@ using System;
 using Dafda.Consuming;
 using Dafda.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using TopicSubscriber = Dafda.Consuming.TopicSubscriber;
 
 namespace Dafda.Configuration
 {
