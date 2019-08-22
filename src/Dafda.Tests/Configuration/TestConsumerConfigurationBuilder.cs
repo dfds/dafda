@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Messaging;
+using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -124,20 +125,17 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public async Task Can_register_message_handler()
+        public void Can_register_message_handler()
         {
-            var spy = new DummyMessageHandler();
             var configuration = new ConsumerConfigurationBuilder()
                 .WithGroupId("foo")
                 .WithBootstrapServers("bar")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithTypeResolver(new TypeResolverStub(spy))
                 .Build();
 
-            var dummyMessage = new DummyMessage();
-            await configuration.CreateLocalMessageDispatcher().Dispatch(new TransportLevelMessageStub(dummyMessage, nameof(DummyMessage)));
+            var registration = configuration.MessageHandlerRegistry.GetRegistrationFor(nameof(DummyMessage));
 
-            Assert.Equal(dummyMessage, spy.LastHandledMessage);
+            Assert.Equal(typeof(DummyMessageHandler), registration.HandlerInstanceType);
         }
 
         public class DummyMessage
@@ -145,7 +143,7 @@ namespace Dafda.Tests.Configuration
         }
 
         // ReSharper disable once MemberCanBePrivate.Global
-        public class DummyMessageHandler : IMessageHandler<DummyMessage>
+        private class DummyMessageHandler : IMessageHandler<DummyMessage>
         {
             public Task Handle(DummyMessage message)
             {

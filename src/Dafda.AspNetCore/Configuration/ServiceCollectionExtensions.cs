@@ -35,11 +35,11 @@ namespace Dafda.Configuration
         {
             var configurationBuilder = new ConsumerConfigurationBuilder();
             options?.Invoke(configurationBuilder);
-            IConsumerConfiguration configuration = configurationBuilder.Build();
+            var configuration = configurationBuilder.Build();
 
             services.AddSingleton<IConfiguration>(configuration);
 
-            services.AddTransient<ILocalMessageDispatcher>(provider => new LocalMessageDispatcher(configuration.MessageHandlerRegistry, new ServiceProviderBasedTypeResolver(provider)));
+            //services.AddTransient<ILocalMessageDispatcher>(provider => new LocalMessageDispatcher(configuration.MessageHandlerRegistry, new ServiceProviderBasedTypeResolver(provider)));
 
 //            services.AddSingleton<ITopicProvider>(configuration.MessageHandlerRegistry);
 //            services.AddSingleton<IMessageHandlerRegistry>(configuration.MessageHandlerRegistry);

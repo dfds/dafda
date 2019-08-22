@@ -10,6 +10,7 @@ namespace Dafda.Configuration
     public interface IConsumerConfiguration : IConfiguration
     {
         IMessageHandlerRegistry MessageHandlerRegistry { get; }
+        IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
 
         ILocalMessageDispatcher CreateLocalMessageDispatcher();
     }
@@ -43,7 +44,7 @@ namespace Dafda.Configuration
         private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
-        private ITypeResolver _typeResolver = new DefaultTypeResolver();
+        private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -85,9 +86,9 @@ namespace Dafda.Configuration
             return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
-        public ConsumerConfigurationBuilder WithTypeResolver(ITypeResolver typeResolver)
+        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
         {
-            _typeResolver = typeResolver;
+            _unitOfWorkFactory = unitOfWorkFactory;
             return this;
         }
 
@@ -110,7 +111,7 @@ namespace Dafda.Configuration
 
             ValidateConfiguration();
 
-            return new ConsumerConfiguration(_configurations, _messageHandlerRegistry, _typeResolver);
+            return new ConsumerConfiguration(_configurations, _messageHandlerRegistry, _unitOfWorkFactory);
         }
 
         private void FillConfiguration()
@@ -167,20 +168,20 @@ namespace Dafda.Configuration
         private class ConsumerConfiguration : IConsumerConfiguration
         {
             private readonly IDictionary<string, string> _configuration;
-            private readonly ITypeResolver _typeResolver;
 
-            public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, ITypeResolver typeResolver)
+            public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory)
             {
                 _configuration = configuration;
                 MessageHandlerRegistry = messageHandlerRegistry;
-                _typeResolver = typeResolver;
+                UnitOfWorkFactory = unitOfWorkFactory;
             }
 
             public IMessageHandlerRegistry MessageHandlerRegistry { get; }
+            public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
 
             public ILocalMessageDispatcher CreateLocalMessageDispatcher()
             {
-                return new LocalMessageDispatcher(MessageHandlerRegistry, _typeResolver);
+                return new LocalMessageDispatcher(MessageHandlerRegistry, UnitOfWorkFactory);
             }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()

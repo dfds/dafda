@@ -57,9 +57,16 @@ namespace Dafda.Tests.Messaging
 
     public class TestConsumer : IConsumer
     {
+        private readonly string _messageType;
+
+        public TestConsumer(string messageType = "foo")
+        {
+            _messageType = messageType;
+        }
+
         public ConsumeResult Consume(CancellationToken cancellationToken)
         {
-            return new ConsumeResult("{\"type\": \"foo\", \"data\": {\"value\":\"bar\"}}");
+            return new ConsumeResult($"{{\"type\": \"{_messageType}\", \"data\": {{\"value\":\"bar\"}}}}");
         }
 
         public void Dispose()

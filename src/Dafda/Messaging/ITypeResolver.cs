@@ -6,12 +6,4 @@ namespace Dafda.Messaging
     {
         object Resolve(Type instanceType);
     }
-
-    internal class DefaultTypeResolver : ITypeResolver
-    {
-        public object Resolve(Type instanceType)
-        {
-            return Activator.CreateInstance(instanceType);
-        }
-    }
 }
