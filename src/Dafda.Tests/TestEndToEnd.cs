@@ -26,7 +26,7 @@ namespace Dafda.Tests
                 .WithInternalConsumerFactory(new InternalConsumerFactoryStub(new InternalConsumerStub("foo")))
                 .Build();
 
-            var sut = new NewConsumer(configuration);
+            var sut = new Consumer(configuration);
 
             await sut.ConsumeSingle(CancellationToken.None);
 
@@ -52,7 +52,7 @@ namespace Dafda.Tests
                 .WithInternalConsumerFactory(new InternalConsumerFactoryStub(new InternalConsumerStub("foo")))
                 .Build();
 
-            var sut = new NewConsumer(configuration);
+            var sut = new Consumer(configuration);
 
             await sut.ConsumeSingle(CancellationToken.None);
 

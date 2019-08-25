@@ -8,13 +8,13 @@ using Dafda.Consuming;
 
 namespace Dafda.Messaging
 {
-    public class NewConsumer
+    public class Consumer
     {
         private readonly IConsumerConfiguration _configuration;
         private readonly IInternalConsumerFactory _consumerFactory;
         private readonly LocalMessageDispatcher _localMessageDispatcher;
 
-        public NewConsumer(IConsumerConfiguration configuration)
+        public Consumer(IConsumerConfiguration configuration)
         {
             _configuration = configuration;
             _localMessageDispatcher = new LocalMessageDispatcher(configuration.MessageHandlerRegistry, configuration.UnitOfWorkFactory);

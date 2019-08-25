@@ -11,9 +11,9 @@ namespace Dafda.Consuming
     {
         private readonly ILogger<SubscriberHostedService> _logger;
         private readonly IApplicationLifetime _applicationLifetime;
-        private readonly NewConsumer _consumer;
+        private readonly Consumer _consumer;
 
-        public SubscriberHostedService(ILogger<SubscriberHostedService> logger, IApplicationLifetime applicationLifetime, NewConsumer consumer)
+        public SubscriberHostedService(ILogger<SubscriberHostedService> logger, IApplicationLifetime applicationLifetime, Consumer consumer)
         {
             _logger = logger;
             _applicationLifetime = applicationLifetime;
