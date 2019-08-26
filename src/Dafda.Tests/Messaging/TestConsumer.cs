@@ -57,18 +57,14 @@ namespace Dafda.Tests.Messaging
 
     public class ConsumerBuilder
     {
-        private string _groupId;
-        private string _bootstrapServers;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private IInternalConsumerFactory _internalConsumerFactory;
         private MessageRegistration[] _messageRegistrations;
 
         public ConsumerBuilder()
         {
-            _groupId = "foo";
-            _bootstrapServers = "bar";
             _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
-            _internalConsumerFactory = new InternalConsumerFactoryStub(new InternalConsumerStub("foo"));
+            _internalConsumerFactory = new InternalConsumerFactoryStub(new InternalConsumerStub());
             _messageRegistrations = new MessageRegistration[0];
         }
 
@@ -92,8 +88,6 @@ namespace Dafda.Tests.Messaging
         
         public Consumer Build()
         {
-            var handlerInstance = new object();
-
             var configuration = new ConsumerConfigurationStub
             {
                 MessageHandlerRegistry = new MessageHandlerRegistryStub(_messageRegistrations),
