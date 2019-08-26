@@ -5,14 +5,14 @@ namespace Dafda.Messaging
 {
     public class LocalMessageDispatcher : ILocalMessageDispatcher
     {
-        private readonly IMessageHandlerRegistry _handlerRegistry;
+        private readonly IMessageHandlerRegistry _messageHandlerRegistry;
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
 
-        public LocalMessageDispatcher(IMessageHandlerRegistry handlerRegistry, IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
+        public LocalMessageDispatcher(IMessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
         {
-            if (handlerRegistry == null)
+            if (messageHandlerRegistry == null)
             {
-                throw new ArgumentNullException(nameof(handlerRegistry));
+                throw new ArgumentNullException(nameof(messageHandlerRegistry));
             }
 
             if (handlerUnitOfWorkFactory == null)
@@ -20,13 +20,13 @@ namespace Dafda.Messaging
                 throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
             }
 
-            _handlerRegistry = handlerRegistry;
+            _messageHandlerRegistry = messageHandlerRegistry;
             _unitOfWorkFactory = handlerUnitOfWorkFactory;
         }
 
         private MessageRegistration GetMessageRegistrationFor(ITransportLevelMessage message)
         {
-            var registration = _handlerRegistry.GetRegistrationFor(message.Type);
+            var registration = _messageHandlerRegistry.GetRegistrationFor(message.Type);
 
             if (registration == null)
             {
@@ -47,7 +47,15 @@ namespace Dafda.Messaging
             }
 
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
-            await unitOfWork.Run(async handler => await ExecuteHandler((dynamic)messageInstance, (dynamic)handler));
+            await unitOfWork.Run(async handler =>
+            {
+                if (handler == null)
+                {
+                    throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
+                }
+
+                await ExecuteHandler((dynamic) messageInstance, (dynamic) handler);
+            });
         }
 
         private static Task ExecuteHandler<TMessage>(TMessage message, IMessageHandler<TMessage> handler) where TMessage : class, new()
@@ -55,4 +63,13 @@ namespace Dafda.Messaging
             return handler.Handle(message);
         }
     }
+
+    public class InvalidMessageHandlerException : Exception
+    {
+        public InvalidMessageHandlerException(string message) : base(message)
+        {
+            
+        }
+    }
+
 }
