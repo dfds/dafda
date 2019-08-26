@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using Dafda.Consuming;
+using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Messaging
 {
@@ -14,7 +15,9 @@ namespace Dafda.Tests.Messaging
 
         public ConsumeResult Consume(CancellationToken cancellationToken)
         {
-            return new ConsumeResult($"{{\"type\": \"{_messageType}\", \"data\": {{\"value\":\"bar\"}}}}");
+            return new ConsumeResult(
+                message: new TransportLevelMessageStub(type: _messageType)
+            );
         }
 
         public void Dispose()

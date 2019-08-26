@@ -1,5 +1,7 @@
 using System.Threading;
+using System.Threading.Tasks;
 using Confluent.Kafka;
+using Dafda.Messaging;
 
 namespace Dafda.Consuming
 {
@@ -17,9 +19,12 @@ namespace Dafda.Consuming
             var result = _kafkaConsumer.Consume(cancellationToken);
 
             return new ConsumeResult(
-                value: result.Value,
-                onCommit: () => _kafkaConsumer.Commit(result)
-            );
+                message: new JsonMessageEmbeddedDocument(result.Value),
+                onCommit: () =>
+                {
+                    _kafkaConsumer.Commit(result);
+                    return Task.CompletedTask;
+                });
         }
 
         public void Dispose()

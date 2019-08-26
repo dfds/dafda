@@ -1,25 +1,25 @@
 using System;
 using System.Threading.Tasks;
+using Dafda.Messaging;
 
 namespace Dafda.Consuming
 {
     public class ConsumeResult
     {
-        private static readonly Action EmptyCommitAction = () => { };
-        private readonly Action _onCommit;
+        private static readonly Func<Task> EmptyCommitAction = () => Task.CompletedTask;
+        private readonly Func<Task> _onCommit;
 
-        public ConsumeResult(string value, Action onCommit = null)
+        public ConsumeResult(ITransportLevelMessage message, Func<Task> onCommit = null)
         {
-            Value = value;
+            Message = message;
             _onCommit = onCommit ?? EmptyCommitAction;
         }
 
-        public string Value { get; }
+        public ITransportLevelMessage Message { get; }
 
-        public Task Commit()
+        public async Task Commit()
         {
-            _onCommit();
-            return Task.CompletedTask;
+            await _onCommit();
         }
     }
 }

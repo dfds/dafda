@@ -40,9 +40,7 @@ namespace Dafda.Messaging
         private async Task ProcessNextMessage(IInternalConsumer internalConsumer, CancellationToken cancellationToken)
         {
             var consumeResult = internalConsumer.Consume(cancellationToken);
-            var message = new JsonMessageEmbeddedDocument(consumeResult.Value);
-
-            await _localMessageDispatcher.Dispatch(message);
+            await _localMessageDispatcher.Dispatch(consumeResult.Message);
 
             await consumeResult.Commit();
         }
