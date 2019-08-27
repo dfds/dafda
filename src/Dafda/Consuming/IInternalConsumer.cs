@@ -1,10 +1,12 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dafda.Consuming
 {
-    public interface IInternalConsumer : IDisposable
+    public abstract class TopicSubscriberScope : IDisposable
     {
-        ConsumeResult Consume(CancellationToken cancellationToken);
+        public abstract Task<MessageResult> GetNext(CancellationToken cancellationToken);
+        public abstract void Dispose();
     }
 }

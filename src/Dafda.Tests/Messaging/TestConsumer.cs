@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
-using Dafda.Consuming;
 using Dafda.Messaging;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
@@ -45,78 +42,34 @@ namespace Dafda.Tests.Messaging
             await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.ConsumeSingle(CancellationToken.None));
         }
 
+        [Fact]
+        public async Task expected_order_of_handler_invocation_in_unit_of_work()
+        {
+            var orderOfInvocation = new LinkedList<string>();
+
+            var dummyMessageResult = new MessageResultBuilder().Build();
+            var dummyMessageRegistration = new MessageRegistrationBuilder().Build();
+
+            var sut = new ConsumerBuilder()
+                .WithUnitOfWorkFactory(type => new UnitOfWorkSpy(
+                    handlerInstance: new MessageHandlerSpy<FooMessage>(() => orderOfInvocation.AddLast("during")),
+                    pre: () => orderOfInvocation.AddLast("before"),
+                    post: () => orderOfInvocation.AddLast("after")
+                ))
+                .WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(dummyMessageResult)))
+                .WithMessageRegistrations(dummyMessageRegistration)
+                .Build();
+
+            await sut.ConsumeSingle(CancellationToken.None);
+
+            Assert.Equal(new[] { "before", "during", "after" }, orderOfInvocation);
+        }
+
         #region helper classes
 
         public class FooMessage
         {
             public string Value { get; set; }
-        }
-
-        #endregion
-    }
-
-    public class ConsumerBuilder
-    {
-        private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private IInternalConsumerFactory _internalConsumerFactory;
-        private MessageRegistration[] _messageRegistrations;
-
-        public ConsumerBuilder()
-        {
-            _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
-            _internalConsumerFactory = new InternalConsumerFactoryStub(new InternalConsumerStub());
-            _messageRegistrations = new MessageRegistration[0];
-        }
-
-        public ConsumerBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> unitOfWorkFactory)
-        {
-            _unitOfWorkFactory = new DefaultUnitOfWorkFactory(unitOfWorkFactory);
-            return this;
-        }
-
-        public ConsumerBuilder WithInternalConsumerFactory(IInternalConsumerFactory internalConsumerFactory)
-        {
-            _internalConsumerFactory = internalConsumerFactory;
-            return this;
-        }
-
-        public ConsumerBuilder WithMessageRegistrations(params MessageRegistration[] messageRegistrations)
-        {
-            _messageRegistrations = messageRegistrations;
-            return this;
-        }
-        
-        public Consumer Build()
-        {
-            var configuration = new ConsumerConfigurationStub
-            {
-                MessageHandlerRegistry = new MessageHandlerRegistryStub(_messageRegistrations),
-                UnitOfWorkFactory = _unitOfWorkFactory,
-                InternalConsumerFactory = _internalConsumerFactory
-            };
-
-            return new Consumer(configuration);
-        }
-
-        #region private helper classes
-
-        private class ConsumerConfigurationStub : IConsumerConfiguration
-        {
-            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public IMessageHandlerRegistry MessageHandlerRegistry { get; set; }
-            public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; set; }
-            public IInternalConsumerFactory InternalConsumerFactory { get; set; }
-            public bool EnableAutoCommit { get; set; }
-            public IEnumerable<string> SubscribedTopics { get; set; }
         }
 
         #endregion

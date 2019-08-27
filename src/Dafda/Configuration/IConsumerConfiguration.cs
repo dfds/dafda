@@ -9,7 +9,7 @@ namespace Dafda.Configuration
         IMessageHandlerRegistry MessageHandlerRegistry { get; }
         IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
         
-        IInternalConsumerFactory InternalConsumerFactory { get; }
+        ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; }
         
         bool EnableAutoCommit { get; }
         IEnumerable<string> SubscribedTopics { get; }

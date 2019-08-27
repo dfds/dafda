@@ -38,7 +38,7 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private IInternalConsumerFactory _internalConsumerFactory = new KafkaBasedConsumerFactory();
+        private ITopicSubscriberScopeFactory _topicSubscriberScopeFactory = new KafkaBasedTopicSubscriberScopeFactory();
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -92,9 +92,9 @@ namespace Dafda.Configuration
             return this;
         }
         
-        public ConsumerConfigurationBuilder WithInternalConsumerFactory(IInternalConsumerFactory internalConsumerFactory)
+        public ConsumerConfigurationBuilder WithTopicSubscriberScopeFactory(ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
         {
-            _internalConsumerFactory = internalConsumerFactory;
+            _topicSubscriberScopeFactory = topicSubscriberScopeFactory;
             return this;
         }
 
@@ -120,7 +120,7 @@ namespace Dafda.Configuration
                 configuration: _configurations, 
                 messageHandlerRegistry: _messageHandlerRegistry, 
                 unitOfWorkFactory: _unitOfWorkFactory, 
-                internalConsumerFactory: _internalConsumerFactory
+                topicSubscriberScopeFactory: _topicSubscriberScopeFactory
             );
         }
 
@@ -180,17 +180,17 @@ namespace Dafda.Configuration
             private readonly IDictionary<string, string> _configuration;
 
             public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, 
-                IHandlerUnitOfWorkFactory unitOfWorkFactory, IInternalConsumerFactory internalConsumerFactory)
+                IHandlerUnitOfWorkFactory unitOfWorkFactory, ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
             {
                 _configuration = configuration;
                 MessageHandlerRegistry = messageHandlerRegistry;
                 UnitOfWorkFactory = unitOfWorkFactory;
-                InternalConsumerFactory = internalConsumerFactory;
+                TopicSubscriberScopeFactory = topicSubscriberScopeFactory;
             }
 
             public IMessageHandlerRegistry MessageHandlerRegistry { get; }
             public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
-            public IInternalConsumerFactory InternalConsumerFactory { get; }
+            public ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; }
 
             public bool EnableAutoCommit
             {
