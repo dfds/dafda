@@ -16,7 +16,7 @@ namespace Dafda.Messaging
             }
 
             if (handlerUnitOfWorkFactory == null)
-        {
+            {
                 throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
             }
 
@@ -68,8 +68,6 @@ namespace Dafda.Messaging
     {
         public InvalidMessageHandlerException(string message) : base(message)
         {
-            
         }
     }
-
 }

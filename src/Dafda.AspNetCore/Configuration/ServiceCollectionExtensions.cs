@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using Dafda.Consuming;
 using Dafda.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -33,34 +35,54 @@ namespace Dafda.Configuration
     {
         public static void AddConsumer(this IServiceCollection services, Action<ConsumerConfigurationBuilder> options = null)
         {
-            var configurationBuilder = new ConsumerConfigurationBuilder();
-            options?.Invoke(configurationBuilder);
-            var configuration = configurationBuilder.Build();
+            services.AddSingleton(provider =>
+            {
+                var configurationBuilder = new ConsumerConfigurationBuilder();
+                configurationBuilder.WithUnitOfWorkFactory(new UnitOfWorkFactory(provider));
 
-            services.AddSingleton<IConfiguration>(configuration);
+                options?.Invoke(configurationBuilder);
 
-            //services.AddTransient<ILocalMessageDispatcher>(provider => new LocalMessageDispatcher(configuration.MessageHandlerRegistry, new ServiceProviderBasedTypeResolver(provider)));
+                return configurationBuilder.Build();
+            });
 
-//            services.AddSingleton<ITopicProvider>(configuration.MessageHandlerRegistry);
-//            services.AddSingleton<IMessageHandlerRegistry>(configuration.MessageHandlerRegistry);
-//            services.AddTransient<IConsumerFactory, ConsumerFactory>();
-//            services.AddTransient<ITypeResolver, ServiceProviderBasedTypeResolver>();
-//            services.AddTransient<TopicSubscriber>();
-//            services.AddHostedService<SubscriberHostedService>();
+            services.AddTransient<Consumer>();
+            services.AddHostedService<SubscriberHostedService>();
         }
 
-        private class ServiceProviderBasedTypeResolver : ITypeResolver
+        private class UnitOfWorkFactory : IHandlerUnitOfWorkFactory
         {
             private readonly IServiceProvider _serviceProvider;
 
-            public ServiceProviderBasedTypeResolver(IServiceProvider serviceProvider)
+            public UnitOfWorkFactory(IServiceProvider serviceProvider)
             {
                 _serviceProvider = serviceProvider;
             }
 
-            public object Resolve(Type instanceType)
+            public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
             {
-                return _serviceProvider.GetService(instanceType);
+                return new UnitOfWork(_serviceProvider, handlerType);
+            }
+        }
+
+        private class UnitOfWork : IHandlerUnitOfWork
+        {
+            private readonly IServiceProvider _serviceProvider;
+            private readonly Type _handlerType;
+
+            public UnitOfWork(IServiceProvider serviceProvider, Type handlerType)
+            {
+                _serviceProvider = serviceProvider;
+                _handlerType = handlerType;
+            }
+
+            public Task Run(Func<object, Task> handlingAction)
+            {
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var service = scope.ServiceProvider.GetRequiredService(_handlerType);
+
+                    return handlingAction(service);
+                }
             }
         }
     }

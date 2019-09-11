@@ -1,9 +1,12 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Messaging;
+using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Dafda.Tests.Configuration
@@ -24,52 +27,59 @@ namespace Dafda.Tests.Configuration
             });
 
             var serviceProvider = services.BuildServiceProvider();
-            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            var configuration = serviceProvider.GetRequiredService<IConsumerConfiguration>();
 
             Assert.Equal("foo", configuration.FirstOrDefault(x => x.Key == "group.id").Value);
             Assert.Equal("bar", configuration.FirstOrDefault(x => x.Key == "bootstrap.servers").Value);
         }
 
-        //[Fact]
-        //public async Task Can_dispatch_message_locally()
-        //{
-        //    var services = new ServiceCollection();
-        //    services
-        //        .AddConsumer(options =>
-        //        {
-        //            options.WithGroupId("foo");
-        //            options.WithBootstrapServers("localhost");
-        //            options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("foo", "bar");
-        //        });
-
-        //    services.AddSingleton<DummyMessageHandler>(); // NOTE: overwrite as singleton only for testing purposes
-        //    services.AddTransient<IHandlerUnitOfWorkFactory, DefaultUnitOfWorkFactory>();
-
-        //    var provider = services.BuildServiceProvider();
-        //    var dispatcher = provider.GetRequiredService<ILocalMessageDispatcher>();
-
-        //    var dummyMessage = new DummyMessage();
-        //    await dispatcher.Dispatch(new TransportLevelMessageStub(dummyMessage, "bar"));
-
-        //    var spy = provider.GetRequiredService<DummyMessageHandler>();
-
-        //    Assert.Equal(dummyMessage, spy.LastHandledMessage);
-        //}
-
-        public class DummyMessage
+        [Fact]
+        public async Task Can_consume_message()
         {
-        }
+            var dummyMessage = new DummyMessage();
+            var messageStub = new TransportLevelMessageBuilder()
+                .WithType(nameof(DummyMessage))
+                .WithData(dummyMessage)
+                .Build();
+            var messageResult = new MessageResultBuilder()
+                .WithTransportLevelMessage(messageStub)
+                .Build();
 
-        public class DummyMessageHandler : IMessageHandler<DummyMessage>
-        {
-            public Task Handle(DummyMessage message)
+            var services = new ServiceCollection();
+            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddTransient<DummyMessageHandler>();
+            services.AddLogging();
+            services.AddConsumer(options =>
             {
-                LastHandledMessage = message;
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId");
+                options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
 
-                return Task.CompletedTask;
-            }
+                options.WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(messageResult)));
+            });
+            var serviceProvider = services.BuildServiceProvider();
 
-            public object LastHandledMessage { get; private set; }
+            var consumer = serviceProvider.GetRequiredService<Consumer>();
+
+            await consumer.ConsumeSingle(CancellationToken.None);
+
+            Assert.Equal(dummyMessage, DummyMessageHandler.LastHandledMessage);
         }
+    }
+
+    public class DummyMessage
+    {
+    }
+
+    public class DummyMessageHandler : IMessageHandler<DummyMessage>
+    {
+        public Task Handle(DummyMessage message)
+        {
+            LastHandledMessage = message;
+
+            return Task.CompletedTask;
+        }
+
+        public static object LastHandledMessage { get; private set; }
     }
 }
