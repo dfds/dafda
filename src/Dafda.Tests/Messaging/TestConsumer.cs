@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Configuration;
 using Dafda.Messaging;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
@@ -25,7 +24,7 @@ namespace Dafda.Tests.Messaging
                 .Build();
 
             var sut = new ConsumerBuilder()
-                .WithUnitOfWorkFactory(type => new DirectUnitOfWork(handlerStub))
+                .WithUnitOfWorkFactory(type => new UnitOfWorkStub(handlerStub))
                 .WithMessageRegistrations(messageRegistrationStub)
                 .Build();
 

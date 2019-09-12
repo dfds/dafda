@@ -84,7 +84,7 @@ namespace Dafda.Tests.Configuration
                 options.WithGroupId("dummyGroupId");
                 options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
 
-                options.WithUnitOfWorkFactory<Factory>();
+                options.WithUnitOfWork<UnitOfWork>();
 
                 options.WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(messageResult)));
             });
@@ -100,29 +100,17 @@ namespace Dafda.Tests.Configuration
         }
     }
 
-    public class Factory : ServiceProviderUnitOfWorkFactory
+    public class UnitOfWork : ServiceScopedUnitOfWork
     {
-        public Factory(IServiceProvider serviceProvider) : base(serviceProvider)
+        public UnitOfWork(IServiceScopeFactory scopeFactory) : base(scopeFactory)
         {
         }
 
-        protected override IHandlerUnitOfWork CreateUnitOfWork(IServiceProvider serviceProvider, Type handlerType)
-        {
-            return new UnitOfWork(serviceProvider, handlerType);
-        }
-    }
-
-    public class UnitOfWork : ServiceProviderUnitOfWork
-    {
-        public UnitOfWork(IServiceProvider serviceProvider, Type handlerType) : base(serviceProvider, handlerType)
-        {
-        }
-
-        protected override Task RunInScope(IServiceScope scope, Func<object, Task> handlingAction)
+        protected override Task RunInScope(IServiceScope scope, Func<Task> execute)
         {
             var scoped = scope.ServiceProvider.GetRequiredService<Scoped>();
 
-            return base.RunInScope(scope, handlingAction);
+            return base.RunInScope(scope, execute);
         }
     }
 
