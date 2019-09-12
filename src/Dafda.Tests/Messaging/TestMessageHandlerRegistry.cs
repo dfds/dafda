@@ -4,7 +4,7 @@ using Dafda.Messaging;
 using Dafda.Tests.Builders;
 using Xunit;
 
-namespace Dafda.Tests
+namespace Dafda.Tests.Messaging
 {
     public class TestMessageHandlerRegistry
     {
