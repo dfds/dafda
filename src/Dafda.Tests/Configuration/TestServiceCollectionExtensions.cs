@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,7 +7,6 @@ using Dafda.Messaging;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Dafda.Tests.Configuration
@@ -46,9 +46,7 @@ namespace Dafda.Tests.Configuration
                 .Build();
 
             var services = new ServiceCollection();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
-            services.AddTransient<DummyMessageHandler>();
-            services.AddLogging();
+            //services.AddTransient<DummyMessageHandler>();
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
@@ -65,6 +63,77 @@ namespace Dafda.Tests.Configuration
 
             Assert.Equal(dummyMessage, DummyMessageHandler.LastHandledMessage);
         }
+
+        [Fact]
+        public async Task Can_consume_message_2()
+        {
+            var dummyMessage = new DummyMessage();
+            var messageStub = new TransportLevelMessageBuilder()
+                .WithType(nameof(DummyMessage))
+                .WithData(dummyMessage)
+                .Build();
+            var messageResult = new MessageResultBuilder()
+                .WithTransportLevelMessage(messageStub)
+                .Build();
+
+            var services = new ServiceCollection();
+            services.AddScoped<Scoped>();
+            services.AddConsumer(options =>
+            {
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId");
+                options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+
+                options.WithUnitOfWorkFactory<Factory>();
+
+                options.WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(messageResult)));
+            });
+            var serviceProvider = services.BuildServiceProvider();
+
+            var consumer = serviceProvider.GetRequiredService<Consumer>();
+
+            await consumer.ConsumeSingle(CancellationToken.None);
+
+            Assert.Equal(dummyMessage, DummyMessageHandler.LastHandledMessage);
+            Assert.Equal(1, Scoped.Instanciated);
+
+        }
+    }
+
+    public class Factory : ServiceProviderUnitOfWorkFactory
+    {
+        public Factory(IServiceProvider serviceProvider) : base(serviceProvider)
+        {
+        }
+
+        protected override IHandlerUnitOfWork CreateUnitOfWork(IServiceProvider serviceProvider, Type handlerType)
+        {
+            return new UnitOfWork(serviceProvider, handlerType);
+        }
+    }
+
+    public class UnitOfWork : ServiceProviderUnitOfWork
+    {
+        public UnitOfWork(IServiceProvider serviceProvider, Type handlerType) : base(serviceProvider, handlerType)
+        {
+        }
+
+        protected override Task RunInScope(IServiceScope scope, Func<object, Task> handlingAction)
+        {
+            var scoped = scope.ServiceProvider.GetRequiredService<Scoped>();
+
+            return base.RunInScope(scope, handlingAction);
+        }
+    }
+
+    public class Scoped
+    {
+        public static int Instanciated { get; set; }
+
+        public Scoped()
+        {
+            Instanciated++;
+        }
     }
 
     public class DummyMessage
@@ -73,6 +142,10 @@ namespace Dafda.Tests.Configuration
 
     public class DummyMessageHandler : IMessageHandler<DummyMessage>
     {
+        public DummyMessageHandler(Scoped scoped)
+        {
+        }
+
         public Task Handle(DummyMessage message)
         {
             LastHandledMessage = message;
