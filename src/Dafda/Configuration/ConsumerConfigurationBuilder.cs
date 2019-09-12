@@ -40,19 +40,17 @@ namespace Dafda.Configuration
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private ITopicSubscriberScopeFactory _topicSubscriberScopeFactory = new KafkaBasedTopicSubscriberScopeFactory();
 
-        public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
+        public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
             _configurationSource = configurationSource;
-            return this;
         }
 
-        public ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
+        public void WithNamingConvention(NamingConvention namingConvention)
         {
             _namingConventions.Add(namingConvention);
-            return this;
         }
 
-        public ConsumerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
+        public void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
         {
             WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
 
@@ -60,50 +58,43 @@ namespace Dafda.Configuration
             {
                 WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
             }
-
-            return this;
         }
 
-        public ConsumerConfigurationBuilder WithConfiguration(string key, string value)
+        public void WithConfiguration(string key, string value)
         {
             _configurations[key] = value;
-            return this;
         }
 
-        public ConsumerConfigurationBuilder WithGroupId(string groupId)
+        public void WithGroupId(string groupId)
         {
-            return WithConfiguration(ConfigurationKey.GroupId, groupId);
+            WithConfiguration(ConfigurationKey.GroupId, groupId);
         }
 
-        public ConsumerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
+        public void WithBootstrapServers(string bootstrapServers)
         {
-            return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
+            WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
-        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
+        public void WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
-            return this;
         }
 
-        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
+        public void WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
         {
             _unitOfWorkFactory = new DefaultUnitOfWorkFactory(factory);
-            return this;
         }
         
-        public ConsumerConfigurationBuilder WithTopicSubscriberScopeFactory(ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
+        public void WithTopicSubscriberScopeFactory(ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
         {
             _topicSubscriberScopeFactory = topicSubscriberScopeFactory;
-            return this;
         }
 
-        public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
+        public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessage : class, new()
             where TMessageHandler : IMessageHandler<TMessage>
         {
             _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
-            return this;
         }
 
         public IConsumerConfiguration Build()
