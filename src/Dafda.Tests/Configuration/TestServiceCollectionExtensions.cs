@@ -46,7 +46,7 @@ namespace Dafda.Tests.Configuration
                 .Build();
 
             var services = new ServiceCollection();
-            //services.AddTransient<DummyMessageHandler>();
+            services.AddScoped<Scoped>();
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
@@ -96,21 +96,16 @@ namespace Dafda.Tests.Configuration
 
             Assert.Equal(dummyMessage, DummyMessageHandler.LastHandledMessage);
             Assert.Equal(1, Scoped.Instanciated);
-
         }
     }
 
-    public class UnitOfWork : ServiceScopedUnitOfWork
+    public class UnitOfWork : ScopedUnitOfWork
     {
-        public UnitOfWork(IServiceScopeFactory scopeFactory) : base(scopeFactory)
-        {
-        }
-
-        protected override Task RunInScope(IServiceScope scope, Func<Task> execute)
+        public override Task ExecuteInScope(IServiceScope scope, Func<Task> execute)
         {
             var scoped = scope.ServiceProvider.GetRequiredService<Scoped>();
 
-            return base.RunInScope(scope, execute);
+            return base.ExecuteInScope(scope, execute);
         }
     }
 
