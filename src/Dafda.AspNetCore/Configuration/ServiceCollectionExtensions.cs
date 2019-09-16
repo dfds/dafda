@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Dafda.Consuming;
 using Dafda.Messaging;
+using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
@@ -21,6 +22,20 @@ namespace Dafda.Configuration
             services.AddSingleton<IConsumerConfiguration>(provider => new ServiceProviderConsumerConfiguration(configuration, provider));
             services.AddTransient(provider => new Consumer(provider.GetRequiredService<IConsumerConfiguration>()));
             services.AddHostedService<SubscriberHostedService>();
+        }
+
+        public static void AddProducer(this IServiceCollection services, Action<IProducerOptions> options)
+        {
+            var configurationBuilder = new ProducerConfigurationBuilder();
+            var consumerOptions = new ProducerOptions(configurationBuilder);
+            options?.Invoke(consumerOptions);
+            var configuration = configurationBuilder.Build();
+
+            var factory = new KafkaProducerFactory();
+            var producer = factory.CreateProducer(configuration);
+            var bus = new Bus(producer);
+
+            services.AddSingleton<IBus>(bus);
         }
     }
 
