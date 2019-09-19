@@ -19,16 +19,11 @@ namespace Dafda.Producing
         {
             try
             {
-                Log.Debug("Producing message {Key} on {Topic}", outgoingMessage.Key, outgoingMessage.Topic);
+                Log.Debug("Producing message {Type} with {Key} on {Topic}", outgoingMessage.Type, outgoingMessage.Key, outgoingMessage.Topic);
 
-                await _innerKafkaConsumer.ProduceAsync(
-                    topic: outgoingMessage.Topic,
-                    message: new Message<string, string>
-                    {
-                        Key = outgoingMessage.Key,
-                        Value = outgoingMessage.Message
-                    }
-                );
+                var message = MessageFactory.Create(outgoingMessage);
+
+                await _innerKafkaConsumer.ProduceAsync(outgoingMessage.Topic, message);
             }
             catch (ProduceException<string, string> e)
             {
