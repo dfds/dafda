@@ -10,7 +10,7 @@ namespace Dafda.Consuming
             var consumer = new ConsumerBuilder<string, string>(configuration).Build();
             consumer.Subscribe(configuration.SubscribedTopics);
 
-            return new KafkaConsumerScope(consumer);
+            return new KafkaConsumerScope(consumer, configuration);
         }
     }
 }
