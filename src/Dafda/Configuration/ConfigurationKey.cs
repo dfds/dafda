@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -9,6 +8,7 @@ namespace Dafda.Configuration
     {
         public static readonly ConfigurationKey GroupId = new ConfigurationKey("group.id", ConfigurationKeyGroup.ConsumerOnly);
         public static readonly ConfigurationKey EnableAutoCommit = new ConfigurationKey("enable.auto.commit", ConfigurationKeyGroup.ConsumerOnly);
+        public static readonly ConfigurationKey AutoCommitInterval = new ConfigurationKey("auto.commit.interval.ms", ConfigurationKeyGroup.ConsumerOnly);
         public static readonly ConfigurationKey BootstrapServers = new ConfigurationKey("bootstrap.servers");
         public static readonly ConfigurationKey BrokerVersionFallback = new ConfigurationKey("broker.version.fallback");
         public static readonly ConfigurationKey ApiVersionFallbackMs = new ConfigurationKey("api.version.fallback.ms");

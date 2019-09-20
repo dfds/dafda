@@ -21,5 +21,7 @@ namespace Dafda.Configuration
         void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessage : class, new()
             where TMessageHandler : class, IMessageHandler<TMessage>;
+        void WithAutoCommitOnly(int autoCommitIntervalMs);
+        void WithManualCommitOnly();
     }
 }

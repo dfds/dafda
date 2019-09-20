@@ -84,6 +84,16 @@ namespace Dafda.Configuration
             _services.AddTransient<TMessageHandler>();
         }
 
+        public void WithAutoCommitOnly(int autoCommitIntervalMs)
+        {
+            _builder.WithAutoCommitOnly(autoCommitIntervalMs);
+        }
+
+        public void WithManualCommitOnly()
+        {
+            _builder.WithManualCommitOnly();
+        }
+
         private class DefaultConfigurationSource : ConfigurationSource
         {
             private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;

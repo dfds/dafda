@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using Dafda.Configuration;
 using Dafda.Logging;
 using Dafda.Messaging;
 
@@ -12,12 +11,12 @@ namespace Dafda.Consuming
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly IConsumer<string, string> _innerKafkaConsumer;
-        private readonly IConsumerConfiguration _consumerConfiguration;
+        private readonly ICommitStrategy _commitStrategy;
 
-        internal KafkaConsumerScope(IConsumer<string, string> innerKafkaConsumer, IConsumerConfiguration consumerConfiguration)
+        internal KafkaConsumerScope(IConsumer<string, string> innerKafkaConsumer, ICommitStrategy commitStrategy)
         {
             _innerKafkaConsumer = innerKafkaConsumer;
-            _consumerConfiguration = consumerConfiguration;
+            _commitStrategy = commitStrategy;
         }
         
         public override Task<MessageResult> GetNext(CancellationToken cancellationToken)
@@ -29,12 +28,7 @@ namespace Dafda.Consuming
                 message: new JsonMessageEmbeddedDocument(innerResult.Value),
                 onCommit: () =>
                 {
-                    if (_consumerConfiguration.EnableAutoCommit)
-                    { 
-                        return Task.CompletedTask;
-                    }
-                    _innerKafkaConsumer.Commit(innerResult);
-                    return Task.CompletedTask;
+                    return _commitStrategy.Commit(_innerKafkaConsumer, innerResult);
                 });
 
             return Task.FromResult(result);

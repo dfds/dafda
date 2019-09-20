@@ -72,8 +72,8 @@ namespace Dafda.Tests.Builders
             public IMessageHandlerRegistry MessageHandlerRegistry { get; set; }
             public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; set; }
             public ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; set; }
-            public bool EnableAutoCommit { get; set; }
             public IEnumerable<string> SubscribedTopics { get; set; }
+            public ICommitStrategy CommitStrategy { get; set; }
         }
 
         #endregion

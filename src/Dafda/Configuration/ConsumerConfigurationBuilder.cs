@@ -39,6 +39,7 @@ namespace Dafda.Configuration
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private ITopicSubscriberScopeFactory _topicSubscriberScopeFactory = new KafkaBasedTopicSubscriberScopeFactory();
+        private ICommitStrategy _commitStrategy = new AlwaysCommit();
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -90,6 +91,29 @@ namespace Dafda.Configuration
             _topicSubscriberScopeFactory = topicSubscriberScopeFactory;
         }
 
+        /// <summary>
+        /// Consumer offsets are committed syncronously after being processed.
+        /// Autocommit is disabled
+        /// </summary>
+        public void WithManualCommitOnly()
+        {
+            _commitStrategy = new AlwaysCommit();
+            WithConfiguration(ConfigurationKey.EnableAutoCommit, "false");
+        }
+
+        /// <summary>
+        /// Consumer offsets are only autocommitted at the defined interval.
+        /// They are not committed syncronously after being processed. 
+        /// This enables much higher throughput but at the risk of message loss.
+        /// </summary>
+        /// <param name="autoCommitIntervalMs"></param>
+        public void WithAutoCommitOnly(int autoCommitIntervalMs)
+        {
+            _commitStrategy = new NeverCommit();
+            WithConfiguration(ConfigurationKey.EnableAutoCommit, "true");
+            WithConfiguration(ConfigurationKey.AutoCommitInterval, autoCommitIntervalMs.ToString());
+        }
+
         public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessage : class, new()
             where TMessageHandler : IMessageHandler<TMessage>
@@ -111,7 +135,8 @@ namespace Dafda.Configuration
                 configuration: _configurations, 
                 messageHandlerRegistry: _messageHandlerRegistry, 
                 unitOfWorkFactory: _unitOfWorkFactory, 
-                topicSubscriberScopeFactory: _topicSubscriberScopeFactory
+                topicSubscriberScopeFactory: _topicSubscriberScopeFactory,
+                commitStrategy: _commitStrategy
             );
         }
 
@@ -171,32 +196,19 @@ namespace Dafda.Configuration
             private readonly IDictionary<string, string> _configuration;
 
             public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, 
-                IHandlerUnitOfWorkFactory unitOfWorkFactory, ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
+                IHandlerUnitOfWorkFactory unitOfWorkFactory, ITopicSubscriberScopeFactory topicSubscriberScopeFactory, ICommitStrategy commitStrategy)
             {
                 _configuration = configuration;
                 MessageHandlerRegistry = messageHandlerRegistry;
                 UnitOfWorkFactory = unitOfWorkFactory;
                 TopicSubscriberScopeFactory = topicSubscriberScopeFactory;
+                CommitStrategy = commitStrategy;
             }
 
             public IMessageHandlerRegistry MessageHandlerRegistry { get; }
             public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
-            public ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; }
-
-            public bool EnableAutoCommit
-            {
-                get
-                {
-                    const bool defaultAutoCommitStrategy = true;
-                    
-                    if (!_configuration.TryGetValue(ConfigurationKey.EnableAutoCommit, out var value))
-                    {
-                        return defaultAutoCommitStrategy;
-                    }
-
-                    return bool.Parse(value);
-                }
-            }
+            public ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; }            
+            public ICommitStrategy CommitStrategy { get; }
 
             public IEnumerable<string> SubscribedTopics => MessageHandlerRegistry.GetAllSubscribedTopics(); 
 

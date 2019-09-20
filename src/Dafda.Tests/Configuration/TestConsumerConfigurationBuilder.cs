@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Configuration;
+using Dafda.Consuming;
 using Dafda.Messaging;
 using Dafda.Tests.TestDoubles;
 using Xunit;
@@ -147,32 +148,38 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void returns_expected_auto_commit_when_not_set()
+        public void Has_default_commit_strategy()
         {
             var sut = new ConsumerConfigurationBuilder();
             sut.WithGroupId("foo");
             sut.WithBootstrapServers("bar");
-
             var configuration = sut.Build();
-
-            Assert.True(configuration.EnableAutoCommit);
+            Assert.IsType<AlwaysCommit>(configuration.CommitStrategy);
         }
 
-        [Theory]
-        [InlineData("true", true)]
-        [InlineData("TRUE", true)]
-        [InlineData("false", false)]
-        [InlineData("FALSE", false)]
-        public void returns_expected_auto_commit_when_configured_with_valid_value(string configValue, bool expected)
+        [Fact]
+        public void Can_set_AutoCommitOnly_stategy()
         {
             var sut = new ConsumerConfigurationBuilder();
             sut.WithGroupId("foo");
             sut.WithBootstrapServers("bar");
-            sut.WithConfiguration(ConfigurationKey.EnableAutoCommit, configValue);
-
+            sut.WithAutoCommitOnly(999);
             var configuration = sut.Build();
+            Assert.IsType<NeverCommit>(configuration.CommitStrategy);
+            AssertKeyValue(configuration, ConfigurationKey.EnableAutoCommit, "true");
+            AssertKeyValue(configuration, ConfigurationKey.AutoCommitInterval, "999");
+        }
 
-            Assert.Equal(expected, configuration.EnableAutoCommit);
+        [Fact]
+        public void Can_set_NeverCommit_stategy()
+        {
+            var sut = new ConsumerConfigurationBuilder();
+            sut.WithGroupId("foo");
+            sut.WithBootstrapServers("bar");
+            sut.WithManualCommitOnly();
+            var configuration = sut.Build();
+            Assert.IsType<AlwaysCommit>(configuration.CommitStrategy);
+            AssertKeyValue(configuration, ConfigurationKey.EnableAutoCommit, "false");
         }
 
         public class DummyMessage

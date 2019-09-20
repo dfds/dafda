@@ -17,6 +17,7 @@ namespace Dafda.Tests.Configuration
         {
             new[] {"group.id", ConfigurationKey.GroupId},
             new[] {"enable.auto.commit", ConfigurationKey.EnableAutoCommit},
+            new[] {"auto.commit.interval.ms", ConfigurationKey.AutoCommitInterval},
             new[] {"bootstrap.servers", ConfigurationKey.BootstrapServers},
             new[] {"broker.version.fallback", ConfigurationKey.BrokerVersionFallback},
             new[] {"api.version.fallback.ms", ConfigurationKey.ApiVersionFallbackMs},
@@ -34,6 +35,7 @@ namespace Dafda.Tests.Configuration
             {
                 ConfigurationKey.GroupId,
                 ConfigurationKey.EnableAutoCommit,
+                ConfigurationKey.AutoCommitInterval,
                 ConfigurationKey.BootstrapServers,
                 ConfigurationKey.BrokerVersionFallback,
                 ConfigurationKey.ApiVersionFallbackMs,
