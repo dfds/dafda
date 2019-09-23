@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Dafda.Configuration;
 using Dafda.Consuming;
 using Dafda.Messaging;
-using Dafda.Tests.Messaging;
 using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
@@ -14,6 +13,7 @@ namespace Dafda.Tests.Builders
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private ITopicSubscriberScopeFactory _topicSubscriberScopeFactory;
         private MessageRegistration[] _messageRegistrations;
+        private bool _enableAutoCommit;
 
         public ConsumerBuilder()
         {
@@ -42,14 +42,21 @@ namespace Dafda.Tests.Builders
             _messageRegistrations = messageRegistrations;
             return this;
         }
-        
+
+        public ConsumerBuilder WithEnableAutoCommit(bool enableAutoCommit)
+        {
+            _enableAutoCommit = enableAutoCommit;
+            return this;
+        }
+
         public Consumer Build()
         {
             var configuration = new ConsumerConfigurationStub
             {
                 MessageHandlerRegistry = new MessageHandlerRegistryStub(_messageRegistrations),
                 UnitOfWorkFactory = _unitOfWorkFactory,
-                TopicSubscriberScopeFactory = _topicSubscriberScopeFactory
+                TopicSubscriberScopeFactory = _topicSubscriberScopeFactory,
+                EnableAutoCommit = _enableAutoCommit
             };
 
             return new Consumer(configuration);

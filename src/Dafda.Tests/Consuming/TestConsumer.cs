@@ -61,7 +61,75 @@ namespace Dafda.Tests.Consuming
 
             await sut.ConsumeSingle(CancellationToken.None);
 
-            Assert.Equal(new[] { "before", "during", "after" }, orderOfInvocation);
+            Assert.Equal(new[] {"before", "during", "after"}, orderOfInvocation);
+        }
+
+        [Fact]
+        public async Task will_not_call_commit_when_auto_commit_is_enabled()
+        {
+            var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
+
+            var messageRegistrationStub = new MessageRegistrationBuilder()
+                .WithHandlerInstanceType(handlerStub.GetType())
+                .WithMessageInstanceType(typeof(FooMessage))
+                .WithMessageType("foo")
+                .Build();
+
+            var wasCalled = false;
+
+            var resultSpy = new MessageResultBuilder()
+                .WithOnCommit(() =>
+                {
+                    wasCalled = true;
+                    return Task.CompletedTask;
+                })
+                .Build();
+
+            var topicSubscriberScopeFactoryStub = new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(resultSpy));
+            var consumer = new ConsumerBuilder()
+                .WithTopicSubscriberScopeFactory(topicSubscriberScopeFactoryStub)
+                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithMessageRegistrations(messageRegistrationStub)
+                .WithEnableAutoCommit(true)
+                .Build();
+
+            await consumer.ConsumeSingle(CancellationToken.None);
+
+            Assert.False(wasCalled);
+        }
+
+        [Fact]
+        public async Task will_call_commit_when_auto_commit_is_disabled()
+        {
+            var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
+
+            var messageRegistrationStub = new MessageRegistrationBuilder()
+                .WithHandlerInstanceType(handlerStub.GetType())
+                .WithMessageInstanceType(typeof(FooMessage))
+                .WithMessageType("foo")
+                .Build();
+
+            var wasCalled = false;
+
+            var resultSpy = new MessageResultBuilder()
+                .WithOnCommit(() =>
+                {
+                    wasCalled = true;
+                    return Task.CompletedTask;
+                })
+                .Build();
+
+            var topicSubscriberScopeFactoryStub = new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(resultSpy));
+            var consumer = new ConsumerBuilder()
+                .WithTopicSubscriberScopeFactory(topicSubscriberScopeFactoryStub)
+                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithMessageRegistrations(messageRegistrationStub)
+                .WithEnableAutoCommit(false)
+                .Build();
+
+            await consumer.ConsumeSingle(CancellationToken.None);
+
+            Assert.True(wasCalled);
         }
 
         #region helper classes

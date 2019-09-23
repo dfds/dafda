@@ -42,7 +42,10 @@ namespace Dafda.Messaging
             var messageResult = await topicSubscriberScope.GetNext(cancellationToken);
             await _localMessageDispatcher.Dispatch(messageResult.Message);
 
-            await messageResult.Commit();
+            if (_configuration.EnableAutoCommit == false)
+            {
+                await messageResult.Commit();
+            }
         }
     }
 }
