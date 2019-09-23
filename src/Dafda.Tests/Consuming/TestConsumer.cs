@@ -7,7 +7,7 @@ using Dafda.Tests.TestDoubles;
 using Moq;
 using Xunit;
 
-namespace Dafda.Tests.Messaging
+namespace Dafda.Tests.Consuming
 {
     public class TestConsumer
     {
