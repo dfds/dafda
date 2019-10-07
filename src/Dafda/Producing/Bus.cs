@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Dafda.Configuration;
 using Dafda.Logging;
 
 namespace Dafda.Producing
@@ -7,12 +9,13 @@ namespace Dafda.Producing
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
-        private readonly OutgoingMessageFactory _outgoingMessageFactory = new OutgoingMessageFactory();
+        private readonly OutgoingMessageFactory _outgoingMessageFactory;
         private readonly IProducer _producer;
 
-        public Bus(IProducer producer)
+        public Bus(IProducer producer, IProducerConfiguration configuration)
         {
             _producer = producer;
+            _outgoingMessageFactory = new OutgoingMessageFactory(configuration.MessageIdGenerator, configuration.OutgoingMessageRegistry);
         }
 
         public async Task Publish<TMessage>(TMessage msg) where TMessage : IMessage

@@ -3,9 +3,9 @@ using Dafda.Configuration;
 
 namespace Dafda.Producing
 {
-    public class KafkaProducerFactory
+    public static class KafkaProducerFactory
     {
-        public IProducer CreateProducer(IProducerConfiguration configuration)
+        public static IProducer CreateProducer(IProducerConfiguration configuration)
         {
             var producer = new ProducerBuilder<string, string>(configuration).Build();
 

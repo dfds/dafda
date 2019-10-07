@@ -13,9 +13,7 @@ namespace Dafda.Configuration
             options?.Invoke(consumerOptions);
             var configuration = configurationBuilder.Build();
 
-            var factory = new KafkaProducerFactory();
-            var producer = factory.CreateProducer(configuration);
-            var bus = new Bus(producer);
+            var bus = new Bus(KafkaProducerFactory.CreateProducer(configuration), configuration);
 
             services.AddSingleton<IBus>(bus);
         }
