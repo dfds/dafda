@@ -8,7 +8,7 @@ namespace Dafda.Tests.Builders
         private string _messageId = "";
         private string _key = "";
         private string _type = "";
-        private string _rawMessage = "";
+        private string _value = "";
 
         public OutgoingMessageBuilder WithTopic(string topic)
         {
@@ -34,15 +34,15 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public OutgoingMessageBuilder WithRawMessage(string rawMessage)
+        public OutgoingMessageBuilder WithValue(string value)
         {
-            _rawMessage = rawMessage;
+            _value = value;
             return this;
         }
 
         public OutgoingMessage Build()
         {
-            return new OutgoingMessage(_topic, _messageId, _key, _type, _rawMessage);
+            return new OutgoingMessage(_topic, _messageId, _key, _type, _value);
         }
 
         public static implicit operator OutgoingMessage(OutgoingMessageBuilder builder)

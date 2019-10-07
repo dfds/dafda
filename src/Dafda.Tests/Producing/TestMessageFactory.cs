@@ -7,6 +7,18 @@ namespace Dafda.Tests.Producing
     public class TestMessageFactory
     {
         [Fact]
+        public void Has_expected_message_id_header_name()
+        {
+            Assert.Equal("messageId", MessageFactory.MessageIdHeaderName);
+        }
+
+        [Fact]
+        public void Has_expected_type_header_name()
+        {
+            Assert.Equal("type", MessageFactory.TypeHeaderName);
+        }
+
+        [Fact]
         public void Message_has_expected_key()
         {
             var message = MessageFactory.Create(new OutgoingMessageBuilder().WithKey("dummyKey"));
@@ -17,7 +29,7 @@ namespace Dafda.Tests.Producing
         [Fact]
         public void Message_has_expected_value()
         {
-            var message = MessageFactory.Create(new OutgoingMessageBuilder().WithRawMessage("dummyMessage"));
+            var message = MessageFactory.Create(new OutgoingMessageBuilder().WithValue("dummyMessage"));
 
             Assert.Equal("dummyMessage", message.Value);
         }
@@ -27,7 +39,7 @@ namespace Dafda.Tests.Producing
         {
             var message = MessageFactory.Create(new OutgoingMessageBuilder().WithMessageId("A"));
 
-            Assert.Equal(new[] {(byte) 'A'}, message.Headers.GetLastBytes(OutgoingMessage.MessageIdHeaderName));
+            Assert.Equal(new[] {(byte) 'A'}, message.Headers.GetLastBytes(MessageFactory.MessageIdHeaderName));
         }
 
         [Fact]
@@ -35,7 +47,7 @@ namespace Dafda.Tests.Producing
         {
             var message = MessageFactory.Create(new OutgoingMessageBuilder().WithType("T"));
 
-            Assert.Equal(new[] {(byte) 'T'}, message.Headers.GetLastBytes(OutgoingMessage.TypeHeaderName));
+            Assert.Equal(new[] {(byte) 'T'}, message.Headers.GetLastBytes(MessageFactory.TypeHeaderName));
         }
     }
 }

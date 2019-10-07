@@ -10,8 +10,6 @@ namespace Dafda.Tests.Producing
         private const string DummyTopic = "dummy_topic";
         private const string DummyType = "dummy_type";
 
-        #region IMessage metadata
-
         [Fact]
         public void Can_create_outgoing_message_from_metadata_with_expected_topic()
         {
@@ -70,36 +68,8 @@ namespace Dafda.Tests.Producing
 
             var outgoingMessage = sut.Create(new DummyMessageWithMetaData(dummyAggregateId));
 
-            Assert.Equal($@"{{""messageId"":""{dummyMessageId}"",""type"":""{DummyType}"",""data"":{{""aggregateId"":""{dummyAggregateId}""}}}}", outgoingMessage.RawMessage);
+            Assert.Equal($@"{{""messageId"":""{dummyMessageId}"",""type"":""{DummyType}"",""data"":{{""aggregateId"":""{dummyAggregateId}""}}}}", outgoingMessage.Value);
         }
-
-        [Fact]
-        public void Can_create_outgoing_message_from_metadata_with_expected_message_id_header()
-        {
-            const string dummyMessageId = "foo_id";
-
-            var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(() => dummyMessageId))
-                .Build();
-
-            var outgoingMessage = sut.Create(new DummyMessageWithMetaData());
-
-            Assert.Equal(dummyMessageId, outgoingMessage.Headers[OutgoingMessage.MessageIdHeaderName]);
-        }
-
-        [Fact]
-        public void Can_create_outgoing_message_from_metadata_with_expected_type_header()
-        {
-            var sut = new OutgoingMessageFactoryBuilder().Build();
-
-            var outgoingMessage = sut.Create(new DummyMessageWithMetaData());
-
-            Assert.Equal(DummyType, outgoingMessage.Headers[OutgoingMessage.TypeHeaderName]);
-        }
-
-        #endregion
-
-        #region Registry
 
         [Fact]
         public void Can_create_outgoing_message_from_registry_with_expected_topic()
@@ -167,37 +137,8 @@ namespace Dafda.Tests.Producing
 
             var outgoingMessage = sut.Create(new DummyMessage(dummyAggregateId));
 
-            Assert.Equal($@"{{""messageId"":""{dummyMessageId}"",""type"":""{DummyType}"",""data"":{{""aggregateId"":""{dummyAggregateId}""}}}}", outgoingMessage.RawMessage);
+            Assert.Equal($@"{{""messageId"":""{dummyMessageId}"",""type"":""{DummyType}"",""data"":{{""aggregateId"":""{dummyAggregateId}""}}}}", outgoingMessage.Value);
         }
-
-        [Fact]
-        public void Can_create_outgoing_message_from_registry_with_expected_message_id_header()
-        {
-            const string dummyMessageId = "foo_id";
-
-            var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(() => dummyMessageId))
-                .With(new OutgoingMessageRegistryBuilder().Register<DummyMessage>(DummyTopic, DummyType, x => x.AggregateId))
-                .Build();
-
-            var outgoingMessage = sut.Create(new DummyMessage());
-
-            Assert.Equal(dummyMessageId, outgoingMessage.Headers[OutgoingMessage.MessageIdHeaderName]);
-        }
-
-        [Fact]
-        public void Can_create_outgoing_message_from_registry_with_expected_type_header()
-        {
-            var sut = new OutgoingMessageFactoryBuilder()
-                .With(new OutgoingMessageRegistryBuilder().Register<DummyMessage>(DummyTopic, DummyType, x => x.AggregateId))
-                .Build();
-
-            var outgoingMessage = sut.Create(new DummyMessage());
-
-            Assert.Equal(DummyType, outgoingMessage.Headers[OutgoingMessage.TypeHeaderName]);
-        }
-
-        #endregion
 
         [Message(DummyTopic, DummyType)]
         private class DummyMessageWithMetaData : IMessage
