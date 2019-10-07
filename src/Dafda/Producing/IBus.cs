@@ -1,8 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Dafda.Producing
 {
-    public interface IBus
+    public interface IBus : IDisposable
     {
         Task Publish<TMessage>(TMessage msg) where TMessage : IMessage;
     }

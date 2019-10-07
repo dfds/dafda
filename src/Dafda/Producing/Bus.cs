@@ -26,5 +26,10 @@ namespace Dafda.Producing
 
             Log.Debug("Message {Name} was published", typeof(TMessage).Name);
         }
+
+        public void Dispose()
+        {
+            _producer?.Dispose();
+        }
     }
 }
