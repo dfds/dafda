@@ -33,6 +33,7 @@ namespace Dafda.Configuration
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
+        private IKafkaProducerFactory _kafkaProducerFactory = new KafkaProducerFactory();
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -74,6 +75,11 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
+        public void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory)
+        {
+            _kafkaProducerFactory = kafkaProducerFactory;
+        }
+
         public IProducerConfiguration Build()
         {
             if (!_namingConventions.Any())
@@ -87,7 +93,8 @@ namespace Dafda.Configuration
             return new ProducerConfiguration(
                 configuration: _configurations,
                 _messageIdGenerator,
-                _outgoingMessageRegistry
+                _outgoingMessageRegistry,
+                _kafkaProducerFactory
             );
         }
 
@@ -146,15 +153,17 @@ namespace Dafda.Configuration
         {
             private readonly IDictionary<string, string> _configuration;
 
-            public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
+            public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry, IKafkaProducerFactory kafkaProducerFactory)
             {
                 _configuration = configuration;
                 MessageIdGenerator = messageIdGenerator;
                 OutgoingMessageRegistry = outgoingMessageRegistry;
+                KafkaProducerFactory = kafkaProducerFactory;
             }
 
             public MessageIdGenerator MessageIdGenerator { get; }
             public IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
+            public IKafkaProducerFactory KafkaProducerFactory { get; }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
             {
