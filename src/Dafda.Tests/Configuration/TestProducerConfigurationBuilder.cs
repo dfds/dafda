@@ -1,5 +1,6 @@
 using System.Linq;
 using Dafda.Configuration;
+using Dafda.Producing;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -116,6 +117,32 @@ namespace Dafda.Tests.Configuration
             var configuration = sut.Build();
 
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "foo");
+        }
+
+        [Fact]
+        public void Has_expected_message_id_generator()
+        {
+            var dummy = new DefaultMessageIdGenerator();
+
+            var sut = new ProducerConfigurationBuilder();
+            sut.WithBootstrapServers("foo");
+            sut.WithMessageIdGenerator(dummy);
+            var producerConfiguration = sut.Build();
+
+            Assert.Equal(dummy, producerConfiguration.MessageIdGenerator);
+        }
+
+        [Fact]
+        public void Has_expected_outgoing_message_registry()
+        {
+            var dummy = new OutgoingMessageRegistry();
+
+            var sut = new ProducerConfigurationBuilder();
+            sut.WithBootstrapServers("foo");
+            sut.WithOutgoingMessageRegistry(dummy);
+            var producerConfiguration = sut.Build();
+
+            Assert.Equal(dummy, producerConfiguration.OutgoingMessageRegistry);
         }
     }
 }

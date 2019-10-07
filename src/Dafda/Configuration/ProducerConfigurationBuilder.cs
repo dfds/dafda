@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Logging;
+using Dafda.Producing;
 
 namespace Dafda.Configuration
 {
@@ -27,10 +28,11 @@ namespace Dafda.Configuration
         };
 
         private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
-
         private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
+        private IMessageIdGenerator _messageIdGenerator = new DefaultMessageIdGenerator();
+        private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -62,6 +64,16 @@ namespace Dafda.Configuration
             WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
+        public void WithMessageIdGenerator(IMessageIdGenerator messageIdGenerator)
+        {
+            _messageIdGenerator = messageIdGenerator;
+        }
+
+        public void WithOutgoingMessageRegistry(IOutgoingMessageRegistry outgoingMessageRegistry)
+        {
+            _outgoingMessageRegistry = outgoingMessageRegistry;
+        }
+
         public IProducerConfiguration Build()
         {
             if (!_namingConventions.Any())
@@ -73,7 +85,9 @@ namespace Dafda.Configuration
             ValidateConfiguration();
 
             return new ProducerConfiguration(
-                configuration: _configurations
+                configuration: _configurations,
+                _messageIdGenerator,
+                _outgoingMessageRegistry
             );
         }
 
@@ -132,10 +146,15 @@ namespace Dafda.Configuration
         {
             private readonly IDictionary<string, string> _configuration;
 
-            public ProducerConfiguration(IDictionary<string, string> configuration)
+            public ProducerConfiguration(IDictionary<string, string> configuration, IMessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
             {
                 _configuration = configuration;
+                MessageIdGenerator = messageIdGenerator;
+                OutgoingMessageRegistry = outgoingMessageRegistry;
             }
+
+            public IMessageIdGenerator MessageIdGenerator { get; }
+            public IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
             {

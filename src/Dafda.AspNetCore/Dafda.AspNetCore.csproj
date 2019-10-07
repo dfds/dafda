@@ -16,4 +16,9 @@
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Configuration\OutboxConfiguration.cs" />
+      <Compile Remove="Configuration\OutboxServiceCollectionExtensions.cs" />
+    </ItemGroup>
+
 </Project>
