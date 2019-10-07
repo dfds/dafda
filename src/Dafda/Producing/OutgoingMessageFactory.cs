@@ -19,25 +19,43 @@ namespace Dafda.Producing
         }
     }
 
-    internal class OutgoingMessageFactory
+    public class OutgoingMessageFactory
     {
         private readonly IMessageIdGenerator _messageIdGenerator;
+        private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
 
-        public OutgoingMessageFactory() : this(new DefaultMessageIdGenerator())
+        public OutgoingMessageFactory() : this(new DefaultMessageIdGenerator(), new OutgoingMessageRegistry())
         {
         }
 
-        public OutgoingMessageFactory(IMessageIdGenerator messageIdGenerator)
+        public OutgoingMessageFactory(IMessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
         {
             _messageIdGenerator = messageIdGenerator;
+            _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
-        public OutgoingMessage Create<TMessage>(TMessage msg) where TMessage : IMessage
+        public OutgoingMessage Create<TMessage>(TMessage msg)
         {
-            var (topicName, type) = GetMessageMetaData(msg);
+            string topicName;
+            string type;
+            string key;
+
+            if (msg is IMessage message)
+            {
+                (topicName, type) = GetMessageMetaData(message);
+
+                key = message.AggregateId;
+            }
+            else
+            {
+                var registration = _outgoingMessageRegistry.GetRegistration(msg);
+                topicName = registration.Topic;
+                type = registration.Type;
+                key = registration.KeySelector(msg);
+            }
 
             var messageId = _messageIdGenerator.NextMessageId();
-            var key = msg.AggregateId;
+
             var rawMessage = CreateRawMessage(messageId, type, msg);
 
             return new OutgoingMessage(topicName, messageId, key, type, rawMessage);
