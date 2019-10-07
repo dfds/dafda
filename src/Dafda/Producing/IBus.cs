@@ -5,6 +5,6 @@ namespace Dafda.Producing
 {
     public interface IBus : IDisposable
     {
-        Task Publish<TMessage>(TMessage msg) where TMessage : IMessage;
+        Task Publish(object message);
     }
 }

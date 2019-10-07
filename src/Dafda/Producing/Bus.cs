@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Logging;
 
@@ -18,13 +17,13 @@ namespace Dafda.Producing
             _outgoingMessageFactory = new OutgoingMessageFactory(configuration.MessageIdGenerator, configuration.OutgoingMessageRegistry);
         }
 
-        public async Task Publish<TMessage>(TMessage msg) where TMessage : IMessage
+        public async Task Publish(object message)
         {
-            var outgoingMessage = _outgoingMessageFactory.Create(msg);
+            var outgoingMessage = _outgoingMessageFactory.Create(message);
 
             await _producer.Produce(outgoingMessage);
 
-            Log.Debug("Message {Name} was published", typeof(TMessage).Name);
+            Log.Debug("Message for {Type} with id {MessageId} was published", outgoingMessage.Type, outgoingMessage.MessageId);
         }
 
         public void Dispose()
