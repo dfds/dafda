@@ -8,11 +8,11 @@ namespace Dafda.Producing
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
-        private readonly IProducer<string, string> _innerKafkaConsumer;
+        private readonly IProducer<string, string> _innerKafkaProducer;
 
-        internal KafkaProducer(IProducer<string, string> innerKafkaConsumer)
+        internal KafkaProducer(IProducer<string, string> innerKafkaProducer)
         {
-            _innerKafkaConsumer = innerKafkaConsumer;
+            _innerKafkaProducer = innerKafkaProducer;
         }
 
         public async Task Produce(OutgoingMessage outgoingMessage)
@@ -23,13 +23,18 @@ namespace Dafda.Producing
 
                 var message = MessageFactory.Create(outgoingMessage);
 
-                await _innerKafkaConsumer.ProduceAsync(outgoingMessage.Topic, message);
+                await _innerKafkaProducer.ProduceAsync(outgoingMessage.Topic, message);
             }
             catch (ProduceException<string, string> e)
             {
                 Log.Error(e, "Error publishing message due to: {ErrorReason} ({ErrorCode})", e.Error.Reason, e.Error.Code);
                 throw;
             }
+        }
+
+        public void Dispose()
+        {
+            _innerKafkaProducer?.Dispose();
         }
     }
 }

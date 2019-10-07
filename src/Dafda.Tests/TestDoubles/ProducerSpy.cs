@@ -12,5 +12,9 @@ namespace Dafda.Tests.TestDoubles
         }
 
         public OutgoingMessage LastOutgoingMessage { get; private set; }
+
+        public void Dispose()
+        {
+        }
     }
 }

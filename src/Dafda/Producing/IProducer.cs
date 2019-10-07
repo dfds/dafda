@@ -1,8 +1,9 @@
+using System;
 using System.Threading.Tasks;
 
 namespace Dafda.Producing
 {
-    public interface IProducer
+    public interface IProducer : IDisposable
     {
         Task Produce(OutgoingMessage outgoingMessage);
     }
