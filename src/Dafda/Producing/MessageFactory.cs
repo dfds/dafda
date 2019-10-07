@@ -4,7 +4,7 @@ using Confluent.Kafka;
 
 namespace Dafda.Producing
 {
-    public static class MessageFactory
+    internal static class MessageFactory
     {
         public static Message<string, string> Create(OutgoingMessage outgoingMessage)
         {
