@@ -15,7 +15,7 @@ namespace Dafda.Configuration
 
             var bus = new Bus(KafkaProducerFactory.CreateProducer(configuration), configuration);
 
-            services.AddSingleton<IBus>(bus);
+            services.AddSingleton<IProducer>(producer);
         }
     }
 }

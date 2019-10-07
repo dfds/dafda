@@ -4,7 +4,7 @@ using Dafda.Logging;
 
 namespace Dafda.Producing
 {
-    internal class KafkaProducer : IProducer
+    internal class KafkaProducer : IKafkaProducer
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 

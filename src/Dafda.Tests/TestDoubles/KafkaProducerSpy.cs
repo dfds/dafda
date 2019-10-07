@@ -3,7 +3,7 @@ using Dafda.Producing;
 
 namespace Dafda.Tests.TestDoubles
 {
-    public class ProducerSpy : IProducer
+    public class KafkaProducerSpy : IKafkaProducer
     {
         public Task Produce(OutgoingMessage outgoingMessage)
         {

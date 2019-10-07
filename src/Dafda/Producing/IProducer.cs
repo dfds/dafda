@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace Dafda.Producing
 {
     public interface IProducer : IDisposable
     {
-        Task Produce(OutgoingMessage outgoingMessage);
+        Task Produce(object message);
     }
 }

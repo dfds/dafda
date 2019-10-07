@@ -4,31 +4,31 @@ using Dafda.Logging;
 
 namespace Dafda.Producing
 {
-    public class Bus : IBus
+    public class Producer : IProducer
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly OutgoingMessageFactory _outgoingMessageFactory;
-        private readonly IProducer _producer;
+        private readonly IKafkaProducer _kafkaProducer;
 
-        public Bus(IProducer producer, IProducerConfiguration configuration)
+        public Producer(IKafkaProducer kafkaProducer, IProducerConfiguration configuration)
         {
-            _producer = producer;
+            _kafkaProducer = kafkaProducer;
             _outgoingMessageFactory = new OutgoingMessageFactory(configuration.MessageIdGenerator, configuration.OutgoingMessageRegistry);
         }
 
-        public async Task Publish(object message)
+        public async Task Produce(object message)
         {
             var outgoingMessage = _outgoingMessageFactory.Create(message);
 
-            await _producer.Produce(outgoingMessage);
+            await _kafkaProducer.Produce(outgoingMessage);
 
             Log.Debug("Message for {Type} with id {MessageId} was published", outgoingMessage.Type, outgoingMessage.MessageId);
         }
 
         public void Dispose()
         {
-            _producer?.Dispose();
+            _kafkaProducer?.Dispose();
         }
     }
 }

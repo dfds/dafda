@@ -5,7 +5,7 @@ namespace Dafda.Producing
 {
     public static class KafkaProducerFactory
     {
-        public static IProducer CreateProducer(IProducerConfiguration configuration)
+        public static IKafkaProducer CreateProducer(IProducerConfiguration configuration)
         {
             var producer = new ProducerBuilder<string, string>(configuration).Build();
 
