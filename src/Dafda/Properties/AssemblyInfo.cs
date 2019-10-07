@@ -1,3 +1,3 @@
-    using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
-    [assembly:InternalsVisibleTo("Dafda.Tests")]
+[assembly:InternalsVisibleTo("Dafda.Tests")]
