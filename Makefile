@@ -1,6 +1,7 @@
 PACKAGES		:= Dafda Dafda.AspNetCore
 CONFIGURATION	:= Debug
 VERSION			?= $(shell git describe --tags --always --dirty --match=*.*.* 2> /dev/null || cat $(CURDIR)/.version 2> /dev/null || echo 0.0.1)
+NUGET_API_KEY	?= $(shell git config --global nuget.token)
 BIN				:= $(CURDIR)/.output
 M				= $(shell printf "\033[34;1m▶\033[0m")
 
@@ -38,14 +39,8 @@ release: clean restore build package
 .PHONY: push
 push: $(addprefix push-,$(subst /,-,$(PACKAGES))) ## push nuget packages
 
-push-%: require ; $(info $(M) Pushing $*...)
-	cd $(BIN) && dotnet nuget push $*.$(VERSION).nupkg --source https://api.nuget.org/v3/index.json --api-key $$(git config --global nuget.token)
-
-.PHONY: require
-require:
-ifndef NUGET_API_KEY
-	$(error NUGET_API_KEY is undefined)
-endif
+push-%: ; $(info $(M) Pushing $*...)
+	cd $(BIN) && dotnet nuget push $*.$(VERSION).nupkg --source https://api.nuget.org/v3/index.json --api-key $(NUGET_API_KEY)
 
 .PHONY: version
 version: ## prints the version (from either environment VERSION, git describe, or .version. default: 0.0.1)

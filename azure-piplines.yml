@@ -1,12 +1,11 @@
 name: $(Build.BuildId)
 pool: Docker-pool
-#  vmImage: ubuntu-16.04
 trigger:
-  - master
+- master
 
 steps:
-  - bash: |
-      make restore build package push
-    env:
-      NUGET_API_KEY: $(NUGET_API_KEY)
-    displayName: 'Build a deployment artifact'
+- bash: |
+    make release push
+  env:
+    NUGET_API_KEY: $(NUGET_API_KEY)
+  displayName: 'Build and push Nuget packages'
