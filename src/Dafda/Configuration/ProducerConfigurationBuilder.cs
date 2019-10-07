@@ -31,7 +31,7 @@ namespace Dafda.Configuration
         private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
-        private IMessageIdGenerator _messageIdGenerator = new DefaultMessageIdGenerator();
+        private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
@@ -64,7 +64,7 @@ namespace Dafda.Configuration
             WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
-        public void WithMessageIdGenerator(IMessageIdGenerator messageIdGenerator)
+        public void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
         {
             _messageIdGenerator = messageIdGenerator;
         }
@@ -146,14 +146,14 @@ namespace Dafda.Configuration
         {
             private readonly IDictionary<string, string> _configuration;
 
-            public ProducerConfiguration(IDictionary<string, string> configuration, IMessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
+            public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
             {
                 _configuration = configuration;
                 MessageIdGenerator = messageIdGenerator;
                 OutgoingMessageRegistry = outgoingMessageRegistry;
             }
 
-            public IMessageIdGenerator MessageIdGenerator { get; }
+            public MessageIdGenerator MessageIdGenerator { get; }
             public IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()

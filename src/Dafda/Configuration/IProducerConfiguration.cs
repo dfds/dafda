@@ -4,7 +4,7 @@ namespace Dafda.Configuration
 {
     public interface IProducerConfiguration : IConfiguration
     {
-        IMessageIdGenerator MessageIdGenerator { get; }
+        MessageIdGenerator MessageIdGenerator { get; }
         IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
     }
 }

@@ -6,29 +6,17 @@ using Newtonsoft.Json.Serialization;
 
 namespace Dafda.Producing
 {
-    public interface IMessageIdGenerator
-    {
-        string NextMessageId();
-    }
-
-    internal class DefaultMessageIdGenerator : IMessageIdGenerator
-    {
-        public string NextMessageId()
-        {
-            return Guid.NewGuid().ToString();
-        }
-    }
 
     public class OutgoingMessageFactory
     {
-        private readonly IMessageIdGenerator _messageIdGenerator;
+        private readonly MessageIdGenerator _messageIdGenerator;
         private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
 
-        public OutgoingMessageFactory() : this(new DefaultMessageIdGenerator(), new OutgoingMessageRegistry())
+        public OutgoingMessageFactory() : this(MessageIdGenerator.Default, new OutgoingMessageRegistry())
         {
         }
 
-        public OutgoingMessageFactory(IMessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
+        public OutgoingMessageFactory(MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
         {
             _messageIdGenerator = messageIdGenerator;
             _outgoingMessageRegistry = outgoingMessageRegistry;

@@ -4,10 +4,10 @@ namespace Dafda.Tests.Builders
 {
     internal class OutgoingMessageFactoryBuilder
     {
-        private IMessageIdGenerator _messageIdGenerator = new DefaultMessageIdGenerator();
+        private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
 
-        public OutgoingMessageFactoryBuilder With(IMessageIdGenerator messageIdGenerator)
+        public OutgoingMessageFactoryBuilder With(MessageIdGenerator messageIdGenerator)
         {
             _messageIdGenerator = messageIdGenerator;
             return this;

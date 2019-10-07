@@ -122,7 +122,7 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Has_expected_message_id_generator()
         {
-            var dummy = new DefaultMessageIdGenerator();
+            var dummy = MessageIdGenerator.Default;
 
             var sut = new ProducerConfigurationBuilder();
             sut.WithBootstrapServers("foo");

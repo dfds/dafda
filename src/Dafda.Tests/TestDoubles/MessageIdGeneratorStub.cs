@@ -1,19 +1,20 @@
-﻿using Dafda.Producing;
+﻿using System;
+using Dafda.Producing;
 
 namespace Dafda.Tests.TestDoubles
 {
-    public class MessageIdGeneratorStub : IMessageIdGenerator
+    public class MessageIdGeneratorStub : MessageIdGenerator
     {
-        private readonly string _id;
+        private readonly Func<string> _idGenerator;
 
-        public MessageIdGeneratorStub(string id)
+        public MessageIdGeneratorStub(Func<string> idGenerator)
         {
-            _id = id;
+            _idGenerator = idGenerator;
         }
 
-        public string NextMessageId()
+        public override string NextMessageId()
         {
-            return _id;
+            return _idGenerator();
         }
     }
 }

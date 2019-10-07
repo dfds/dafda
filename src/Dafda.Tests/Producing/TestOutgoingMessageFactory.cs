@@ -28,7 +28,7 @@ namespace Dafda.Tests.Producing
             const string dummyMessageId = "foo";
 
             var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(dummyMessageId))
+                .With(new MessageIdGeneratorStub(() => dummyMessageId))
                 .Build();
 
             var outgoingMessage = sut.Create(new DummyMessageWithMetaData());
@@ -65,7 +65,7 @@ namespace Dafda.Tests.Producing
             const string dummyAggregateId = "dummyId";
 
             var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(dummyMessageId))
+                .With(new MessageIdGeneratorStub(() => dummyMessageId))
                 .Build();
 
             var outgoingMessage = sut.Create(new DummyMessageWithMetaData(dummyAggregateId));
@@ -79,7 +79,7 @@ namespace Dafda.Tests.Producing
             const string dummyMessageId = "foo_id";
 
             var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(dummyMessageId))
+                .With(new MessageIdGeneratorStub(() => dummyMessageId))
                 .Build();
 
             var outgoingMessage = sut.Create(new DummyMessageWithMetaData());
@@ -119,7 +119,7 @@ namespace Dafda.Tests.Producing
             const string dummyMessageId = "foo";
 
             var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(dummyMessageId))
+                .With(new MessageIdGeneratorStub(() => dummyMessageId))
                 .With(new OutgoingMessageRegistryBuilder().Register<DummyMessage>(DummyTopic, DummyType, x => x.AggregateId))
                 .Build();
 
@@ -161,7 +161,7 @@ namespace Dafda.Tests.Producing
             const string dummyAggregateId = "dummyId";
 
             var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(dummyMessageId))
+                .With(new MessageIdGeneratorStub(() => dummyMessageId))
                 .With(new OutgoingMessageRegistryBuilder().Register<DummyMessage>(DummyTopic, DummyType, x => x.AggregateId))
                 .Build();
 
@@ -176,7 +176,7 @@ namespace Dafda.Tests.Producing
             const string dummyMessageId = "foo_id";
 
             var sut = new OutgoingMessageFactoryBuilder()
-                .With(new MessageIdGeneratorStub(dummyMessageId))
+                .With(new MessageIdGeneratorStub(() => dummyMessageId))
                 .With(new OutgoingMessageRegistryBuilder().Register<DummyMessage>(DummyTopic, DummyType, x => x.AggregateId))
                 .Build();
 
