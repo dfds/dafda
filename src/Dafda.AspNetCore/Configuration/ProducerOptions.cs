@@ -1,3 +1,6 @@
+using System;
+using Dafda.Producing;
+
 namespace Dafda.Configuration
 {
     public interface IProducerOptions
@@ -8,15 +11,21 @@ namespace Dafda.Configuration
         void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes);
         void WithConfiguration(string key, string value);
         void WithBootstrapServers(string bootstrapServers);
-    }
 
+        void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory);
+
+        void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class;
+    }
+    
     internal class ProducerOptions : IProducerOptions
     {
         private readonly ProducerConfigurationBuilder _builder;
+        private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
 
-        public ProducerOptions(ProducerConfigurationBuilder builder)
+        public ProducerOptions(ProducerConfigurationBuilder builder, IOutgoingMessageRegistry outgoingMessageRegistry)
         {
             _builder = builder;
+            _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
@@ -47,6 +56,16 @@ namespace Dafda.Configuration
         public void WithBootstrapServers(string bootstrapServers)
         {
             _builder.WithBootstrapServers(bootstrapServers);
+        }
+
+        public void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory)
+        {
+            _builder.WithKafkaProducerFactory(kafkaProducerFactory);
+        }
+
+        public void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class
+        {
+            _outgoingMessageRegistry.Register(topic, type, keySelector);
         }
 
         private class DefaultConfigurationSource : ConfigurationSource

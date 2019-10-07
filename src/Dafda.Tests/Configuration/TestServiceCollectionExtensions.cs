@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Messaging;
+using Dafda.Producing;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,6 +97,29 @@ namespace Dafda.Tests.Configuration
 
             Assert.Equal(dummyMessage, DummyMessageHandler.LastHandledMessage);
             Assert.Equal(1, Scoped.Instanciated);
+        }
+
+        [Fact]
+        public async Task Can_produce_message()
+        {
+            var spy = new KafkaProducerSpy();
+            var services = new ServiceCollection();
+            services.AddProducer(options =>
+            {
+                options.WithBootstrapServers("localhost");
+                options.WithKafkaProducerFactory(new KafkaProducerFactoryStub(spy));
+                options.Register<DummyMessage>("foo", "bar", x => "baz");
+            });
+            var provider = services.BuildServiceProvider();
+            var producer = provider.GetRequiredService<IProducer>();
+
+            await producer.Produce(new DummyMessage());
+
+//            Assert.Equal("", spy.LastOutgoingMessage.MessageId);
+            Assert.Equal("foo", spy.LastOutgoingMessage.Topic);
+            Assert.Equal("bar", spy.LastOutgoingMessage.Type);
+            Assert.Equal("baz", spy.LastOutgoingMessage.Key);
+//            Assert.Equal("", spy.LastOutgoingMessage.Value);
         }
     }
 

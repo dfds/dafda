@@ -10,7 +10,7 @@ namespace Dafda.Producing
         OutgoingMessageRegistration GetRegistration(object @event);
     }
 
-    internal class OutgoingMessageRegistry : IOutgoingMessageRegistry
+    public class OutgoingMessageRegistry : IOutgoingMessageRegistry
     {
         private readonly IDictionary<Type, OutgoingMessageRegistration> _registrations = new ConcurrentDictionary<Type, OutgoingMessageRegistration>();
 

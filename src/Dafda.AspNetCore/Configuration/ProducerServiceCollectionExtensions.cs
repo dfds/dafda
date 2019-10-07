@@ -8,12 +8,15 @@ namespace Dafda.Configuration
     {
         public static void AddProducer(this IServiceCollection services, Action<IProducerOptions> options)
         {
+            var outgoingMessageRegistry = new OutgoingMessageRegistry();
             var configurationBuilder = new ProducerConfigurationBuilder();
-            var consumerOptions = new ProducerOptions(configurationBuilder);
+            configurationBuilder.WithOutgoingMessageRegistry(outgoingMessageRegistry);
+            var consumerOptions = new ProducerOptions(configurationBuilder, outgoingMessageRegistry);
             options?.Invoke(consumerOptions);
             var configuration = configurationBuilder.Build();
 
-            var bus = new Bus(KafkaProducerFactory.CreateProducer(configuration), configuration);
+            var kafkaProducer = configuration.KafkaProducerFactory.CreateProducer(configuration);
+            var producer = new Producer(kafkaProducer, configuration);
 
             services.AddSingleton<IProducer>(producer);
         }
