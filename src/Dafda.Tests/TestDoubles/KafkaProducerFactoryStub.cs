@@ -1,5 +1,6 @@
 using Dafda.Configuration;
 using Dafda.Producing;
+using Dafda.Producing.Kafka;
 
 namespace Dafda.Tests.TestDoubles
 {

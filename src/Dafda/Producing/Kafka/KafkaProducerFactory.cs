@@ -1,7 +1,7 @@
 using Confluent.Kafka;
 using Dafda.Configuration;
 
-namespace Dafda.Producing
+namespace Dafda.Producing.Kafka
 {
     public class KafkaProducerFactory : IKafkaProducerFactory
     {

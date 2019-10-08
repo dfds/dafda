@@ -1,5 +1,6 @@
 using System;
 using Dafda.Producing;
+using Dafda.Producing.Kafka;
 
 namespace Dafda.Configuration
 {
@@ -13,6 +14,7 @@ namespace Dafda.Configuration
         void WithBootstrapServers(string bootstrapServers);
 
         void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory);
+        void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator);
 
         void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class;
     }
@@ -61,6 +63,11 @@ namespace Dafda.Configuration
         public void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory)
         {
             _builder.WithKafkaProducerFactory(kafkaProducerFactory);
+        }
+
+        public void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
+        {
+            _builder.WithMessageIdGenerator(messageIdGenerator);
         }
 
         public void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class

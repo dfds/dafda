@@ -4,11 +4,11 @@ namespace Dafda.Tests.Builders
 {
     internal class OutgoingMessageBuilder
     {
-        private string _topic = "";
-        private string _messageId = "";
-        private string _key = "";
-        private string _type = "";
-        private string _value = "";
+        private string _topic;
+        private string _messageId;
+        private string _key;
+        private string _type;
+        private string _value;
 
         public OutgoingMessageBuilder WithTopic(string topic)
         {

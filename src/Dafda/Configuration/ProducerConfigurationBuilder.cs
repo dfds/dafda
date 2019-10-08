@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dafda.Logging;
 using Dafda.Producing;
+using Dafda.Producing.Kafka;
 
 namespace Dafda.Configuration
 {
@@ -152,28 +153,18 @@ namespace Dafda.Configuration
         private class ProducerConfiguration : IProducerConfiguration
         {
             private readonly IDictionary<string, string> _configuration;
-            private readonly IKafkaProducerFactory _kafkaProducerFactory;
 
             public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry, IKafkaProducerFactory kafkaProducerFactory)
             {
                 _configuration = configuration;
                 MessageIdGenerator = messageIdGenerator;
                 OutgoingMessageRegistry = outgoingMessageRegistry;
-                _kafkaProducerFactory = kafkaProducerFactory;
+                KafkaProducerFactory = kafkaProducerFactory;
             }
 
             public MessageIdGenerator MessageIdGenerator { get; }
             public IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
-
-            public IKafkaProducer CreateKafkaProducer()
-            {
-                return _kafkaProducerFactory.CreateProducer(this);
-            }
-
-            public OutgoingMessageFactory CreateOutgoingMessageFactory()
-            {
-                return new OutgoingMessageFactory(MessageIdGenerator, OutgoingMessageRegistry);
-            }
+            public IKafkaProducerFactory KafkaProducerFactory { get; }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
             {

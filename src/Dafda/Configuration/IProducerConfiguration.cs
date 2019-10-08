@@ -6,8 +6,6 @@ namespace Dafda.Configuration
     {
         MessageIdGenerator MessageIdGenerator { get; }
         IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
-
-        IKafkaProducer CreateKafkaProducer();
-        OutgoingMessageFactory CreateOutgoingMessageFactory();
+        IKafkaProducerFactory KafkaProducerFactory { get; }
     }
 }
