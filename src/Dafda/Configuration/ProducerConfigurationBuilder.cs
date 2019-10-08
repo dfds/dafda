@@ -152,18 +152,28 @@ namespace Dafda.Configuration
         private class ProducerConfiguration : IProducerConfiguration
         {
             private readonly IDictionary<string, string> _configuration;
+            private readonly IKafkaProducerFactory _kafkaProducerFactory;
 
             public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry, IKafkaProducerFactory kafkaProducerFactory)
             {
                 _configuration = configuration;
                 MessageIdGenerator = messageIdGenerator;
                 OutgoingMessageRegistry = outgoingMessageRegistry;
-                KafkaProducerFactory = kafkaProducerFactory;
+                _kafkaProducerFactory = kafkaProducerFactory;
             }
 
             public MessageIdGenerator MessageIdGenerator { get; }
             public IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
-            public IKafkaProducerFactory KafkaProducerFactory { get; }
+
+            public IKafkaProducer CreateKafkaProducer()
+            {
+                return _kafkaProducerFactory.CreateProducer(this);
+            }
+
+            public OutgoingMessageFactory CreateOutgoingMessageFactory()
+            {
+                return new OutgoingMessageFactory(MessageIdGenerator, OutgoingMessageRegistry);
+            }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
             {

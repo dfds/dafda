@@ -4,6 +4,6 @@ namespace Dafda.Producing
 {
     public interface IKafkaProducerFactory
     {
-        IKafkaProducer CreateProducer(IProducerConfiguration configuration);
+        IKafkaProducer CreateProducer(IConfiguration configuration);
     }
 }

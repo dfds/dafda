@@ -12,7 +12,7 @@ namespace Dafda.Tests.TestDoubles
             _producer = producer;
         }
 
-        public IKafkaProducer CreateProducer(IProducerConfiguration configuration)
+        public IKafkaProducer CreateProducer(IConfiguration configuration)
         {
             return _producer;
         }

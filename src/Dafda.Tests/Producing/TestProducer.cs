@@ -57,14 +57,11 @@ namespace Dafda.Tests.Producing
         public async Task Can_produce_message()
         {
             var spy = new KafkaProducerSpy();
-            var configurationBuilder = new ProducerConfigurationBuilder();
-            configurationBuilder.WithBootstrapServers("foo");
-            var registry = new OutgoingMessageRegistry();
-            registry.Register<DomainEvent>("foo", "bar", @event => @event.AggregateId);
-            configurationBuilder.WithOutgoingMessageRegistry(registry);
-            var configuration = configurationBuilder.Build();
 
-            var sut = new Producer(spy, configuration);
+            var builder = new OutgoingMessageFactoryBuilder()
+                .With(new OutgoingMessageRegistryBuilder().Register<DomainEvent>("foo", "bar", @event => @event.AggregateId));
+
+            var sut = new Producer(spy, builder);
 
             await sut.Produce(new DomainEvent
             {

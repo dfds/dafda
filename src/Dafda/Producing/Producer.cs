@@ -15,10 +15,10 @@ namespace Dafda.Producing
         private readonly OutgoingMessageFactory _outgoingMessageFactory;
         private readonly IKafkaProducer _kafkaProducer;
 
-        public Producer(IKafkaProducer kafkaProducer, IProducerConfiguration configuration)
+        public Producer(IKafkaProducer kafkaProducer, OutgoingMessageFactory outgoingMessageFactory)
         {
             _kafkaProducer = kafkaProducer;
-            _outgoingMessageFactory = new OutgoingMessageFactory(configuration.MessageIdGenerator, configuration.OutgoingMessageRegistry);
+            _outgoingMessageFactory = outgoingMessageFactory;
         }
 
         public async Task Produce(object message)
