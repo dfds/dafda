@@ -7,6 +7,10 @@ namespace Dafda.Tests.Builders
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
 
+        public OutgoingMessageFactoryBuilder()
+        {
+        }
+
         public OutgoingMessageFactoryBuilder With(MessageIdGenerator messageIdGenerator)
         {
             _messageIdGenerator = messageIdGenerator;

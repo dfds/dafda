@@ -1,20 +1,13 @@
-﻿using System;
-using System.Globalization;
-using System.Reflection;
+﻿using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace Dafda.Producing
 {
-
     public class OutgoingMessageFactory
     {
         private readonly MessageIdGenerator _messageIdGenerator;
         private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
-
-        public OutgoingMessageFactory() : this(MessageIdGenerator.Default, new OutgoingMessageRegistry())
-        {
-        }
 
         public OutgoingMessageFactory(MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry)
         {
@@ -22,7 +15,7 @@ namespace Dafda.Producing
             _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
-        public OutgoingMessage Create<TMessage>(TMessage msg)
+        public OutgoingMessage Create(object msg)
         {
             string topicName;
             string type;
@@ -30,8 +23,9 @@ namespace Dafda.Producing
 
             if (msg is IMessage message)
             {
-                (topicName, type) = GetMessageMetaData(message);
-
+                var messageMetadata = MessageMetadata.Create(message);
+                topicName = messageMetadata.TopicName;
+                type = messageMetadata.Type;
                 key = message.AggregateId;
             }
             else
@@ -47,20 +41,6 @@ namespace Dafda.Producing
             var rawMessage = CreateRawMessage(messageId, type, msg);
 
             return new OutgoingMessage(topicName, messageId, key, type, rawMessage);
-        }
-
-        private static (string topicName, string type) GetMessageMetaData<TMessage>(TMessage msg) where TMessage : IMessage
-        {
-            var messageAttribute = msg.GetType()
-                .GetTypeInfo()
-                .GetCustomAttribute<MessageAttribute>();
-
-            if (messageAttribute == null)
-            {
-                throw new InvalidOperationException($@"Message ""{typeof(TMessage).Name}"" must have a ""{nameof(MessageAttribute)}"" declared.");
-            }
-
-            return (messageAttribute.Topic, messageAttribute.Type);
         }
 
         private static string CreateRawMessage(string messageId, string type, object data)
