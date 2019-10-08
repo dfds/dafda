@@ -16,9 +16,7 @@ namespace Dafda.Configuration
             var configuration = configurationBuilder.Build();
             
             var kafkaProducer = configuration.KafkaProducerFactory.CreateProducer(configuration);
-            var outgoingMessageFactory = new OutgoingMessageFactory(configuration.MessageIdGenerator, configuration.OutgoingMessageRegistry);
-
-            var producer = new Producer(kafkaProducer, outgoingMessageFactory);
+            var producer = new Producer(kafkaProducer, configuration.OutgoingMessageRegistry, configuration.MessageIdGenerator);
 
             services.AddSingleton<IProducer>(producer);
         }

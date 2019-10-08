@@ -1,5 +1,5 @@
+using Dafda.Producing;
 using Dafda.Producing.Kafka;
-using Dafda.Tests.Builders;
 using Xunit;
 
 namespace Dafda.Tests.Producing.Kafka

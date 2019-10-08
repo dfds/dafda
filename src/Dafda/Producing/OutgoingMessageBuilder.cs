@@ -1,6 +1,4 @@
-﻿using Dafda.Producing;
-
-namespace Dafda.Tests.Builders
+﻿namespace Dafda.Producing
 {
     internal class OutgoingMessageBuilder
     {
@@ -10,6 +8,10 @@ namespace Dafda.Tests.Builders
         private string _type;
         private string _value;
 
+        public OutgoingMessageBuilder()
+        {
+        }
+        
         public OutgoingMessageBuilder WithTopic(string topic)
         {
             _topic = topic;
