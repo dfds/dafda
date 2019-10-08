@@ -4,6 +4,7 @@ using System.Reflection;
 namespace Dafda.Producing
 {
     [AttributeUsage(AttributeTargets.Class)]
+    [Obsolete("use " + nameof(OutgoingMessageRegistry) + "instead")]
     public class MessageAttribute : Attribute
     {
         public MessageAttribute(string topic, string type)
@@ -26,6 +27,7 @@ namespace Dafda.Producing
         public string Type { get; }
     }
 
+    [Obsolete("use " + nameof(OutgoingMessageRegistry) + "instead")]
     public interface IMessage
     {
         string AggregateId { get; }
