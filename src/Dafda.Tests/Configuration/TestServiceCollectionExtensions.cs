@@ -116,9 +116,9 @@ namespace Dafda.Tests.Configuration
             await producer.Produce(new DummyMessage());
 
 //            Assert.Equal("", spy.LastOutgoingMessage.MessageId);
-            Assert.Equal("foo", spy.LastOutgoingMessage.Topic);
-            Assert.Equal("bar", spy.LastOutgoingMessage.Type);
-            Assert.Equal("baz", spy.LastOutgoingMessage.Key);
+            Assert.Equal("foo", spy.LastTopic);
+//            Assert.Equal("bar", spy.LastMessage.Type);
+            Assert.Equal("baz", spy.LastMessage.Key);
 //            Assert.Equal("", spy.LastOutgoingMessage.Value);
         }
     }

@@ -1,17 +1,20 @@
 ﻿using System.Threading.Tasks;
+using Confluent.Kafka;
 using Dafda.Producing;
 
 namespace Dafda.Tests.TestDoubles
 {
     public class KafkaProducerSpy : IKafkaProducer
     {
-        public Task Produce(OutgoingMessage outgoingMessage)
+        public Task Produce(string topic, Message<string,string> message)
         {
-            LastOutgoingMessage = outgoingMessage;
+            LastTopic = topic;
+            LastMessage = message;
             return Task.CompletedTask;
         }
 
-        public OutgoingMessage LastOutgoingMessage { get; private set; }
+        public string LastTopic { get; private set; }
+        public Message<string,string> LastMessage { get; private set; }
 
         public void Dispose()
         {
