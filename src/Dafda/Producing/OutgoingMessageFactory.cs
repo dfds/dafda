@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -18,6 +19,11 @@ namespace Dafda.Producing
         public OutgoingMessage Create(object message)
         {
             var registration = _outgoingMessageRegistry.GetRegistration(message);
+            if (registration == null)
+            {
+                throw new InvalidOperationException($"No outgoing message registered for '{message.GetType().Name}'");
+            }
+
             var messageId = _messageIdGenerator.NextMessageId();
             var rawMessage = SerializeRawMessage(messageId, registration.Type, message);
 
