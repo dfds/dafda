@@ -1,13 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Messaging;
+using Dafda.Outbox;
 using Dafda.Producing;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Dafda.Tests.Configuration
@@ -104,6 +109,7 @@ namespace Dafda.Tests.Configuration
         {
             var spy = new KafkaProducerSpy();
             var services = new ServiceCollection();
+
             services.AddProducer(options =>
             {
                 options.WithBootstrapServers("localhost");
@@ -121,6 +127,98 @@ namespace Dafda.Tests.Configuration
             Assert.Equal("bar", spy.LastMessage.Type);
             Assert.Equal("baz", spy.LastMessage.Key);
 //            Assert.Equal("", spy.LastOutgoingMessage.Value);
+        }
+
+        [Fact]
+        public async Task Can_produce_outbox_message()
+        {
+            var spy = new KafkaProducerSpy();
+            var services = new ServiceCollection();
+            var fake = new FakeOutboxPersistence();
+            var messageId = Guid.NewGuid().ToString();
+            services.AddLogging();
+            services.AddProducer(options =>
+            {
+                options.WithBootstrapServers("localhost");
+                options.WithKafkaProducerFactory(new KafkaProducerFactoryStub(spy));
+                options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => messageId));
+                options.Register<DummyMessage>("foo", "bar", x => "baz");
+
+                options.AddOutbox(opt =>
+                {
+                    opt.WithOutboxMessageRepository(serviceProvider => fake);
+                    opt.WithOutboxPublisher(pub => { pub.WithUnitOfWorkFactory(serviceProvider => fake); });
+                });
+            });
+            var provider = services.BuildServiceProvider();
+            var outbox = provider.GetRequiredService<IOutbox>();
+
+            await outbox.Enqueue(new[] {new DummyMessage(),});
+
+            var pollingPublisher = provider.GetServices<IHostedService>().FirstOrDefault(x => x is PollingPublisher);
+
+            using (CancellationTokenSource cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(500);
+
+                await pollingPublisher.StartAsync(cts.Token);
+            }
+
+            Assert.True(fake.OutboxMessages.All(x => x.ProcessedUtc.HasValue));
+
+            Assert.Equal("foo", spy.LastMessage.Topic);
+            Assert.Equal(messageId, spy.LastMessage.MessageId);
+            Assert.Equal("bar", spy.LastMessage.Type);
+            Assert.Equal("baz", spy.LastMessage.Key);
+//            Assert.Equal("", spy.LastOutgoingMessage.Value);
+        }
+    }
+
+    public class FakeOutboxPersistence : IOutboxMessageRepository, IOutboxUnitOfWorkFactory
+    {
+        public List<OutboxMessage> OutboxMessages { get; }
+
+        public FakeOutboxPersistence(params OutboxMessage[] outboxMessages)
+        {
+            OutboxMessages = outboxMessages.ToList();
+        }
+
+        public Task Add(IEnumerable<OutboxMessage> outboxMessages)
+        {
+            OutboxMessages.AddRange(outboxMessages);
+            return Task.CompletedTask;
+        }
+
+        public IOutboxUnitOfWork Begin()
+        {
+            return new FakeUnitOfWork(this);
+        }
+
+        public bool Committed { get; private set; }
+
+        private class FakeUnitOfWork : IOutboxUnitOfWork
+        {
+            private readonly FakeOutboxPersistence _fake;
+
+            public FakeUnitOfWork(FakeOutboxPersistence fake)
+            {
+                _fake = fake;
+            }
+
+            public Task<ICollection<OutboxMessage>> GetAllUnpublishedMessages(CancellationToken stoppingToken)
+            {
+                return Task.FromResult<ICollection<OutboxMessage>>(_fake.OutboxMessages.Where(x => x.ProcessedUtc == null).ToList());
+            }
+
+            public Task Commit(CancellationToken stoppingToken)
+            {
+                _fake.Committed = true;
+                return Task.CompletedTask;
+            }
+
+            public void Dispose()
+            {
+            }
         }
     }
 

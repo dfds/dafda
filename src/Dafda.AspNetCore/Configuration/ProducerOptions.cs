@@ -1,6 +1,7 @@
 using System;
+using Dafda.Outbox;
 using Dafda.Producing;
-using Dafda.Producing.Kafka;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
 {
@@ -12,21 +13,22 @@ namespace Dafda.Configuration
         void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes);
         void WithConfiguration(string key, string value);
         void WithBootstrapServers(string bootstrapServers);
-
         void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory);
         void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator);
-
         void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class;
+        void AddOutbox(Action<IOutboxOptions> config);
     }
-    
+
     internal class ProducerOptions : IProducerOptions
     {
         private readonly ProducerConfigurationBuilder _builder;
+        private readonly IServiceCollection _services;
         private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
 
-        public ProducerOptions(ProducerConfigurationBuilder builder, IOutgoingMessageRegistry outgoingMessageRegistry)
+        public ProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, IOutgoingMessageRegistry outgoingMessageRegistry)
         {
             _builder = builder;
+            _services = services;
             _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
@@ -73,6 +75,19 @@ namespace Dafda.Configuration
         public void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class
         {
             _outgoingMessageRegistry.Register(topic, type, keySelector);
+        }
+
+        public void AddOutbox(Action<IOutboxOptions> config)
+        {
+            var configuration = new OutboxOptions(_services);
+            config?.Invoke(configuration);
+
+            _services.AddTransient<IOutbox>(provider =>
+            {
+                var producerConfiguration = provider.GetRequiredService<IProducerConfiguration>();
+                var repository = provider.GetRequiredService<IOutboxMessageRepository>();
+                return new OutboxMessageCollector(producerConfiguration.MessageIdGenerator, producerConfiguration.OutgoingMessageRegistry, repository);
+            });
         }
 
         private class DefaultConfigurationSource : ConfigurationSource
