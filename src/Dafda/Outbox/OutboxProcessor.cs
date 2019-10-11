@@ -23,24 +23,24 @@ namespace Dafda.Outbox
         {
             using (var outboxUnitOfWork = _unitOfWorkFactory.Begin())
             {
-                var domainEvents = await outboxUnitOfWork.GetAllUnpublishedMessages(cancellationToken);
+                var outboxMessages = await outboxUnitOfWork.GetAllUnpublishedMessages(cancellationToken);
 
-                Log.Debug("Domain events to publish: {DomainEventsCount}", domainEvents.Count);
+                Log.Debug("Unpublished outbox messages: {OutboxMessageCount}", outboxMessages.Count);
 
                 try
                 {
-                    foreach (OutboxMessage domainEvent in domainEvents)
+                    foreach (var outboxMessage in outboxMessages)
                     {
-                        await _producer.Produce(domainEvent);
+                        await _producer.Produce(outboxMessage);
 
-                        domainEvent.MaskAsProcessed();
+                        outboxMessage.MaskAsProcessed();
 
-                        Log.Debug(@"Domain event ""{Type}>{MessageId}"" has been published!", domainEvent.Type, domainEvent.MessageId);
+                        Log.Debug(@"Published outbox message {MessageId} ({Type})", outboxMessage.MessageId, outboxMessage.Type);
                     }
                 }
                 catch (Exception exception)
                 {
-                    Log.Error("Error while publishing domain events", exception);
+                    Log.Error("Error while publishing outbox messages", exception);
                     throw;
                 }
 

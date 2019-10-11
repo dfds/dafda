@@ -9,9 +9,9 @@ namespace Dafda.Tests.Producing
         public void Test1()
         {
             var sut = new OutgoingMessageRegistry();
-            sut.Register<DomainEvent>("foo", "bar", @event => @event.AggregateId);
+            sut.Register<Message>("foo", "bar", @event => @event.Id);
 
-            var domainEvent = new DomainEvent("baz");
+            var domainEvent = new Message("baz");
             var registration = sut.GetRegistration(domainEvent);
 
             Assert.Equal("foo", registration.Topic);
@@ -19,14 +19,14 @@ namespace Dafda.Tests.Producing
             Assert.Equal("baz", registration.KeySelector(domainEvent));
         }
 
-        public class DomainEvent
+        public class Message
         {
-            public DomainEvent(string aggregateId)
+            public Message(string id)
             {
-                AggregateId = aggregateId;
+                Id = id;
             }
 
-            public string AggregateId { get; }
+            public string Id { get; }
         }
     }
 }

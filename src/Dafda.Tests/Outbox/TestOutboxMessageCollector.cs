@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Dafda.Outbox;
-using Dafda.Producing;
-using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -14,39 +10,32 @@ namespace Dafda.Tests.Outbox
         [Fact]
         public async Task Fails_for_unregistered_outgoing_messages()
         {
-            var sut = new OutboxMessageCollector(MessageIdGenerator.Default, new OutgoingMessageRegistryBuilder().Build(), new OutboxMessageRespositorySpy());
+            var sut = A.OutboxMessageCollector.Build();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.Enqueue(new[] {new DomainEvent()}));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.Enqueue(new[] {new Message()}));
         }
 
         [Fact]
         public async Task Can_delegate_persistence_for_outgoing_message()
         {
-            var stub = new MessageIdGeneratorStub(() => Guid.Empty.ToString());
-            var registry = new OutgoingMessageRegistryBuilder()
-                .Register<DomainEvent>("foo", "bar", @event => "baz")
-                .Build();
-            var spy = new OutboxMessageRespositorySpy();
-            var sut = new OutboxMessageCollector(stub, registry, spy);
+            var spy = new OutboxMessageRepositorySpy();
 
-            await sut.Enqueue(new[] {new DomainEvent()});
+            var sut = A.OutboxMessageCollector
+                .With(
+                    A.OutgoingMessageRegistry
+                        .Register<Message>("foo", "bar", @event => "baz")
+                        .Build()
+                )
+                .With(spy)
+                .Build();
+
+            await sut.Enqueue(new[] {new Message()});
 
             Assert.NotEmpty(spy.OutboxMessages);
         }
-    }
 
-    public class DomainEvent
-    {
-    }
-
-    public class OutboxMessageRespositorySpy : IOutboxMessageRepository
-    {
-        public List<OutboxMessage> OutboxMessages { get; } = new List<OutboxMessage>();
-
-        public Task Add(IEnumerable<OutboxMessage> outboxMessages)
+        public class Message
         {
-            OutboxMessages.AddRange(outboxMessages);
-            return Task.CompletedTask;
         }
     }
 }
