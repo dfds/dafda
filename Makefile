@@ -1,6 +1,6 @@
 PACKAGES		:= Dafda Dafda.AspNetCore
 CONFIGURATION	:= Debug
-VERSION			?= $(shell git describe --tags --always --dirty --match=*.*.* 2> /dev/null || cat $(CURDIR)/.version 2> /dev/null || echo 0.0.1)
+VERSION			?= $(shell git describe --tags --always --dirty --match=*.*.* 2> /dev/null | sed -E 's/-(.+)-.+/-beta.\1/' || cat $(CURDIR)/.version 2> /dev/null || echo 0.0.1)
 NUGET_API_KEY	?= $(shell git config --global nuget.token)
 BIN				:= $(CURDIR)/.output
 M				= $(shell printf "\033[34;1m▶\033[0m")
