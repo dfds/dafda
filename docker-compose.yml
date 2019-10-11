@@ -1,0 +1,59 @@
+version: '3.5'
+
+services:
+  database:
+    image: postgres:latest
+    ports:
+    - 5432:5432
+    environment:
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=p
+
+  pgup:
+    build: ./db
+    depends_on:
+    - database
+    # volumes:
+    # - ${PWD}/db/export:/tmp
+    environment:
+    # - DEBUG=1                     # enable script debugging
+    - LOCAL_DEVELOPMENT=1           # will CREATE DATABASE ${PGDATABASE} every time
+    - PGDATABASE=db                 # database name
+    - PGHOST=database               # docker-compose service name
+    - PGUSER=postgres               # same as above
+    - PGPASSWORD=p                  # same as above
+    - PGSSLMODE=disable             # ignore SSLMODE for local development
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.0.0
+    restart: always
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: "2181"
+      ZOOKEEPER_TICK_TIME: "2000"
+      ZOOKEEPER_SERVERS: "zookeeper:22888:23888"
+    ports:
+      - "2181:2181"
+
+  kafka1:
+    image: confluentinc/cp-enterprise-kafka:5.0.0
+    depends_on:
+      - zookeeper
+    ports:
+      # Exposes 29092 for external connections to the broker
+      # Use kafka1:9092 for connections internal on the docker network
+      # See https://rmoff.net/2018/08/02/kafka-listeners-explained/ for details
+      - "29092:29092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_RACK: "r1"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_SCHEMA_REGISTRY_URL: "schemaregistry:8081"
+      #KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_JMX_PORT: 9991
