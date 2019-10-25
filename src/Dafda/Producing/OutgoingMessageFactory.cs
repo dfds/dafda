@@ -1,7 +1,5 @@
 using System;
-using System.Globalization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
 
 namespace Dafda.Producing
 {
@@ -45,13 +43,11 @@ namespace Dafda.Producing
                 data
             };
 
-            return JsonConvert.SerializeObject(messageEnvelope, new JsonSerializerSettings
+            return JsonSerializer.Serialize(messageEnvelope, new JsonSerializerOptions
             {
-                Culture = CultureInfo.InvariantCulture,
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Include,
-                MissingMemberHandling = MissingMemberHandling.Ignore
+                IgnoreNullValues = false,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                
             });
         }
     }

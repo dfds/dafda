@@ -1,20 +1,20 @@
 using System;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Dafda.Messaging
 {
     public class JsonMessageEmbeddedDocument : ITransportLevelMessage
     {
-        private readonly JObject _jObject;
+        private readonly JsonDocument _jObject;
 
         public JsonMessageEmbeddedDocument(string json)
         {
-            _jObject = JObject.Parse(json);
+            _jObject = JsonDocument.Parse(json);
         }
 
-        public string MessageId => _jObject.SelectToken("messageId")?.Value<string>();
-        public string Type => _jObject.SelectToken("type")?.Value<string>();
-        public string CorrelationId => _jObject.SelectToken("correlationId")?.Value<string>();
+        public string MessageId => _jObject.RootElement.GetProperty("messageId").GetString();
+        public string Type => _jObject.RootElement.GetProperty("type").GetString();
+        public string CorrelationId => _jObject.RootElement.GetProperty("correlationId").GetString();
 
         public T ReadDataAs<T>() where T : class, new()
         {
@@ -23,9 +23,14 @@ namespace Dafda.Messaging
 
         public object ReadDataAs(Type messageInstanceType)
         {
-            return _jObject
-                .SelectToken("data")
-                .ToObject(messageInstanceType);
+            var element = _jObject.RootElement.GetProperty("data");
+            var json = element.GetRawText();
+            return JsonSerializer.Deserialize(
+                json,
+                messageInstanceType, new JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
         }
     }
 }
