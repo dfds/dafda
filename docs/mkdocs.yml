@@ -1,0 +1,56 @@
+# Project information
+site_name: Dafda
+site_description: Dafda documentation
+#site_author: 'Martin Donath'
+#site_url: 'https://squidfunk.github.io/mkdocs-material/'
+
+# Repository
+#repo_name: 'squidfunk/mkdocs-material'
+#repo_url: 'https://github.com/squidfunk/mkdocs-material'
+
+# docs_dir: lala
+
+sidebar: false
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  logo: imgs/kafka-icon.svg
+  feature:
+    tabs: true
+
+markdown_extensions:
+- admonition
+- codehilite:
+    guess_lang: false
+    linenums: false
+- footnotes
+- toc:
+    permalink: true
+- pymdownx.caret
+- pymdownx.critic
+- pymdownx.details
+- pymdownx.inlinehilite
+- pymdownx.magiclink
+- pymdownx.mark
+- pymdownx.smartsymbols
+- pymdownx.superfences
+- pymdownx.tasklist:
+    custom_checkbox: true
+
+extra_css:
+  - 'stylesheets/critic.css'
+
+pages:
+- Introduction: index.md
+- Documentation:
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - Consumer: consumer.md
+  - Producer: producer.md
+  - Outbox: outbox.md
+- Contributions: contributions.md
+- Examples: examples.md
+

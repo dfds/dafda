@@ -46,6 +46,16 @@ push-%: ; $(info $(M) Pushing $*...)
 version: ## prints the version (from either environment VERSION, git describe, or .version. default: 0.0.1)
 	@echo $(VERSION)
 
+docs-dev:
+	@cd docs && docker-compose up -d
+
+docs-deploy:
+	@docker run --rm -it \
+		-v ~/.ssh:/root/.ssh \
+		-v ${PWD}:/docs \
+		squidfunk/mkdocs-material:4.1.2 \
+		gh-deploy --clean --config-file docs/mkdocs.yml
+
 .PHONY: help
 help:
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
