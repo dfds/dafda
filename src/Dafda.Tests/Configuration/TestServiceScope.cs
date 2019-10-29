@@ -139,25 +139,42 @@ namespace Dafda.Tests.Configuration
 
         public class DummyMessageHandler : IMessageHandler<DummyMessage>
         {
+            private readonly ScopeSpy _scopeSpy;
+            private readonly Repository _repository;
+
             public DummyMessageHandler(ScopeSpy scopeSpy, Repository repository)
             {
+                _scopeSpy = scopeSpy;
+                _repository = repository;
             }
 
-            public Task Handle(DummyMessage message)
+            public async Task Handle(DummyMessage message)
             {
-                return Task.CompletedTask;
+                await _scopeSpy.DoSomethingAsync();
+                await _repository.PerformActionAsync();
             }
         }
 
         public class Repository
         {
+            private readonly ScopeSpy _scopeSpy;
+
             public Repository(ScopeSpy scopeSpy)
             {
+                _scopeSpy = scopeSpy;
+            }
+
+            public async Task PerformActionAsync()
+            {
+                await _scopeSpy.DoSomethingAsync();
+                await Task.Delay(500);
             }
         }
 
         public class ScopeSpy : IDisposable
         {
+            private bool _diposed;
+
             public static int Created { get; private set; }
             public static int Disposed { get; private set; }
 
@@ -168,12 +185,23 @@ namespace Dafda.Tests.Configuration
 
             public void Dispose()
             {
+                _diposed = true;
                 Disposed++;
             }
 
             public static void Reset()
             {
                 Created = Disposed = 0;
+            }
+
+            public async Task DoSomethingAsync()
+            {
+                if (_diposed)
+                {
+                    throw new ObjectDisposedException(nameof(ScopeSpy), "Ups, already disposed!");
+                }
+
+                await Task.Delay(500);
             }
         }
     }

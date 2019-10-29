@@ -31,13 +31,13 @@ namespace Dafda.Messaging
                 _unitOfWork = unitOfWork;
             }
 
-            public Task Run(Func<object, Task> handlingAction)
+            public async Task Run(Func<object, Task> handlingAction)
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var handlerInstance = scope.ServiceProvider.GetRequiredService(_handlerType);
 
-                    return _unitOfWork.ExecuteInScope(scope, () => handlingAction(handlerInstance));
+                    await _unitOfWork.ExecuteInScope(scope, () => handlingAction(handlerInstance));
                 }
             }
         }
