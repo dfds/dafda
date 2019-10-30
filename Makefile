@@ -1,6 +1,7 @@
 PACKAGES		:= Dafda Dafda.AspNetCore
 CONFIGURATION	:= Debug
 VERSION			?= $(shell git describe --tags --always --dirty --match=*.*.* 2> /dev/null | sed -E 's/-(.+)-.+/-beta.\1/' || cat $(CURDIR)/.version 2> /dev/null || echo 0.0.1)
+SHORT_VERSION	= $(shell echo $(VERSION) | awk -F- '{ print $$1 }')
 NUGET_API_KEY	?= $(shell git config --global nuget.token)
 BIN				:= $(CURDIR)/.output
 M				= $(shell printf "\033[34;1m▶\033[0m")
@@ -27,7 +28,14 @@ build: ; $(info $(M) Building...) @ ## build the project
 package: $(addprefix package-,$(subst /,-,$(PACKAGES))) ## create nuget packages
 
 package-%: ; $(info $(M) Packing $*...)
-	@cd src && dotnet pack --no-build --configuration $(CONFIGURATION) -p:PackageVersion=$(VERSION) --output $(BIN) $(CURDIR)/src/$*/
+	@cd src && dotnet pack --configuration $(CONFIGURATION) \
+		-property:PackageVersion='$(VERSION)' \
+		-property:Version='$(SHORT_VERSION)' \
+		-property:AssemblyVersion='$(SHORT_VERSION)' \
+		-property:FileVersion='$(SHORT_VERSION)' \
+		-property:InformationalVersion='$(VERSION)' \
+		--output $(BIN) \
+		$(CURDIR)/src/$*/$*.csproj
 
 .PHONY: local-release
 local-release: clean restore build package ## create a nuget package for local development
