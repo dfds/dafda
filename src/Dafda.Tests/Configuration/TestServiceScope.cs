@@ -167,7 +167,6 @@ namespace Dafda.Tests.Configuration
             public async Task PerformActionAsync()
             {
                 await _scopeSpy.DoSomethingAsync();
-                await Task.Delay(500);
             }
         }
 
@@ -201,7 +200,7 @@ namespace Dafda.Tests.Configuration
                     throw new ObjectDisposedException(nameof(ScopeSpy), "Ups, already disposed!");
                 }
 
-                await Task.Delay(500);
+                await Task.Delay(10);
             }
         }
     }
