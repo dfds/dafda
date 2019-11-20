@@ -11,7 +11,7 @@ Dafda relies on the default of [`Confluent.Kafka`](https://github.com/confluenti
 services.AddConsumer(options =>
 {
     // configuration settings
-    options.WithBootstrapServers("http://localhost:9092");
+    options.WithBootstrapServers("localhost:9092");
     options.WithGroupId("consumer-group-id");
 
     // register message handlers
@@ -25,7 +25,7 @@ Consider the following environment variables:
 
 | Name                            | Value                                    |
 |---------------------------------|------------------------------------------|
-| DEFAULT_KAFKA_BOOTSTRAP_SERVERS | https://default.kafka.confluent.net:9092 |
+| DEFAULT_KAFKA_BOOTSTRAP_SERVERS | default.kafka.confluent.net:9092         |
 | SAMPLE_KAFKA_GROUP_ID           | sample-group-id                          |
 
 The following:
