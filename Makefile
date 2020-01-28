@@ -1,4 +1,4 @@
-PACKAGES		:= Dafda Dafda.AspNetCore
+PACKAGES		:= Dafda
 CONFIGURATION	:= Debug
 VERSION			?= $(shell git describe --tags --always --dirty --match=*.*.* 2> /dev/null | sed -E 's/-(.+)-.+/-beta.\1/' || cat $(CURDIR)/.version 2> /dev/null || echo 0.0.1)
 SHORT_VERSION	= $(shell echo $(VERSION) | awk -F- '{ print $$1 }')

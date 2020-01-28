@@ -1,4 +1,4 @@
-name: ASP.NET Core CI
+name: Dafda CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build and Push NuGet package
+    name: Build NuGet package
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -15,7 +15,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.108
-    - name: Build Release and Push
+    - name: Build Release
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: make release push
+      run: make release
