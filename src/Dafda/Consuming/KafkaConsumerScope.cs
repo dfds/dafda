@@ -6,7 +6,7 @@ using Dafda.Messaging;
 
 namespace Dafda.Consuming
 {
-    internal class KafkaConsumerScope : TopicSubscriberScope
+    internal class KafkaConsumerScope : ConsumerScope
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 

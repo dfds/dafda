@@ -11,7 +11,7 @@ namespace Dafda.Tests.Builders
     public class ConsumerBuilder
     {
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private ITopicSubscriberScopeFactory _topicSubscriberScopeFactory;
+        private IConsumerScopeFactory _consumerScopeFactory;
         private MessageRegistration[] _messageRegistrations;
         private bool _enableAutoCommit;
 
@@ -20,7 +20,7 @@ namespace Dafda.Tests.Builders
             _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
 
             var messageStub = new MessageResultBuilder().Build();
-            _topicSubscriberScopeFactory = new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(messageStub));
+            _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageStub));
 
             _messageRegistrations = new MessageRegistration[0];
         }
@@ -31,9 +31,9 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ConsumerBuilder WithTopicSubscriberScopeFactory(ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
+        public ConsumerBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
-            _topicSubscriberScopeFactory = topicSubscriberScopeFactory;
+            _consumerScopeFactory = consumerScopeFactory;
             return this;
         }
 
@@ -51,15 +51,12 @@ namespace Dafda.Tests.Builders
 
         public Consumer Build()
         {
-            var configuration = new ConsumerConfigurationStub
-            {
-                MessageHandlerRegistry = new MessageHandlerRegistryStub(_messageRegistrations),
-                UnitOfWorkFactory = _unitOfWorkFactory,
-                TopicSubscriberScopeFactory = _topicSubscriberScopeFactory,
-                EnableAutoCommit = _enableAutoCommit
-            };
-
-            return new Consumer(configuration);
+            return new Consumer(
+                messageHandlerRegistry: new MessageHandlerRegistryStub(_messageRegistrations),
+                unitOfWorkFactory: _unitOfWorkFactory,
+                consumerScopeFactory: _consumerScopeFactory,
+                isAutoCommitEnabled: _enableAutoCommit
+            );
         }
 
         #region private helper classes
@@ -78,9 +75,10 @@ namespace Dafda.Tests.Builders
 
             public IMessageHandlerRegistry MessageHandlerRegistry { get; set; }
             public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; set; }
-            public ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; set; }
+            public IConsumerScopeFactory ConsumerScopeFactory { get; set; }
             public bool EnableAutoCommit { get; set; }
             public IEnumerable<string> SubscribedTopics { get; set; }
+            public string GroupId { get; set; }
         }
 
         #endregion

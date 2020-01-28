@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Dafda.Configuration;
+using Dafda.Consuming;
 using Dafda.Messaging;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
@@ -55,7 +58,7 @@ namespace Dafda.Tests.Consuming
                     pre: () => orderOfInvocation.AddLast("before"),
                     post: () => orderOfInvocation.AddLast("after")
                 ))
-                .WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(dummyMessageResult)))
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(dummyMessageResult)))
                 .WithMessageRegistrations(dummyMessageRegistration)
                 .Build();
 
@@ -85,9 +88,9 @@ namespace Dafda.Tests.Consuming
                 })
                 .Build();
 
-            var topicSubscriberScopeFactoryStub = new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(resultSpy));
+            var consumerScopeFactoryStub = new ConsumerScopeFactoryStub(new ConsumerScopeStub(resultSpy));
             var consumer = new ConsumerBuilder()
-                .WithTopicSubscriberScopeFactory(topicSubscriberScopeFactoryStub)
+                .WithConsumerScopeFactory(consumerScopeFactoryStub)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
                 .WithMessageRegistrations(messageRegistrationStub)
                 .WithEnableAutoCommit(true)
@@ -119,9 +122,9 @@ namespace Dafda.Tests.Consuming
                 })
                 .Build();
 
-            var topicSubscriberScopeFactoryStub = new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(resultSpy));
+            var consumerScopeFactoryStub = new ConsumerScopeFactoryStub(new ConsumerScopeStub(resultSpy));
             var consumer = new ConsumerBuilder()
-                .WithTopicSubscriberScopeFactory(topicSubscriberScopeFactoryStub)
+                .WithConsumerScopeFactory(consumerScopeFactoryStub)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
                 .WithMessageRegistrations(messageRegistrationStub)
                 .WithEnableAutoCommit(false)
@@ -132,7 +135,183 @@ namespace Dafda.Tests.Consuming
             Assert.True(wasCalled);
         }
 
+        [Fact]
+        public async Task creates_consumer_scope_when_consuming_single_message()
+        {
+            var messageResultStub = new MessageResultBuilder().Build();
+            var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
+
+            var messageRegistrationStub = new MessageRegistrationBuilder()
+                .WithHandlerInstanceType(handlerStub.GetType())
+                .WithMessageInstanceType(typeof(FooMessage))
+                .WithMessageType(messageResultStub.Message.Type)
+                .Build();
+
+            var mock = new Mock<IConsumerScopeFactory>();
+            mock
+                .Setup(x => x.CreateConsumerScope())
+                .Returns(new ConsumerScopeStub(messageResultStub));
+
+            var consumer = new ConsumerBuilder()
+                .WithConsumerScopeFactory(mock.Object)
+                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithMessageRegistrations(messageRegistrationStub)
+                .Build();
+
+            await consumer.ConsumeSingle(CancellationToken.None);
+
+            mock.Verify(x => x.CreateConsumerScope(), Times.Once);
+        }
+
+        [Fact]
+        public async Task disposes_consumer_scope_when_consuming_single_message()
+        {
+            var messageResultStub = new MessageResultBuilder().Build();
+            var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
+
+            var messageRegistrationStub = new MessageRegistrationBuilder()
+                .WithHandlerInstanceType(handlerStub.GetType())
+                .WithMessageInstanceType(typeof(FooMessage))
+                .WithMessageType(messageResultStub.Message.Type)
+                .Build();
+
+            var mock = new Mock<ConsumerScope>();
+            mock
+                .Setup(x => x.GetNext(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(messageResultStub));
+
+            var consumer = new ConsumerBuilder()
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
+                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithMessageRegistrations(messageRegistrationStub)
+                .Build();
+
+            await consumer.ConsumeSingle(CancellationToken.None);
+
+            mock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public async Task creates_consumer_scope_when_consuming_multiple_messages()
+        {
+            var messageResultStub = new MessageResultBuilder().Build();
+            var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
+
+            var messageRegistrationStub = new MessageRegistrationBuilder()
+                .WithHandlerInstanceType(handlerStub.GetType())
+                .WithMessageInstanceType(typeof(FooMessage))
+                .WithMessageType(messageResultStub.Message.Type)
+                .Build();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+            {
+                var loops = 0;
+
+                var subscriberScopeStub = new ConsumerScopeDecoratorWithHooks(
+                    inner: new ConsumerScopeStub(messageResultStub),
+                    postHook: () =>
+                    {
+                        loops++;
+
+                        if (loops == 2)
+                        {
+                            cancellationTokenSource.Cancel();
+                        }
+                    }
+                );
+
+                var mock = new Mock<IConsumerScopeFactory>();
+
+                mock
+                    .Setup(x => x.CreateConsumerScope())
+                    .Returns(subscriberScopeStub);
+
+                var consumer = new ConsumerBuilder()
+                    .WithConsumerScopeFactory(mock.Object)
+                    .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                    .WithMessageRegistrations(messageRegistrationStub)
+                    .Build();
+
+                await consumer.ConsumeAll(cancellationTokenSource.Token);
+
+                Assert.Equal(2, loops);
+                mock.Verify(x => x.CreateConsumerScope(), Times.Once);
+            }
+        }
+
+        [Fact]
+        public async Task disposes_consumer_scope_when_consuming_multiple_messages()
+        {
+            var messageResultStub = new MessageResultBuilder().Build();
+            var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
+
+            var messageRegistrationStub = new MessageRegistrationBuilder()
+                .WithHandlerInstanceType(handlerStub.GetType())
+                .WithMessageInstanceType(typeof(FooMessage))
+                .WithMessageType(messageResultStub.Message.Type)
+                .Build();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+            {
+                var loops = 0;
+
+                var mock = new Mock<ConsumerScope>();
+                mock
+                    .Setup(x => x.GetNext(It.IsAny<CancellationToken>()))
+                    .Callback(() =>
+                    {
+                        loops++;
+
+                        if (loops == 2)
+                        {
+                            cancellationTokenSource.Cancel();
+                        }
+                    })
+                    .Returns(Task.FromResult(messageResultStub));
+
+                var consumer = new ConsumerBuilder()
+                    .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
+                    .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                    .WithMessageRegistrations(messageRegistrationStub)
+                    .Build();
+
+                await consumer.ConsumeAll(cancellationTokenSource.Token);
+
+                Assert.Equal(2, loops);
+
+                mock.Verify(x => x.Dispose(), Times.Once);
+            }
+        }
+
         #region helper classes
+
+        public class ConsumerScopeDecoratorWithHooks : ConsumerScope
+        {
+            private readonly ConsumerScope _inner;
+            private readonly Action _preHook;
+            private readonly Action _postHook;
+
+            public ConsumerScopeDecoratorWithHooks(ConsumerScope inner, Action preHook = null, Action postHook = null)
+            {
+                _inner = inner;
+                _preHook = preHook;
+                _postHook = postHook;
+            }
+
+            public override async Task<MessageResult> GetNext(CancellationToken cancellationToken)
+            {
+                _preHook?.Invoke();
+                var result = await _inner.GetNext(cancellationToken);
+                _postHook?.Invoke();
+
+                return result;
+            }
+
+            public override void Dispose()
+            {
+                _inner.Dispose();
+            }
+        }
 
         public class FooMessage
         {

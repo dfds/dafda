@@ -7,42 +7,48 @@ namespace Dafda.Messaging
 {
     public class Consumer
     {
-        private readonly IConsumerConfiguration _configuration;
-        private readonly ITopicSubscriberScopeFactory _topicSubscriberScopeFactory;
         private readonly LocalMessageDispatcher _localMessageDispatcher;
+        private readonly IConsumerScopeFactory _consumerScopeFactory;
+        private readonly bool _isAutoCommitEnabled;
 
-        public Consumer(IConsumerConfiguration configuration)
+        public Consumer(IConsumerConfiguration configuration) : 
+            this(configuration.MessageHandlerRegistry, configuration.UnitOfWorkFactory, configuration.ConsumerScopeFactory, configuration.EnableAutoCommit)
         {
-            _configuration = configuration;
-            _localMessageDispatcher = new LocalMessageDispatcher(configuration.MessageHandlerRegistry, configuration.UnitOfWorkFactory);
-            _topicSubscriberScopeFactory = _configuration.TopicSubscriberScopeFactory;
+            
+        }
+        
+        public Consumer(IMessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory, bool isAutoCommitEnabled = false)
+        {
+            _localMessageDispatcher = new LocalMessageDispatcher(messageHandlerRegistry, unitOfWorkFactory);
+            _consumerScopeFactory = consumerScopeFactory;
+            _isAutoCommitEnabled = isAutoCommitEnabled;
         }
 
         public async Task ConsumeAll(CancellationToken cancellationToken)
         {
-            using (var subscriberScope = _topicSubscriberScopeFactory.CreateTopicSubscriberScope(_configuration))
+            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    await ProcessNextMessage(subscriberScope, cancellationToken);
+                    await ProcessNextMessage(consumerScope, cancellationToken);
                 }
             }
         }
 
         public async Task ConsumeSingle(CancellationToken cancellationToken)
         {
-            using (var subscriberScope = _topicSubscriberScopeFactory.CreateTopicSubscriberScope(_configuration))
+            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
             {
-                await ProcessNextMessage(subscriberScope, cancellationToken);
+                await ProcessNextMessage(consumerScope, cancellationToken);
             }
         }
 
-        private async Task ProcessNextMessage(TopicSubscriberScope topicSubscriberScope, CancellationToken cancellationToken)
+        private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
         {
-            var messageResult = await topicSubscriberScope.GetNext(cancellationToken);
+            var messageResult = await consumerScope.GetNext(cancellationToken);
             await _localMessageDispatcher.Dispatch(messageResult.Message);
 
-            if (_configuration.EnableAutoCommit == false)
+            if (!_isAutoCommitEnabled)
             {
                 await messageResult.Commit();
             }

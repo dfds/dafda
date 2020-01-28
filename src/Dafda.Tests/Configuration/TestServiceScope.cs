@@ -30,27 +30,30 @@ namespace Dafda.Tests.Configuration
             services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
-            services.AddConsumer(options =>
-            {
-                options.WithBootstrapServers("dummyBootstrapServer");
-                options.WithGroupId("dummyGroupId");
-                options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+            services.AddTransient<ScopedUnitOfWork>();
 
-                options.WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(messageResult)));
-            });
+            var createCount = 0;
+            var disposeCount = 0;
 
-            services.AddTransient<ScopeSpy>();
+            services.AddTransient<ScopeSpy>(provider => new ScopeSpy(onCreate: () => createCount++, onDispose: () => disposeCount++));
 
             var serviceProvider = services.BuildServiceProvider();
-            var consumer = serviceProvider.GetRequiredService<Consumer>();
 
-            ScopeSpy.Reset();
+            var configuration = new ConsumerConfigurationBuilder();
+            configuration.WithGroupId("dummy");
+            configuration.WithBootstrapServers("dummy");
+            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
+            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
+
+            var consumer = new Consumer(configuration.Build());
+
 
             await consumer.ConsumeSingle(CancellationToken.None);
             await consumer.ConsumeSingle(CancellationToken.None);
 
-            Assert.Equal(4, ScopeSpy.Created);
-            Assert.Equal(4, ScopeSpy.Disposed);
+            Assert.Equal(4, createCount);
+            Assert.Equal(4, disposeCount);
         }
 
         [Fact]
@@ -70,27 +73,29 @@ namespace Dafda.Tests.Configuration
             services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
-            services.AddConsumer(options =>
-            {
-                options.WithBootstrapServers("dummyBootstrapServer");
-                options.WithGroupId("dummyGroupId");
-                options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+            services.AddTransient<ScopedUnitOfWork>();
 
-                options.WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(messageResult)));
-            });
+            var createCount = 0;
+            var disposeCount = 0;
 
-            services.AddSingleton<ScopeSpy>();
+            services.AddSingleton<ScopeSpy>(provider => new ScopeSpy(onCreate: () => createCount++, onDispose: () => disposeCount++));
 
             var serviceProvider = services.BuildServiceProvider();
-            var consumer = serviceProvider.GetRequiredService<Consumer>();
 
-            ScopeSpy.Reset();
+            var configuration = new ConsumerConfigurationBuilder();
+            configuration.WithGroupId("dummy");
+            configuration.WithBootstrapServers("dummy");
+            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
+            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
+
+            var consumer = new Consumer(configuration.Build());
 
             await consumer.ConsumeSingle(CancellationToken.None);
             await consumer.ConsumeSingle(CancellationToken.None);
 
-            Assert.Equal(1, ScopeSpy.Created);
-            Assert.Equal(0, ScopeSpy.Disposed);
+            Assert.Equal(1, createCount);
+            Assert.Equal(0, disposeCount);
         }
 
         [Fact]
@@ -110,27 +115,71 @@ namespace Dafda.Tests.Configuration
             services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
-            services.AddConsumer(options =>
-            {
-                options.WithBootstrapServers("dummyBootstrapServer");
-                options.WithGroupId("dummyGroupId");
-                options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+            services.AddTransient<ScopedUnitOfWork>();
 
-                options.WithTopicSubscriberScopeFactory(new TopicSubscriberScopeFactoryStub(new TopicSubscriberScopeStub(messageResult)));
-            });
+            var createCount = 0;
+            var disposeCount = 0;
 
-            services.AddScoped<ScopeSpy>();
+            services.AddScoped<ScopeSpy>(provider => new ScopeSpy(onCreate: () => createCount++, onDispose: () => disposeCount++));
 
             var serviceProvider = services.BuildServiceProvider();
-            var consumer = serviceProvider.GetRequiredService<Consumer>();
 
-            ScopeSpy.Reset();
+            var configuration = new ConsumerConfigurationBuilder();
+            configuration.WithGroupId("dummy");
+            configuration.WithBootstrapServers("dummy");
+            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
+            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
+
+            var consumer = new Consumer(configuration.Build());
 
             await consumer.ConsumeSingle(CancellationToken.None);
             await consumer.ConsumeSingle(CancellationToken.None);
 
-            Assert.Equal(2, ScopeSpy.Created);
-            Assert.Equal(2, ScopeSpy.Disposed);
+            Assert.Equal(2, createCount);
+            Assert.Equal(2, disposeCount);
+        }
+        
+        [Fact]
+        public async Task Has_expected_number_of_creations_and_disposals_when_scoped_2()
+        {
+            var dummyMessage = new DummyMessage();
+            var messageStub = new TransportLevelMessageBuilder()
+                .WithType(nameof(DummyMessage))
+                .WithData(dummyMessage)
+                .Build();
+            var messageResult = new MessageResultBuilder()
+                .WithTransportLevelMessage(messageStub)
+                .Build();
+
+            var services = new ServiceCollection();
+            services.AddTransient<Repository>();
+            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddTransient<DummyMessageHandler>();
+            services.AddLogging();
+            services.AddTransient<ScopedUnitOfWork>();
+
+            var createCount = 0;
+            var disposeCount = 0;
+
+            services.AddScoped<ScopeSpy>(provider => new ScopeSpy(onCreate: () => createCount++, onDispose: () => disposeCount++));
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            var configuration = new ConsumerConfigurationBuilder();
+            configuration.WithGroupId("dummy");
+            configuration.WithBootstrapServers("dummy");
+            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
+            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
+            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
+
+            var consumer = new Consumer(configuration.Build());
+
+            await consumer.ConsumeSingle(CancellationToken.None);
+            await consumer.ConsumeSingle(CancellationToken.None);
+
+            Assert.Equal(2, createCount);
+            Assert.Equal(2, disposeCount);
         }
 
         public class DummyMessage
@@ -172,25 +221,23 @@ namespace Dafda.Tests.Configuration
 
         public class ScopeSpy : IDisposable
         {
+            private readonly Action _onCreate;
+            private readonly Action _onDispose;
+
             private bool _diposed;
 
-            public static int Created { get; private set; }
-            public static int Disposed { get; private set; }
-
-            public ScopeSpy()
+            public ScopeSpy(Action onCreate, Action onDispose)
             {
-                Created++;
+                _onCreate = onCreate;
+                _onDispose = onDispose;
+                
+                _onCreate?.Invoke();
             }
 
             public void Dispose()
             {
                 _diposed = true;
-                Disposed++;
-            }
-
-            public static void Reset()
-            {
-                Created = Disposed = 0;
+                _onDispose?.Invoke();
             }
 
             public async Task DoSomethingAsync()

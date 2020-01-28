@@ -38,7 +38,8 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private ITopicSubscriberScopeFactory _topicSubscriberScopeFactory = new KafkaBasedTopicSubscriberScopeFactory();
+//        private IConsumerScopeFactory _consumerScopeFactory = new KafkaBasedConsumerScopeFactory();
+        private IConsumerScopeFactory _consumerScopeFactory;
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -85,9 +86,9 @@ namespace Dafda.Configuration
             _unitOfWorkFactory = new DefaultUnitOfWorkFactory(factory);
         }
         
-        public void WithTopicSubscriberScopeFactory(ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
+        public void WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
-            _topicSubscriberScopeFactory = topicSubscriberScopeFactory;
+            _consumerScopeFactory = consumerScopeFactory;
         }
 
         public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
@@ -107,11 +108,19 @@ namespace Dafda.Configuration
             FillConfiguration();
             ValidateConfiguration();
 
+            if (_consumerScopeFactory == null)
+            {
+                _consumerScopeFactory = new KafkaBasedConsumerScopeFactory(
+                    configuration: _configurations,
+                    topics: _messageHandlerRegistry.GetAllSubscribedTopics()
+                );
+            }
+            
             return new ConsumerConfiguration(
                 configuration: _configurations, 
                 messageHandlerRegistry: _messageHandlerRegistry, 
                 unitOfWorkFactory: _unitOfWorkFactory, 
-                topicSubscriberScopeFactory: _topicSubscriberScopeFactory
+                consumerScopeFactory: _consumerScopeFactory
             );
         }
 
@@ -171,17 +180,19 @@ namespace Dafda.Configuration
             private readonly IDictionary<string, string> _configuration;
 
             public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, 
-                IHandlerUnitOfWorkFactory unitOfWorkFactory, ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
+                IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory)
             {
                 _configuration = configuration;
                 MessageHandlerRegistry = messageHandlerRegistry;
                 UnitOfWorkFactory = unitOfWorkFactory;
-                TopicSubscriberScopeFactory = topicSubscriberScopeFactory;
+                ConsumerScopeFactory = consumerScopeFactory;
             }
 
             public IMessageHandlerRegistry MessageHandlerRegistry { get; }
             public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
-            public ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; }
+            public IConsumerScopeFactory ConsumerScopeFactory { get; }
+
+            public string GroupId => _configuration[ConfigurationKey.GroupId];
 
             public bool EnableAutoCommit
             {

@@ -68,9 +68,23 @@ namespace Sample
                         options.WithConfigurationSource(configuration);
                         options.WithEnvironmentStyle("DEFAULT_KAFKA");
                         options.WithEnvironmentStyle("SAMPLE_KAFKA");
+                        options.WithGroupId("foo");
 
                         // register message handlers
                         options.RegisterMessageHandler<Test, TestHandler>("test-topic", "test-event");
+                    });
+
+                    // configure ANOTHER messaging: consumer
+                    services.AddConsumer(options =>
+                    {
+                        // configuration settings
+                        options.WithConfigurationSource(configuration);
+                        options.WithEnvironmentStyle("DEFAULT_KAFKA");
+                        options.WithEnvironmentStyle("SAMPLE_KAFKA");
+                        options.WithGroupId("bar");
+
+                        // register message handlers
+                        options.RegisterMessageHandler<Test, AnotherTestHandler>("test-topic", "test-event");
                     });
 
                     // configure messaging: producer

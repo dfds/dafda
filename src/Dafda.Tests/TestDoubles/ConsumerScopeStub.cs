@@ -4,11 +4,11 @@ using Dafda.Consuming;
 
 namespace Dafda.Tests.TestDoubles
 {
-    public class TopicSubscriberScopeStub : TopicSubscriberScope
+    public class ConsumerScopeStub : ConsumerScope
     {
         private readonly MessageResult _result;
 
-        public TopicSubscriberScopeStub(MessageResult result)
+        public ConsumerScopeStub(MessageResult result)
         {
             _result = result;
         }

@@ -15,8 +15,25 @@ namespace Sample.Application
 
         public Task Handle(Test message)
         {
-            _logger.LogInformation(@"Handled: {@Message}", message);
-            
+            _logger.LogInformation($@"{this.GetType().Name} handled: {{@Message}}", message);
+
+            return Task.CompletedTask;
+        }
+    }
+
+    internal class AnotherTestHandler : IMessageHandler<Test>
+    {
+        private readonly ILogger<TestHandler> _logger;
+
+        public AnotherTestHandler(ILogger<TestHandler> logger)
+        {
+            _logger = logger;
+        }
+
+        public Task Handle(Test message)
+        {
+            _logger.LogInformation($@"{this.GetType().Name} handled: {{@Message}}", message);
+           
             return Task.CompletedTask;
         }
     }

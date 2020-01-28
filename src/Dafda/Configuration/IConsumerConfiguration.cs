@@ -9,9 +9,10 @@ namespace Dafda.Configuration
         IMessageHandlerRegistry MessageHandlerRegistry { get; }
         IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
         
-        ITopicSubscriberScopeFactory TopicSubscriberScopeFactory { get; }
+        IConsumerScopeFactory ConsumerScopeFactory { get; }
         
         bool EnableAutoCommit { get; }
         IEnumerable<string> SubscribedTopics { get; }
+        string GroupId { get; }
     }
 }

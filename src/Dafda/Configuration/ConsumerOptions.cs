@@ -18,7 +18,7 @@ namespace Dafda.Configuration
         void WithUnitOfWorkFactory(Func<IServiceProvider, IHandlerUnitOfWorkFactory> implementationFactory);
         void WithUnitOfWork<T>() where T : ScopedUnitOfWork;
         void WithUnitOfWork(Func<IServiceProvider, ScopedUnitOfWork> implementationFactory);
-        void WithTopicSubscriberScopeFactory(ITopicSubscriberScopeFactory topicSubscriberScopeFactory);
+        void WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory);
 
         void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessage : class, new()
@@ -91,9 +91,9 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        public void WithTopicSubscriberScopeFactory(ITopicSubscriberScopeFactory topicSubscriberScopeFactory)
+        public void WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
-            _builder.WithTopicSubscriberScopeFactory(topicSubscriberScopeFactory);
+            _builder.WithConsumerScopeFactory(consumerScopeFactory);
         }
 
         public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)

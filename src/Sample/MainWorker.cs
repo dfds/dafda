@@ -18,16 +18,18 @@ namespace Sample
             _commandProcessor = commandProcessor;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            return Task.Run(async () =>
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    await _commandProcessor.Process(new TestCommand());
 
-                await _commandProcessor.Process(new TestCommand());
-
-                await Task.Delay(1000, stoppingToken);
-            }
+                    await Task.Delay(1000, stoppingToken);
+                }
+            }, stoppingToken);
         }
     }
 
