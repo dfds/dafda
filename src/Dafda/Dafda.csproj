@@ -2,14 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <VersionPrefix>0.0.3</VersionPrefix>
     <Company>DFDS</Company>
     <Authors>DFDS</Authors>
     <Description>A small client for Kafka</Description>
     <RepositoryUrl>https://github.com/dfds/dafda</RepositoryUrl>
     <PackageProjectUrl>https://github.com/dfds/dafda</PackageProjectUrl>
-    <Version>0.0.4</Version>
-    <PackageVersion>0.0.5</PackageVersion>
+    <Version>0.9.0</Version>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
