@@ -25,4 +25,4 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           echo "Pushing new release with version ${GITHUB_REF:10}..."
-          make package push CONFIGURATION=Release
+          make push CONFIGURATION=Release
