@@ -1,10 +1,8 @@
-PACKAGES		:= Dafda
+PACKAGE			:= Dafda
+PROJECT			:= $(CURDIR)/src/$(PACKAGE)/$(PACKAGE).csproj
 CONFIGURATION	:= Debug
-VERSION			?= $(shell git describe --tags --always --dirty --match=*.*.* 2> /dev/null | sed -E 's/-(.+)-.+/-beta.\1/' || cat $(CURDIR)/.version 2> /dev/null || echo 0.0.1)
-SHORT_VERSION	= $(shell echo $(VERSION) | awk -F- '{ print $$1 }')
 NUGET_API_KEY	?= $(shell git config --global nuget.token)
 BIN				:= $(CURDIR)/.output
-M				= $(shell printf "\033[34;1m▶\033[0m")
 
 .PHONY: all
 all: build
@@ -13,51 +11,61 @@ all: build
 init: restore build ## restore, build
 
 .PHONY: clean
-clean: ; $(info $(M) Cleaning...) @ ## clean the build artifacts
+clean: ; $(info > Cleaning...) @ ## clean the build artifacts
 	@rm -rf $(BIN)
 
 .PHONY: restore
-restore: ; $(info $(M) Restoring dependencies...) @ ## restore project dependencies
+restore: ; $(info > Restoring dependencies...) @ ## restore project dependencies
 	@cd src && dotnet restore
 
 .PHONY: build
-build: ; $(info $(M) Building...) @ ## build the project
+build: ; $(info > Building...) @ ## build the project
 	@cd src && dotnet build --configuration $(CONFIGURATION)
 
 .PHONY: package
-package: $(addprefix package-,$(subst /,-,$(PACKAGES))) ## create nuget packages
-
-package-%: ; $(info $(M) Packing $*...)
-	@cd src && dotnet pack --configuration $(CONFIGURATION) \
-		-property:PackageVersion='$(VERSION)' \
-		-property:Version='$(SHORT_VERSION)' \
-		-property:AssemblyVersion='$(SHORT_VERSION)' \
-		-property:FileVersion='$(SHORT_VERSION)' \
-		-property:InformationalVersion='$(VERSION)' \
+package: clean restore build ; $(info > Packing $(PACKAGE)...) @ ## create the nuget package
+	@cd src && dotnet pack --no-build --configuration $(CONFIGURATION) \
 		--output $(BIN) \
-		$(CURDIR)/src/$*/$*.csproj
-
-.PHONY: local-release
-local-release: clean restore build package ## create a nuget package for local development
-
-.PHONY: release
-release: CONFIGURATION=Release ## create a release nuget package
-release: clean restore build package
+		$(PROJECT)
 
 .PHONY: push
-push: $(addprefix push-,$(subst /,-,$(PACKAGES))) ## push nuget packages
-
-push-%: ; $(info $(M) Pushing $*...)
-	cd $(BIN) && dotnet nuget push $*.$(VERSION).nupkg --source https://api.nuget.org/v3/index.json --api-key $(NUGET_API_KEY)
+push: ; $(info > Pushing $(PACKAGE)...) @ ## push the nuget package to nuget.org
+	dotnet nuget push $(BIN)/$(PACKAGE).*.nupkg --source https://api.nuget.org/v3/index.json --api-key $(NUGET_API_KEY)
 
 .PHONY: version
-version: ## prints the version (from either environment VERSION, git describe, or .version. default: 0.0.1)
-	@echo $(VERSION)
+version: ## set the package version base on user input
+	@echo "----------------------------------------------"
+	@echo "- This action will update the:"
+	@echo "- $(PROJECT)"
+	@echo "- and create a new commit"
+	@echo "----------------------------------------------"
+	@echo
+	@echo "Set the version of $(PACKAGE)"
+	@echo "  Current version:   $$(sed -n -E 's,[[:blank:]]+<Version>(.+)</Version>,\1,p' $(PROJECT))"
+	@read -p "  Enter new version: " version \
+		&& sed -b -E "s,<Version>(.+)</Version>,<Version>$${version}</Version>," $(PROJECT) > $(PROJECT).new \
+		&& mv $(PROJECT).new $(PROJECT) \
+		&& git add $(PROJECT) \
+		&& git commit -m "update version to $${version}" 1>/dev/null
+	@echo
+	@echo "Version updated. Run e.g. 'make release' to tag according to latest version"
 
-docs-dev:
+.PHONY: release
+release: ## tag a release with latest version
+	@git tag $$(sed -n -E 's,[[:blank:]]+<Version>(.+)</Version>,\1,p' $(PROJECT))
+	@echo
+	@echo "----------------------------------------------"
+	@echo "- !! CAUTION !!"
+	@echo "-"
+	@echo "- The lastest version was tagged in git"
+	@echo "----------------------------------------------"
+	@echo
+	@echo "Run e.g. 'git push --follow-tags' to release"
+
+docs-dev: ## edit documentation
 	@cd docs && docker-compose up -d
 
-docs-deploy:
+docs-deploy: ## deploy documentation to github pages
 	@docker run --rm -it \
 		-v ~/.ssh:/root/.ssh \
 		-v ${PWD}:/docs \

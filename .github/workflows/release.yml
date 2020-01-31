@@ -1,21 +1,28 @@
-name: Dafda CI
+name: Dafda CI Release
 
 on:
   push:
     branches:
-    - master
+      - master
+    tags:
+      - "*.*.*"
 
 jobs:
   build:
     name: Build NuGet package
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 2.2.108
-    - name: Build Release
-      env:
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: make release
+      - uses: actions/checkout@v1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 2.2.108
+      - name: Build package
+        run: make package CONFIGURATION=Release
+      - name: Push package
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          echo "Pushing new release with version ${GITHUB_REF:10}..."
+          make package push CONFIGURATION=Release
