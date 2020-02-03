@@ -8,10 +8,12 @@ namespace Dafda.Producing
 {
     internal class PollingPublisher : BackgroundService
     {
+        private readonly TimeSpan _dispatchInterval;
         private readonly OutboxProcessor _outboxProcessor;
 
-        public PollingPublisher(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer)
+        public PollingPublisher(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer, TimeSpan dispatchInterval)
         {
+            _dispatchInterval = dispatchInterval;
             _outboxProcessor = new OutboxProcessor(unitOfWorkFactory, producer);
         }
 
@@ -22,7 +24,7 @@ namespace Dafda.Producing
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     await ProcessUnpublishedOutboxMessages(stoppingToken);
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    await Task.Delay(_dispatchInterval, stoppingToken);
                 }
             }, stoppingToken);
         }

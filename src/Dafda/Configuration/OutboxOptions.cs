@@ -2,6 +2,7 @@ using System;
 using Dafda.Outbox;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Dafda.Configuration
 {
@@ -37,15 +38,20 @@ namespace Dafda.Configuration
             config?.Invoke(configuration);
 
             // TODO -- outbox producer
-            _services.AddHostedService<PollingPublisher>();
+            //_services.AddHostedService<PollingPublisher>();
+            _services.AddTransient<IHostedService, PollingPublisher>(provider => new PollingPublisher(
+                unitOfWorkFactory: provider.GetRequiredService<IOutboxUnitOfWorkFactory>(),
+                producer: provider.GetRequiredService<IProducer>(),
+                dispatchInterval: configuration.DispatchInterval
+            ));
         }
-
     }
 
     public interface IOutboxPublisherOptions 
     {
         void WithUnitOfWorkFactory<T>() where T : class, IOutboxUnitOfWorkFactory;
         void WithUnitOfWorkFactory(Func<IServiceProvider, IOutboxUnitOfWorkFactory> implementationFactory);
+        void WithDispatchInterval(TimeSpan interval);
     }
 
     internal class OutboxPublisherOptions : IOutboxPublisherOptions
@@ -65,6 +71,13 @@ namespace Dafda.Configuration
         public void WithUnitOfWorkFactory(Func<IServiceProvider, IOutboxUnitOfWorkFactory> implementationFactory)
         {
             _services.AddTransient(implementationFactory);
+        }
+
+        public TimeSpan DispatchInterval { get; private set; } = TimeSpan.FromSeconds(5);
+
+        public void WithDispatchInterval(TimeSpan interval)
+        {
+            DispatchInterval = interval;
         }
     }
 }

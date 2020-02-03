@@ -102,7 +102,10 @@ namespace Sample
                         options.AddOutbox(outbox =>
                         {
                             outbox.WithOutboxMessageRepository<OutboxMessageRepository>();
-                            outbox.WithOutboxPublisher(op => { op.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>(); });
+                            outbox.WithOutboxPublisher(op =>
+                            {
+                                op.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
+                            });
                         });
                     });
                 });
