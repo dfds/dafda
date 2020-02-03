@@ -15,13 +15,21 @@ namespace Dafda.Producing
             _outboxProcessor = new OutboxProcessor(unitOfWorkFactory, producer);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            return Task.Run(async () =>
             {
-                await _outboxProcessor.ProcessUnpublishedOutboxMessages(stoppingToken);
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-            }
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    await ProcessUnpublishedOutboxMessages(stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                }
+            }, stoppingToken);
+        }
+
+        public Task ProcessUnpublishedOutboxMessages(CancellationToken stoppingToken)
+        {
+            return _outboxProcessor.ProcessUnpublishedOutboxMessages(stoppingToken);
         }
     }
 }

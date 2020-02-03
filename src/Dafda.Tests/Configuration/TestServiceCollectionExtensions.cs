@@ -157,13 +157,17 @@ namespace Dafda.Tests.Configuration
 
             await outbox.Enqueue(new[] {new DummyMessage(),});
 
-            var pollingPublisher = provider.GetServices<IHostedService>().FirstOrDefault(x => x is PollingPublisher);
+            var pollingPublisher = provider
+                .GetServices<IHostedService>()
+                .Where(x => x is PollingPublisher)
+                .Cast<PollingPublisher>()
+                .First();
 
-            using (CancellationTokenSource cts = new CancellationTokenSource())
+            using (var cts = new CancellationTokenSource())
             {
                 cts.CancelAfter(500);
 
-                await pollingPublisher.StartAsync(cts.Token);
+                await pollingPublisher.ProcessUnpublishedOutboxMessages(cts.Token);
             }
 
             Assert.True(fake.OutboxMessages.All(x => x.ProcessedUtc.HasValue));
