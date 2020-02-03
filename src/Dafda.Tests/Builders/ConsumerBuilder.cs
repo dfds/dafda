@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Dafda.Configuration;
 using Dafda.Consuming;
-using Dafda.Messaging;
 using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders

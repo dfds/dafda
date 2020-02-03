@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
-using Dafda.Messaging;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Moq;

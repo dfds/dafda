@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Configuration;
-using Dafda.Messaging;
+using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 

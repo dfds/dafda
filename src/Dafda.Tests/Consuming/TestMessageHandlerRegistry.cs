@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Dafda.Messaging;
+using Dafda.Consuming;
 using Dafda.Tests.Builders;
 using Xunit;
 
-namespace Dafda.Tests.Messaging
+namespace Dafda.Tests.Consuming
 {
     public class TestMessageHandlerRegistry
     {

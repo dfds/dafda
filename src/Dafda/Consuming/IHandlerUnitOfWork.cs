@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     public interface IHandlerUnitOfWork
     {

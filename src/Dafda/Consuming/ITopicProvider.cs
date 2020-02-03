@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     public interface ITopicProvider
     {

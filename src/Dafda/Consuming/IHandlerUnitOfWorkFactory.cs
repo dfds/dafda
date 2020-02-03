@@ -1,6 +1,6 @@
 using System;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     public interface IHandlerUnitOfWorkFactory
     {

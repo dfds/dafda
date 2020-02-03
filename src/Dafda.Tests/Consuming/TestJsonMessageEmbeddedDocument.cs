@@ -1,8 +1,8 @@
 ﻿using System;
-using Dafda.Messaging;
+using Dafda.Consuming;
 using Xunit;
 
-namespace Dafda.Tests.Messaging
+namespace Dafda.Tests.Consuming
 {
     public class TestJsonMessageEmbeddedDocument
     {

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Dafda.Messaging;
+using Dafda.Consuming;
 using Microsoft.Extensions.Logging;
 
 namespace Sample.Application

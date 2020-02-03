@@ -1,6 +1,5 @@
 using System;
 using Dafda.Consuming;
-using Dafda.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Dafda.Messaging;
 
 namespace Dafda.Consuming
 {

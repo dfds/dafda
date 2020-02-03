@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     public interface IMessageHandlerRegistry : ITopicProvider
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     public class JsonMessageEmbeddedDocument : ITransportLevelMessage
     {

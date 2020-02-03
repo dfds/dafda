@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Dafda.Consuming;
-using Dafda.Messaging;
 using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders

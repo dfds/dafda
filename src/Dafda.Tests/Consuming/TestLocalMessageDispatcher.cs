@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Dafda.Messaging;
+using Dafda.Consuming;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Moq;
 using Xunit;
 
-namespace Dafda.Tests.Messaging
+namespace Dafda.Tests.Consuming
 {
     public class TestLocalMessageDispatcher
     {

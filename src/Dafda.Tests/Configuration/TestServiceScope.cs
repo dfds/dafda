@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
-using Dafda.Messaging;
+using Dafda.Consuming;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;

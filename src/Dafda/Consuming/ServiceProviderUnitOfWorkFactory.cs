@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     internal class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
     {

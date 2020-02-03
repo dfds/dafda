@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Dafda.Logging;
-using Dafda.Messaging;
 
 namespace Dafda.Consuming
 {

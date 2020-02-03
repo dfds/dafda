@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Dafda.Consuming;
 using Dafda.Logging;
-using Dafda.Messaging;
 
 namespace Dafda.Configuration
 {

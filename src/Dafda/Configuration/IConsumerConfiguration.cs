@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Dafda.Consuming;
-using Dafda.Messaging;
 
 namespace Dafda.Configuration
 {

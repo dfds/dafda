@@ -1,5 +1,5 @@
 ﻿using System;
-using Dafda.Messaging;
+using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders

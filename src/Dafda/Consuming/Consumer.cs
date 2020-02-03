@@ -1,9 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
-using Dafda.Consuming;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     public class Consumer
     {

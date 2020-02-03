@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
-using Dafda.Messaging;
 using Dafda.Outbox;
 using Dafda.Producing;
 using Dafda.Tests.Builders;

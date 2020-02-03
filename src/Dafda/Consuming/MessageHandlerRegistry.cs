@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dafda.Messaging
+namespace Dafda.Consuming
 {
     public class MessageHandlerRegistry : IMessageHandlerRegistry
     {

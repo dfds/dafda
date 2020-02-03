@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dafda.Messaging;
+using Dafda.Consuming;
 
 namespace Dafda.Tests.TestDoubles
 {
