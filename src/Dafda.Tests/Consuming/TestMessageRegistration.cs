@@ -91,7 +91,7 @@ namespace Dafda.Tests.Consuming
 
         private class FooHandler : IMessageHandler<FooMessage>
         {
-            public Task Handle(FooMessage message)
+            public Task Handle(FooMessage message, MessageHandlerContext context)
             {
                 throw new NotImplementedException();
             }

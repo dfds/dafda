@@ -13,7 +13,7 @@ namespace Sample.Application
             _logger = logger;
         }
 
-        public Task Handle(Test message)
+        public Task Handle(Test message, MessageHandlerContext context)
         {
             _logger.LogInformation($@"{this.GetType().Name} handled: {{@Message}}", message);
 
@@ -30,7 +30,7 @@ namespace Sample.Application
             _logger = logger;
         }
 
-        public Task Handle(Test message)
+        public Task Handle(Test message, MessageHandlerContext context)
         {
             _logger.LogInformation($@"{this.GetType().Name} handled: {{@Message}}", message);
            

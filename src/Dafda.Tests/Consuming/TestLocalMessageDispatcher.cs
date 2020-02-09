@@ -59,7 +59,7 @@ namespace Dafda.Tests.Consuming
 
             await sut.Dispatch(transportMessageDummy);
 
-            mock.Verify(x => x.Handle(It.IsAny<object>()), Times.Once);
+            mock.Verify(x => x.Handle(It.IsAny<object>(), It.IsAny<MessageHandlerContext>()), Times.Once);
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace Dafda.Tests.Consuming
 
         private class ErroneusHandler : IMessageHandler<object>
         {
-            public Task Handle(object message)
+            public Task Handle(object message, MessageHandlerContext context)
             {
                 throw new ExpectedException();
             }

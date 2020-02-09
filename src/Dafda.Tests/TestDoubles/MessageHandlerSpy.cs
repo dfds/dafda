@@ -13,7 +13,7 @@ namespace Dafda.Tests.TestDoubles
             _onHandle = onHandle;
         }
 
-        public Task Handle(TMessage message)
+        public Task Handle(TMessage message, MessageHandlerContext context)
         {
             _onHandle?.Invoke();
             return Task.CompletedTask;

@@ -47,6 +47,9 @@ namespace Dafda.Consuming
             }
 
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
+            
+            var context = new MessageHandlerContext(message.MessageId, message.Type);
+            
             await unitOfWork.Run(async handler =>
             {
                 if (handler == null)
@@ -54,13 +57,13 @@ namespace Dafda.Consuming
                     throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
                 }
 
-                await ExecuteHandler((dynamic) messageInstance, (dynamic) handler);
+                await ExecuteHandler((dynamic) messageInstance, (dynamic) handler, context);
             });
         }
 
-        private static Task ExecuteHandler<TMessage>(TMessage message, IMessageHandler<TMessage> handler) where TMessage : class, new()
+        private static Task ExecuteHandler<TMessage>(TMessage message, IMessageHandler<TMessage> handler, MessageHandlerContext context) where TMessage : class, new()
         {
-            return handler.Handle(message);
+            return handler.Handle(message, context);
         }
     }
 }

@@ -224,7 +224,7 @@ namespace Dafda.Tests.Configuration
                 _repository = repository;
             }
 
-            public async Task Handle(DummyMessage message)
+            public async Task Handle(DummyMessage message, MessageHandlerContext context)
             {
                 await _scopeSpy.DoSomethingAsync();
                 await _repository.PerformActionAsync();

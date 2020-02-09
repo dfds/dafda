@@ -253,7 +253,7 @@ namespace Dafda.Tests.Configuration
         {
         }
 
-        public Task Handle(DummyMessage message)
+        public Task Handle(DummyMessage message, MessageHandlerContext context)
         {
             LastHandledMessage = message;
 

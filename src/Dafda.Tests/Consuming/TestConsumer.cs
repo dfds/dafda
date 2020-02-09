@@ -35,7 +35,7 @@ namespace Dafda.Tests.Consuming
 
             await sut.ConsumeSingle(CancellationToken.None);
 
-            handlerMock.Verify(x => x.Handle(It.IsAny<FooMessage>()), Times.Once);
+            handlerMock.Verify(x => x.Handle(It.IsAny<FooMessage>(), It.IsAny<MessageHandlerContext>()), Times.Once);
         }
 
         [Fact]

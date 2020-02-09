@@ -183,7 +183,7 @@ namespace Dafda.Tests.Configuration
         // ReSharper disable once MemberCanBePrivate.Global
         private class DummyMessageHandler : IMessageHandler<DummyMessage>
         {
-            public Task Handle(DummyMessage message)
+            public Task Handle(DummyMessage message, MessageHandlerContext context)
             {
                 LastHandledMessage = message;
 
