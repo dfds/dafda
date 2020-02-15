@@ -1,13 +1,20 @@
+using System.Collections.Generic;
 using Confluent.Kafka;
-using Dafda.Configuration;
 
 namespace Dafda.Producing.Kafka
 {
     public class KafkaProducerFactory : IKafkaProducerFactory
     {
-        public IKafkaProducer CreateProducer(IConfiguration configuration)
+        private readonly IEnumerable<KeyValuePair<string, string>> _configuration;
+
+        public KafkaProducerFactory(IEnumerable<KeyValuePair<string, string>> configuration)
         {
-            var producer = new ProducerBuilder<string, string>(configuration).Build();
+            _configuration = configuration;
+        }
+
+        public IKafkaProducer CreateProducer()
+        {
+            var producer = new ProducerBuilder<string, string>(_configuration).Build();
 
             return new KafkaProducer(producer);
         }

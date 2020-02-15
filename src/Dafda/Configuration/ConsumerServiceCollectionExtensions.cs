@@ -54,19 +54,20 @@ namespace Dafda.Configuration
 
             consumerGroupIdRepository.Add(configuration.GroupId);
             
-            Func<IServiceProvider, SubscriberHostedService> hostedServiceFactory = provider => new SubscriberHostedService(
-                logger: provider.GetRequiredService<ILogger<SubscriberHostedService>>(),
+            Func<IServiceProvider, ConsumerHostedService> hostedServiceFactory = provider => new ConsumerHostedService(
+                logger: provider.GetRequiredService<ILogger<ConsumerHostedService>>(),
                 applicationLifetime: provider.GetRequiredService<IApplicationLifetime>(),
                 consumer: new Consumer(
                         messageHandlerRegistry: configuration.MessageHandlerRegistry,
                         unitOfWorkFactory: provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
                         consumerScopeFactory: configuration.ConsumerScopeFactory,
                         isAutoCommitEnabled: configuration.EnableAutoCommit
-                    )
+                    ),
+                configuration.GroupId
             );
 
-            services.AddTransient<IHostedService, SubscriberHostedService>(hostedServiceFactory);
-            services.AddTransient<SubscriberHostedService>(hostedServiceFactory);
+            services.AddTransient<IHostedService, ConsumerHostedService>(hostedServiceFactory);
+            services.AddTransient<ConsumerHostedService>(hostedServiceFactory);
         }
     }
 }

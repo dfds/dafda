@@ -1,6 +1,4 @@
-using Dafda.Configuration;
 using Dafda.Producing;
-using Dafda.Producing.Kafka;
 
 namespace Dafda.Tests.TestDoubles
 {
@@ -13,7 +11,7 @@ namespace Dafda.Tests.TestDoubles
             _producer = producer;
         }
 
-        public IKafkaProducer CreateProducer(IConfiguration configuration)
+        public IKafkaProducer CreateProducer()
         {
             return _producer;
         }

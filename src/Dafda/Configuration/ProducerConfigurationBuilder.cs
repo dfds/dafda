@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Logging;
@@ -34,7 +33,7 @@ namespace Dafda.Configuration
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
-        private IKafkaProducerFactory _kafkaProducerFactory = new KafkaProducerFactory();
+        private IKafkaProducerFactory _kafkaProducerFactory;
 
         internal ProducerConfigurationBuilder()
         {
@@ -85,7 +84,7 @@ namespace Dafda.Configuration
             _kafkaProducerFactory = kafkaProducerFactory;
         }
 
-        public IProducerConfiguration Build()
+        public ProducerConfiguration Build()
         {
             if (!_namingConventions.Any())
             {
@@ -94,6 +93,11 @@ namespace Dafda.Configuration
 
             FillConfiguration();
             ValidateConfiguration();
+
+            if (_kafkaProducerFactory == null)
+            {
+                _kafkaProducerFactory = new KafkaProducerFactory(_configurations);
+            }
 
             return new ProducerConfiguration(
                 configuration: _configurations,
@@ -151,33 +155,6 @@ namespace Dafda.Configuration
                     var message = $"Expected key '{key}' not supplied in '{GetSourceName()}' (attempted keys: '{string.Join("', '", GetAttemptedKeys(key))}')";
                     throw new InvalidConfigurationException(message);
                 }
-            }
-        }
-
-        private class ProducerConfiguration : IProducerConfiguration
-        {
-            private readonly IDictionary<string, string> _configuration;
-
-            public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry, IKafkaProducerFactory kafkaProducerFactory)
-            {
-                _configuration = configuration;
-                MessageIdGenerator = messageIdGenerator;
-                OutgoingMessageRegistry = outgoingMessageRegistry;
-                KafkaProducerFactory = kafkaProducerFactory;
-            }
-
-            public MessageIdGenerator MessageIdGenerator { get; }
-            public IOutgoingMessageRegistry OutgoingMessageRegistry { get; }
-            public IKafkaProducerFactory KafkaProducerFactory { get; }
-
-            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-            {
-                return _configuration.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IEnumerable) _configuration).GetEnumerator();
             }
         }
     }

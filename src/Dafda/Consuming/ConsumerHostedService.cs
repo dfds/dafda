@@ -6,17 +6,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
-    internal class SubscriberHostedService : BackgroundService
+    internal class ConsumerHostedService : BackgroundService
     {
-        private readonly ILogger<SubscriberHostedService> _logger;
+        private readonly ILogger<ConsumerHostedService> _logger;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly Consumer _consumer;
+        private readonly string _groupId;
 
-        public SubscriberHostedService(ILogger<SubscriberHostedService> logger, IApplicationLifetime applicationLifetime, Consumer consumer)
+        public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IApplicationLifetime applicationLifetime, Consumer consumer, string groupId)
         {
             _logger = logger;
             _applicationLifetime = applicationLifetime;
             _consumer = consumer;
+            _groupId = groupId;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,12 +27,12 @@ namespace Dafda.Consuming
             {
                 try
                 {
-                    _logger.LogDebug("SubscriberHostedService started");
+                    _logger.LogDebug("ConsumerHostedService [{GroupId}] started", _groupId);
                     await _consumer.ConsumeAll(stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogDebug("SubscriberHostedService cancelled");
+                    _logger.LogDebug("ConsumerHostedService [{GroupId}] cancelled", _groupId);
                 }
                 catch (Exception err)
                 {

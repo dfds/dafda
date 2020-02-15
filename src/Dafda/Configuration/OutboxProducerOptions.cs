@@ -5,18 +5,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
 {
-    public sealed class ProducerOptions
+    public sealed class OutboxProducerOptions
     {
         private readonly ProducerConfigurationBuilder _builder;
         private readonly IServiceCollection _services;
         private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
 
-        internal ProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, IOutgoingMessageRegistry outgoingMessageRegistry)
+        internal OutboxProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, IOutgoingMessageRegistry outgoingMessageRegistry)
         {
             _builder = builder;
             _services = services;
             _outgoingMessageRegistry = outgoingMessageRegistry;
         }
+
+        public TimeSpan DispatchInterval { get; private set; } = TimeSpan.FromSeconds(5);
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -63,18 +65,31 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry.Register(topic, type, keySelector);
         }
 
-        //public void AddOutbox(Action<IOutboxOptions> config)
-        //{
-        //    var configuration = new OutboxOptions(_services);
-        //    config?.Invoke(configuration);
+        public void WithOutboxMessageRepository<T>() where T : class, IOutboxMessageRepository
+        {
+            _services.AddTransient<IOutboxMessageRepository, T>();
+        }
 
-        //    _services.AddTransient<IOutbox>(provider =>
-        //    {
-        //        var producerConfiguration = provider.GetRequiredService<ProducerConfiguration>();
-        //        var repository = provider.GetRequiredService<IOutboxMessageRepository>();
-        //        return new OutboxMessageCollector(producerConfiguration.MessageIdGenerator, producerConfiguration.OutgoingMessageRegistry, repository);
-        //    });
-        //}
+        public void WithOutboxMessageRepository(Func<IServiceProvider, IOutboxMessageRepository> implementationFactory)
+        {
+            _services.AddTransient(implementationFactory);
+        }
+
+        public void WithUnitOfWorkFactory<T>() where T : class, IOutboxUnitOfWorkFactory
+        {
+            _services.AddTransient<IOutboxUnitOfWorkFactory, T>();
+        }
+
+        public void WithUnitOfWorkFactory(Func<IServiceProvider, IOutboxUnitOfWorkFactory> implementationFactory)
+        {
+            _services.AddTransient(implementationFactory);
+        }
+
+        public void WithDispatchInterval(TimeSpan interval)
+        {
+            DispatchInterval = interval;
+        }
+
 
         private class DefaultConfigurationSource : ConfigurationSource
         {

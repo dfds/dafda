@@ -88,7 +88,7 @@ namespace Sample
                     });
 
                     // configure messaging: producer
-                    services.AddProducer(options =>
+                    services.AddOutbox(options =>
                     {
                         // configuration settings
                         options.WithConfigurationSource(configuration);
@@ -99,14 +99,9 @@ namespace Sample
                         options.Register<Test>("test-topic", "test-event", @event => @event.AggregateId);
 
                         // include outbox (polling publisher)
-                        options.AddOutbox(outbox =>
-                        {
-                            outbox.WithOutboxMessageRepository<OutboxMessageRepository>();
-                            outbox.WithOutboxPublisher(op =>
-                            {
-                                op.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
-                            });
-                        });
+                        options.WithOutboxMessageRepository<OutboxMessageRepository>();
+                        options.WithDispatchInterval(TimeSpan.FromSeconds(10));
+                        options.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
                     });
                 });
         }

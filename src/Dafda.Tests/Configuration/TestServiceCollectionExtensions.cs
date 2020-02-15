@@ -139,18 +139,15 @@ namespace Dafda.Tests.Configuration
             var fake = new FakeOutboxPersistence();
             var messageId = Guid.NewGuid().ToString();
             services.AddLogging();
-            services.AddProducer(options =>
+            services.AddOutbox(options =>
             {
                 options.WithBootstrapServers("localhost");
                 options.WithKafkaProducerFactory(new KafkaProducerFactoryStub(spy));
                 options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => messageId));
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
-                options.AddOutbox(opt =>
-                {
-                    opt.WithOutboxMessageRepository(serviceProvider => fake);
-                    opt.WithOutboxPublisher(pub => { pub.WithUnitOfWorkFactory(serviceProvider => fake); });
-                });
+                options.WithOutboxMessageRepository(serviceProvider => fake);
+                options.WithUnitOfWorkFactory(serviceProvider => fake);
             });
             var provider = services.BuildServiceProvider();
             var outbox = provider.GetRequiredService<IOutbox>();

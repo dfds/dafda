@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dafda.Outbox;
 using Microsoft.Extensions.DependencyInjection;
 using Sample.Infrastructure.Persistence;
 
@@ -74,6 +75,9 @@ namespace Sample.Application
                     await dbContext.SaveChangesAsync();
                     transaction.Commit();
                 }
+
+                var waiter = scope.ServiceProvider.GetRequiredService<IOutboxWaiter>();
+                waiter.WakeUp();
             }
         }
 
