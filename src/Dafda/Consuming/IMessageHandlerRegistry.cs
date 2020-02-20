@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Dafda.Consuming
 {
-    public interface IMessageHandlerRegistry : ITopicProvider
+    public interface IMessageHandlerRegistry
     {
         MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType);
         MessageRegistration Register<TMessage, THandler>(string topic, string messageType) 
@@ -12,5 +12,6 @@ namespace Dafda.Consuming
 
         IEnumerable<MessageRegistration> Registrations { get; }
         MessageRegistration GetRegistrationFor(string messageType);
+        IEnumerable<string> GetAllSubscribedTopics();
     }
 }
