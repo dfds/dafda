@@ -10,27 +10,19 @@ namespace Dafda.Consuming
 
         public LocalMessageDispatcher(MessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
         {
-            if (messageHandlerRegistry == null)
-            {
-                throw new ArgumentNullException(nameof(messageHandlerRegistry));
-            }
-
-            if (handlerUnitOfWorkFactory == null)
-            {
-                throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
-            }
-
-            _messageHandlerRegistry = messageHandlerRegistry;
-            _unitOfWorkFactory = handlerUnitOfWorkFactory;
+            _messageHandlerRegistry = messageHandlerRegistry ?? throw new ArgumentNullException(nameof(messageHandlerRegistry));
+            _unitOfWorkFactory = handlerUnitOfWorkFactory ?? throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
         }
 
         private MessageRegistration GetMessageRegistrationFor(ITransportLevelMessage message)
         {
-            var registration = _messageHandlerRegistry.GetRegistrationFor(message.Type);
+            var messageId = message.Metadata.MessageId;
+            var messageType = message.Metadata.Type;
+            var registration = _messageHandlerRegistry.GetRegistrationFor(messageType);
 
             if (registration == null)
             {
-                throw new MissingMessageHandlerRegistrationException($"Error! A handler has not been registered for messages of type \"{message.Type}\". Message with id \"{message.MessageId}\" was not handled.");
+                throw new MissingMessageHandlerRegistrationException($"Error! A handler has not been registered for messages of type \"{messageType}\". Message with id \"{messageId}\" was not handled.");
             }
 
             return registration;
@@ -47,9 +39,8 @@ namespace Dafda.Consuming
             }
 
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
-            
-            var context = new MessageHandlerContext(message.MessageId, message.Type);
-            
+            var context = new MessageHandlerContext(message.Metadata);
+
             await unitOfWork.Run(async handler =>
             {
                 if (handler == null)

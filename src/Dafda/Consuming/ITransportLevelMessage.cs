@@ -2,12 +2,18 @@ using System;
 
 namespace Dafda.Consuming
 {
+    internal class IncomingMessageFactory
+    {
+        public ITransportLevelMessage Create(string rawMessage)
+        {
+            return new JsonMessageEmbeddedDocument(rawMessage);
+        }
+    }
+
     public interface ITransportLevelMessage
     {
-        string MessageId { get; }
-        string Type { get; }
-        string CorrelationId { get; }
-        T ReadDataAs<T>() where T : class, new();
+        Metadata Metadata { get; }
+
         object ReadDataAs(Type messageInstanceType);
     }
 }

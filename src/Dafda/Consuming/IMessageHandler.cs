@@ -9,13 +9,16 @@ namespace Dafda.Consuming
 
     public sealed class MessageHandlerContext
     {
-        internal MessageHandlerContext(string messageId, string messageType)
+        private readonly Metadata _metadata;
+
+        internal MessageHandlerContext(Metadata metadata)
         {
-            MessageId = messageId;
-            MessageType = messageType;
+            _metadata = metadata;
         }
-        
-        public string MessageId { get; private set; }
-        public string MessageType { get; private set; }
+
+        public string MessageId => _metadata.MessageId;
+        public string MessageType => _metadata.Type;
+
+        public string this[string key] => _metadata[key];
     }
 }

@@ -5,22 +5,21 @@ namespace Dafda.Tests.Builders
 {
     public class TransportLevelMessageBuilder
     {
-        private string _messageId;
-        private string _correlationId;
-        private string _type;
+        private readonly Metadata _metadata = new Metadata();
+
         private object _data;
 
         public TransportLevelMessageBuilder()
         {
-            _messageId = "foo-message-id";
-            _correlationId = "foo-correlation-id";
-            _type = "foo-type";
+            _metadata.MessageId = "foo-message-id";
+            _metadata.CorrelationId = "foo-correlation-id";
+            _metadata.Type = "foo-type";
             _data = "foo-data";
         }
 
         public TransportLevelMessageBuilder WithType(string type)
         {
-            _type = type;
+            _metadata.Type = type;
             return this;
         }
 
@@ -34,9 +33,7 @@ namespace Dafda.Tests.Builders
         {
             return new TransportLevelMessageStub
             {
-                MessageId = _messageId,
-                CorrelationId = _correlationId,
-                Type = _type,
+                Metadata = _metadata,
                 Data = _data
             };
         }

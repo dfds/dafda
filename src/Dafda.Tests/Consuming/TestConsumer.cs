@@ -51,7 +51,7 @@ namespace Dafda.Tests.Consuming
         {
             var orderOfInvocation = new LinkedList<string>();
 
-            var dummyMessageResult = new MessageResultBuilder().WithTransportLevelMessage("foo").Build();
+            var dummyMessageResult = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub(type: "foo")).Build();
             var dummyMessageRegistration = new MessageRegistrationBuilder().WithMessageType("foo").Build();
 
             var registry = new MessageHandlerRegistry();
@@ -149,13 +149,13 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task creates_consumer_scope_when_consuming_single_message()
         {
-            var messageResultStub = new MessageResultBuilder().Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()
                 .WithHandlerInstanceType(handlerStub.GetType())
                 .WithMessageInstanceType(typeof(FooMessage))
-                .WithMessageType(messageResultStub.Message.Type)
+                .WithMessageType("foo")
                 .Build();
 
             var mock = new Mock<IConsumerScopeFactory>();
@@ -180,13 +180,13 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task disposes_consumer_scope_when_consuming_single_message()
         {
-            var messageResultStub = new MessageResultBuilder().Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()
                 .WithHandlerInstanceType(handlerStub.GetType())
                 .WithMessageInstanceType(typeof(FooMessage))
-                .WithMessageType(messageResultStub.Message.Type)
+                .WithMessageType("foo")
                 .Build();
 
             var mock = new Mock<ConsumerScope>();
@@ -211,13 +211,13 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task creates_consumer_scope_when_consuming_multiple_messages()
         {
-            var messageResultStub = new MessageResultBuilder().Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()
                 .WithHandlerInstanceType(handlerStub.GetType())
                 .WithMessageInstanceType(typeof(FooMessage))
-                .WithMessageType(messageResultStub.Message.Type)
+                .WithMessageType("foo")
                 .Build();
 
             using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
@@ -262,13 +262,13 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task disposes_consumer_scope_when_consuming_multiple_messages()
         {
-            var messageResultStub = new MessageResultBuilder().Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()
                 .WithHandlerInstanceType(handlerStub.GetType())
                 .WithMessageInstanceType(typeof(FooMessage))
-                .WithMessageType(messageResultStub.Message.Type)
+                .WithMessageType("foo")
                 .Build();
 
             using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5)))

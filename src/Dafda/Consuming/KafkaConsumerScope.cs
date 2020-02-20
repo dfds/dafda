@@ -10,12 +10,14 @@ namespace Dafda.Consuming
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly IConsumer<string, string> _innerKafkaConsumer;
+        private readonly IncomingMessageFactory _incomingMessageFactory;
 
-        internal KafkaConsumerScope(IConsumer<string, string> innerKafkaConsumer)
+        internal KafkaConsumerScope(IConsumer<string, string> innerKafkaConsumer, IncomingMessageFactory incomingMessageFactory)
         {
             _innerKafkaConsumer = innerKafkaConsumer;
+            _incomingMessageFactory = incomingMessageFactory;
         }
-        
+
         public override Task<MessageResult> GetNext(CancellationToken cancellationToken)
         {
             var innerResult = _innerKafkaConsumer.Consume(cancellationToken);
@@ -23,7 +25,7 @@ namespace Dafda.Consuming
             Log.Debug("Received message {Key}: {RawMessage}", innerResult.Key, innerResult.Value);
 
             var result = new MessageResult(
-                message: new JsonMessageEmbeddedDocument(innerResult.Value),
+                message: _incomingMessageFactory.Create(innerResult.Value),
                 onCommit: () =>
                 {
                     _innerKafkaConsumer.Commit(innerResult);

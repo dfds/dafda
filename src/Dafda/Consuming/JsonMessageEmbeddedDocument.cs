@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace Dafda.Consuming
@@ -10,16 +12,17 @@ namespace Dafda.Consuming
         public JsonMessageEmbeddedDocument(string json)
         {
             _jObject = JsonDocument.Parse(json);
+
+            Metadata = new Metadata(
+                _jObject
+                    .RootElement
+                    .EnumerateObject()
+                    .Where(property => property.Name != "data")
+                    .ToDictionary(x => x.Name, x => x.Value.GetString())
+            );
         }
 
-        public string MessageId => _jObject.RootElement.GetProperty("messageId").GetString();
-        public string Type => _jObject.RootElement.GetProperty("type").GetString();
-        public string CorrelationId => _jObject.RootElement.GetProperty("correlationId").GetString();
-
-        public T ReadDataAs<T>() where T : class, new()
-        {
-            return (T) ReadDataAs(typeof(T));
-        }
+        public Metadata Metadata { get; }
 
         public object ReadDataAs(Type messageInstanceType)
         {
@@ -31,6 +34,58 @@ namespace Dafda.Consuming
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
+        }
+    }
+
+    /// <remarks>
+    /// https://blog.arkency.com/correlation-id-and-causation-id-in-evented-systems/
+    /// https://codeopinion.com/message-properties/
+    /// </remarks>
+    public sealed class Metadata
+    {
+        private readonly IDictionary<string, string> _metadata;
+
+        internal Metadata() : this(new Dictionary<string, string>())
+        {
+        }
+
+        internal Metadata(IDictionary<string, string> metadata)
+        {
+            _metadata = metadata;
+        }
+
+        public string MessageId
+        {
+            get => this["messageId"];
+            set => this["messageId"] = value;
+        }
+
+        public string Type
+        {
+            get => this["type"];
+            set => this["type"] = value;
+        }
+
+        public string CorrelationId
+        {
+            get => this["correlationId"];
+            set => this["correlationId"] = value;
+        }
+
+        public string CausationId
+        {
+            get => this["causationId"];
+            set => this["causationId"] = value;
+        }
+
+        public string this[string key]
+        {
+            get
+            {
+                _metadata.TryGetValue(key, out var value);
+                return value;
+            }
+            private set => _metadata[key] = value;
         }
     }
 }

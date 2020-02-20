@@ -13,8 +13,8 @@ namespace Dafda.Tests.Consuming
         {
             var sut = new JsonMessageEmbeddedDocument(MessageJson);
 
-            Assert.Equal("1", sut.MessageId);
-            Assert.Equal("vehicle_position_changed", sut.Type);
+            Assert.Equal("1", sut.Metadata.MessageId);
+            Assert.Equal("vehicle_position_changed", sut.Metadata.Type);
         }
 
         [Fact]
@@ -22,7 +22,7 @@ namespace Dafda.Tests.Consuming
         {
             var sut = new JsonMessageEmbeddedDocument(MessageJson);
 
-            var data = sut.ReadDataAs<VehiclePositionChanged>();
+            var data = (VehiclePositionChanged) sut.ReadDataAs(typeof(VehiclePositionChanged));
 
             Assert.Equal("1", data.AggregateId);
             Assert.Equal("1", data.MessageId);
