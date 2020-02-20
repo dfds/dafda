@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Dafda.Consuming
 {
-    public class MessageHandlerRegistry : IMessageHandlerRegistry
+    public sealed class MessageHandlerRegistry
     {
         private readonly List<MessageRegistration> _registrations = new List<MessageRegistration>();
 
@@ -20,7 +20,7 @@ namespace Dafda.Consuming
             );
         }
 
-        public MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType) 
+        public MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType)
         {
             var registration = new MessageRegistration(
                 handlerInstanceType: handlerInstanceType,
@@ -29,6 +29,11 @@ namespace Dafda.Consuming
                 messageType: messageType
             );
 
+            return Register(registration);
+        }
+
+        public MessageRegistration Register(MessageRegistration registration)
+        {
             _registrations.Add(registration);
 
             return registration;

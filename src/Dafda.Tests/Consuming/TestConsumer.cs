@@ -25,9 +25,12 @@ namespace Dafda.Tests.Consuming
                 .WithMessageType("foo")
                 .Build();
 
+            var registry = new MessageHandlerRegistry();
+            registry.Register(messageRegistrationStub);
+            
             var sut = new ConsumerBuilder()
                 .WithUnitOfWorkFactory(type => new UnitOfWorkStub(handlerStub))
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                .WithMessageHandlerRegistry(registry)
                 .Build();
 
             await sut.ConsumeSingle(CancellationToken.None);
@@ -48,8 +51,11 @@ namespace Dafda.Tests.Consuming
         {
             var orderOfInvocation = new LinkedList<string>();
 
-            var dummyMessageResult = new MessageResultBuilder().Build();
-            var dummyMessageRegistration = new MessageRegistrationBuilder().Build();
+            var dummyMessageResult = new MessageResultBuilder().WithTransportLevelMessage("foo").Build();
+            var dummyMessageRegistration = new MessageRegistrationBuilder().WithMessageType("foo").Build();
+
+            var registry = new MessageHandlerRegistry();
+            registry.Register(dummyMessageRegistration);
 
             var sut = new ConsumerBuilder()
                 .WithUnitOfWorkFactory(type => new UnitOfWorkSpy(
@@ -58,7 +64,7 @@ namespace Dafda.Tests.Consuming
                     post: () => orderOfInvocation.AddLast("after")
                 ))
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(dummyMessageResult)))
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(dummyMessageRegistration))
+                .WithMessageHandlerRegistry(registry)
                 .Build();
 
             await sut.ConsumeSingle(CancellationToken.None);
@@ -88,10 +94,13 @@ namespace Dafda.Tests.Consuming
                 .Build();
 
             var consumerScopeFactoryStub = new ConsumerScopeFactoryStub(new ConsumerScopeStub(resultSpy));
+            var registry = new MessageHandlerRegistry();
+            registry.Register(messageRegistrationStub);
+
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(consumerScopeFactoryStub)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                .WithMessageHandlerRegistry(registry)
                 .WithEnableAutoCommit(true)
                 .Build();
 
@@ -122,10 +131,13 @@ namespace Dafda.Tests.Consuming
                 .Build();
 
             var consumerScopeFactoryStub = new ConsumerScopeFactoryStub(new ConsumerScopeStub(resultSpy));
+            var registry = new MessageHandlerRegistry();
+            registry.Register(messageRegistrationStub);
+            
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(consumerScopeFactoryStub)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                .WithMessageHandlerRegistry(registry)
                 .WithEnableAutoCommit(false)
                 .Build();
 
@@ -151,10 +163,13 @@ namespace Dafda.Tests.Consuming
                 .Setup(x => x.CreateConsumerScope())
                 .Returns(new ConsumerScopeStub(messageResultStub));
 
+            var registry = new MessageHandlerRegistry();
+            registry.Register(messageRegistrationStub);
+            
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(mock.Object)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                .WithMessageHandlerRegistry(registry)
                 .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -179,10 +194,13 @@ namespace Dafda.Tests.Consuming
                 .Setup(x => x.GetNext(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(messageResultStub));
 
+            var registry = new MessageHandlerRegistry();
+            registry.Register(messageRegistrationStub);
+            
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                .WithMessageHandlerRegistry(registry)
                 .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -225,10 +243,13 @@ namespace Dafda.Tests.Consuming
                     .Setup(x => x.CreateConsumerScope())
                     .Returns(subscriberScopeStub);
 
+                var registry = new MessageHandlerRegistry();
+                registry.Register(messageRegistrationStub);
+                
                 var consumer = new ConsumerBuilder()
                     .WithConsumerScopeFactory(mock.Object)
                     .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                    .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                    .WithMessageHandlerRegistry(registry)
                     .Build();
 
                 await consumer.ConsumeAll(cancellationTokenSource.Token);
@@ -268,10 +289,13 @@ namespace Dafda.Tests.Consuming
                     })
                     .Returns(Task.FromResult(messageResultStub));
 
+                var registry = new MessageHandlerRegistry();
+                registry.Register(messageRegistrationStub);
+
                 var consumer = new ConsumerBuilder()
                     .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
                     .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                    .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                    .WithMessageHandlerRegistry(registry)
                     .Build();
 
                 await consumer.ConsumeAll(cancellationTokenSource.Token);

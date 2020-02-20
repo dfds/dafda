@@ -32,7 +32,7 @@ namespace Dafda.Configuration
 
         private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
         private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
-        private readonly IMessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
+        private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;

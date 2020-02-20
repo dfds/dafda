@@ -5,7 +5,7 @@ namespace Dafda.Configuration
 {
     internal class ConsumerConfiguration
     {
-        public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, 
+        public ConsumerConfiguration(IDictionary<string, string> configuration, MessageHandlerRegistry messageHandlerRegistry, 
             IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory)
         {
             KafkaConfiguration = configuration;
@@ -15,7 +15,7 @@ namespace Dafda.Configuration
         }
 
         public IDictionary<string, string> KafkaConfiguration { get; }
-        public IMessageHandlerRegistry MessageHandlerRegistry { get; }
+        public MessageHandlerRegistry MessageHandlerRegistry { get; }
         public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
         public IConsumerScopeFactory ConsumerScopeFactory { get; }
 

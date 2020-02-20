@@ -5,10 +5,10 @@ namespace Dafda.Consuming
 {
     internal class LocalMessageDispatcher
     {
-        private readonly IMessageHandlerRegistry _messageHandlerRegistry;
+        private readonly MessageHandlerRegistry _messageHandlerRegistry;
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
 
-        public LocalMessageDispatcher(IMessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
+        public LocalMessageDispatcher(MessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
         {
             if (messageHandlerRegistry == null)
             {

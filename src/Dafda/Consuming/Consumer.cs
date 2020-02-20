@@ -9,7 +9,7 @@ namespace Dafda.Consuming
         private readonly IConsumerScopeFactory _consumerScopeFactory;
         private readonly bool _isAutoCommitEnabled;
 
-        public Consumer(IMessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory, bool isAutoCommitEnabled = false)
+        public Consumer(MessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory, bool isAutoCommitEnabled = false)
         {
             _localMessageDispatcher = new LocalMessageDispatcher(messageHandlerRegistry, unitOfWorkFactory);
             _consumerScopeFactory = consumerScopeFactory;

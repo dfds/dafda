@@ -1,20 +1,19 @@
 ﻿using System;
 using Dafda.Consuming;
-using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
     internal class LocalMessageDispatcherBuilder
     {
-        private IMessageHandlerRegistry _messageHandlerRegistry;
+        private MessageHandlerRegistry _messageHandlerRegistry;
         private IHandlerUnitOfWorkFactory _handlerUnitOfWorkFactory;
 
         public LocalMessageDispatcherBuilder()
         {
-            _messageHandlerRegistry = Dummy.Of<IMessageHandlerRegistry>();
+            _messageHandlerRegistry = new MessageHandlerRegistry();
         }
 
-        public LocalMessageDispatcherBuilder WithMessageHandlerRegistry(IMessageHandlerRegistry messageHandlerRegistry)
+        public LocalMessageDispatcherBuilder WithMessageHandlerRegistry(MessageHandlerRegistry messageHandlerRegistry)
         {
             _messageHandlerRegistry = messageHandlerRegistry;
             return this;

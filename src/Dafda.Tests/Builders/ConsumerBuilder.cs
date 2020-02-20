@@ -4,11 +4,11 @@ using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
-    public class ConsumerBuilder
+    internal class ConsumerBuilder
     {
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private IConsumerScopeFactory _consumerScopeFactory;
-        private IMessageHandlerRegistry _registry;
+        private MessageHandlerRegistry _registry;
 
         private bool _enableAutoCommit;
 
@@ -18,7 +18,7 @@ namespace Dafda.Tests.Builders
 
             var messageStub = new MessageResultBuilder().Build();
             _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageStub));
-            _registry = new MessageHandlerRegistryStub();
+            _registry = new MessageHandlerRegistry();
         }
 
         public ConsumerBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> unitOfWorkFactory)
@@ -39,15 +39,10 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ConsumerBuilder WithMessageHandlerRegistry(IMessageHandlerRegistry registry)
+        public ConsumerBuilder WithMessageHandlerRegistry(MessageHandlerRegistry registry)
         {
             _registry = registry;
             return this;
-        }
-
-        public ConsumerBuilder WithMessageRegistrations(params MessageRegistration[] messageRegistrations)
-        {
-            return WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrations));
         }
 
         public ConsumerBuilder WithEnableAutoCommit(bool enableAutoCommit)

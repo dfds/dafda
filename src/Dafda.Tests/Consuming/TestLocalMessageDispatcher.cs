@@ -14,7 +14,7 @@ namespace Dafda.Tests.Consuming
         public async Task throws_expected_exception_when_dispatching_and_no_handler_has_been_registered()
         {
             var transportMessageStub = new TransportLevelMessageBuilder().Build();
-            var emptyMessageHandlerRegistryStub = new MessageHandlerRegistryStub();
+            var emptyMessageHandlerRegistryStub = new MessageHandlerRegistry();
             var dummyFactory = new HandlerUnitOfWorkFactoryStub(null);
 
             var sut = new LocalMessageDispatcherBuilder()
@@ -28,11 +28,13 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task throws_expected_exception_when_dispatching_and_unable_to_resolve_handler_instance()
         {
-            var transportMessageStub = new TransportLevelMessageBuilder().Build();
-            var messageRegistrationStub = new MessageRegistrationBuilder().Build();
+            var transportMessageStub = new TransportLevelMessageBuilder().WithType("foo").Build();
+            var messageRegistrationStub = new MessageRegistrationBuilder().WithMessageType("foo").Build();
+            var registry = new MessageHandlerRegistry();
+            registry.Register(messageRegistrationStub);
 
             var sut = new LocalMessageDispatcherBuilder()
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
+                .WithMessageHandlerRegistry(registry)
                 .WithHandlerUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(null))
                 .Build();
 
@@ -44,13 +46,14 @@ namespace Dafda.Tests.Consuming
         {
             var mock = new Mock<IMessageHandler<object>>();
 
-            var transportMessageDummy = new TransportLevelMessageBuilder().Build();
-            var registrationDummy = new MessageRegistrationBuilder().Build();
-
+            var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
+            var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").Build();
             var typeResolverStub = new TypeResolverStub(mock.Object);
-
+            var registry = new MessageHandlerRegistry();
+            registry.Register(registrationDummy);
+            
             var sut = new LocalMessageDispatcherBuilder()
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(registrationDummy))
+                .WithMessageHandlerRegistry(registry)
                 .WithHandlerUnitOfWorkFactory(new DefaultUnitOfWorkFactory(typeResolverStub))
                 .Build();
 
@@ -62,11 +65,13 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task handler_exceptions_are_thrown_as_expected()
         {
-            var transportMessageDummy = new TransportLevelMessageBuilder().Build();
-            var registrationDummy = new MessageRegistrationBuilder().Build();
-
+            var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
+            var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").Build();
+            var registry = new MessageHandlerRegistry();
+            registry.Register(registrationDummy);
+            
             var sut = new LocalMessageDispatcherBuilder()
-                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(registrationDummy))
+                .WithMessageHandlerRegistry(registry)
                 .WithHandlerUnitOfWorkFactory(new DefaultUnitOfWorkFactory(new TypeResolverStub(new ErroneusHandler())))
                 .Build();
 
