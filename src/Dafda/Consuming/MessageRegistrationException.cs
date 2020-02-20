@@ -2,7 +2,7 @@ using System;
 
 namespace Dafda.Consuming
 {
-    public class MessageRegistrationException : Exception
+    public sealed class MessageRegistrationException : Exception
     {
         public MessageRegistrationException(string message) : base(message)
         {

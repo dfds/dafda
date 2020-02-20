@@ -2,7 +2,7 @@
 
 namespace Dafda.Consuming
 {
-    public class InvalidMessageHandlerException : Exception
+    public sealed class InvalidMessageHandlerException : Exception
     {
         public InvalidMessageHandlerException(string message) : base(message)
         {
