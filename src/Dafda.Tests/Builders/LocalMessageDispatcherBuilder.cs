@@ -4,7 +4,7 @@ using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
-    public class LocalMessageDispatcherBuilder
+    internal class LocalMessageDispatcherBuilder
     {
         private IMessageHandlerRegistry _messageHandlerRegistry;
         private IHandlerUnitOfWorkFactory _handlerUnitOfWorkFactory;

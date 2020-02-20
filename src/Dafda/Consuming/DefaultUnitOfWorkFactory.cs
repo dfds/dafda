@@ -2,7 +2,7 @@ using System;
 
 namespace Dafda.Consuming
 {
-    public class DefaultUnitOfWorkFactory : IHandlerUnitOfWorkFactory
+    internal class DefaultUnitOfWorkFactory : IHandlerUnitOfWorkFactory
     {
         private readonly Func<Type, IHandlerUnitOfWork> _unitOfWorkFactory;
 

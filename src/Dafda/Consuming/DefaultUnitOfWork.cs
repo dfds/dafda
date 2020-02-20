@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Dafda.Consuming
 {
-    public class DefaultUnitOfWork : IHandlerUnitOfWork
+    internal class DefaultUnitOfWork : IHandlerUnitOfWork
     {
         private readonly ITypeResolver _typeResolver;
         private readonly Type _handlerType;

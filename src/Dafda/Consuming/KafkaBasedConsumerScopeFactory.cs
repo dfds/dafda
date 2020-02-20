@@ -3,7 +3,7 @@ using Confluent.Kafka;
 
 namespace Dafda.Consuming
 {
-    public class KafkaBasedConsumerScopeFactory : IConsumerScopeFactory
+    internal class KafkaBasedConsumerScopeFactory : IConsumerScopeFactory
     {
         private readonly IEnumerable<KeyValuePair<string, string>> _configuration;
         private readonly IEnumerable<string> _topics;

@@ -2,7 +2,7 @@ using System;
 
 namespace Dafda.Consuming
 {
-    public interface ITypeResolver
+    internal interface ITypeResolver
     {
         object Resolve(Type instanceType);
     }
