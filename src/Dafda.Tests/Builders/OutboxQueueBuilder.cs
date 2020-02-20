@@ -5,29 +5,29 @@ using Dafda.Producing;
 
 namespace Dafda.Tests.Builders
 {
-    internal class OutboxMessageCollectorBuilder
+    internal class OutboxQueueBuilder
     {
         private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
         private IOutboxMessageRepository _outboxMessageRepository = new DummyOutboxMessageRepository();
 
-        public OutboxMessageCollectorBuilder With(IOutgoingMessageRegistry outgoingMessageRegistry)
+        public OutboxQueueBuilder With(IOutgoingMessageRegistry outgoingMessageRegistry)
         {
             _outgoingMessageRegistry = outgoingMessageRegistry;
             return this;
         }
 
-        public OutboxMessageCollectorBuilder With(IOutboxMessageRepository outboxMessageRepository)
+        public OutboxQueueBuilder With(IOutboxMessageRepository outboxMessageRepository)
         {
             _outboxMessageRepository = outboxMessageRepository;
             return this;
         }
 
-        public OutboxMessageCollector Build()
+        public Dafda.Outbox.OutboxQueue Build()
         {
-            return new OutboxMessageCollector(MessageIdGenerator.Default, _outgoingMessageRegistry, _outboxMessageRepository);
+            return new Dafda.Outbox.OutboxQueue(MessageIdGenerator.Default, _outgoingMessageRegistry, _outboxMessageRepository);
         }
 
-        public static implicit operator OutboxMessageCollector(OutboxMessageCollectorBuilder builder)
+        public static implicit operator Dafda.Outbox.OutboxQueue(OutboxQueueBuilder builder)
         {
             return builder.Build();
         }

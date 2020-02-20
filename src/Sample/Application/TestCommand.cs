@@ -11,19 +11,19 @@ namespace Sample.Application
     public class TestCommandHandler : ICommandHandler<TestCommand>
     {
         private readonly ILogger<TestCommandHandler> _logger;
-        private readonly IOutbox _outbox;
+        private readonly OutboxQueue _outboxQueue;
 
-        public TestCommandHandler(ILogger<TestCommandHandler> logger, IOutbox outbox)
+        public TestCommandHandler(ILogger<TestCommandHandler> logger, OutboxQueue outboxQueue)
         {
             _logger = logger;
-            _outbox = outbox;
+            _outboxQueue = outboxQueue;
         }
 
         public Task Handle(TestCommand command)
         {
             _logger.LogInformation("TEST");
 
-            return _outbox.Enqueue(new[] {new Test {AggregateId = "aggregate-id"}});
+            return _outboxQueue.Enqueue(new[] {new Test {AggregateId = "aggregate-id"}});
         }
     }
 }

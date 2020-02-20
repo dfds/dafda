@@ -19,12 +19,12 @@ namespace Dafda.Configuration
 
             services.AddSingleton<IOutboxWaiter, OutboxWaiter>(provider => new OutboxWaiter(outboxProducerOptions.DispatchInterval));
 
-            services.AddTransient<IOutbox, OutboxMessageCollector>(provider =>
+            services.AddTransient<OutboxQueue>(provider =>
             {
                 var outgoingMessageRegistry = producerConfiguration.OutgoingMessageRegistry;
                 var messageIdGenerator = producerConfiguration.MessageIdGenerator;
                 var outboxMessageRepository = provider.GetRequiredService<IOutboxMessageRepository>();
-                return new OutboxMessageCollector(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository);
+                return new OutboxQueue(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository);
             });
 
             services.AddTransient<IHostedService, PollingPublisher>(provider =>

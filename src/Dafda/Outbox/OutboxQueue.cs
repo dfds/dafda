@@ -6,12 +6,12 @@ using Dafda.Producing;
 
 namespace Dafda.Outbox
 {
-    public class OutboxMessageCollector : IOutbox
+    public class OutboxQueue
     {
         private readonly IOutboxMessageRepository _repository;
         private readonly OutgoingMessageFactory _outgoingMessageFactory;
 
-        public OutboxMessageCollector(MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository)
+        public OutboxQueue(MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository)
         {
             _outgoingMessageFactory = new OutgoingMessageFactory(outgoingMessageRegistry, messageIdGenerator);
             _repository = repository;

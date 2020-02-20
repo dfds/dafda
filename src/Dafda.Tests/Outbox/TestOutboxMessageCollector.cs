@@ -10,7 +10,7 @@ namespace Dafda.Tests.Outbox
         [Fact]
         public async Task Fails_for_unregistered_outgoing_messages()
         {
-            var sut = A.OutboxMessageCollector.Build();
+            var sut = A.OutboxQueue.Build();
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => sut.Enqueue(new[] {new Message()}));
         }
@@ -20,7 +20,7 @@ namespace Dafda.Tests.Outbox
         {
             var spy = new OutboxMessageRepositorySpy();
 
-            var sut = A.OutboxMessageCollector
+            var sut = A.OutboxQueue
                 .With(
                     A.OutgoingMessageRegistry
                         .Register<Message>("foo", "bar", @event => "baz")

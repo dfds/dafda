@@ -4,7 +4,7 @@ namespace Dafda.Tests.Outbox
 {
     internal static class A
     {
-        public static OutboxMessageCollectorBuilder OutboxMessageCollector => new OutboxMessageCollectorBuilder();
+        public static OutboxQueueBuilder OutboxQueue => new OutboxQueueBuilder();
         public static OutgoingMessageRegistryBuilder OutgoingMessageRegistry => new OutgoingMessageRegistryBuilder();
         public static ProducerBuilder Producer => new ProducerBuilder();
         public static OutboxProcessorBuilder OutboxProcessor => new OutboxProcessorBuilder();

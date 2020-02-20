@@ -150,7 +150,7 @@ namespace Dafda.Tests.Configuration
                 options.WithUnitOfWorkFactory(serviceProvider => fake);
             });
             var provider = services.BuildServiceProvider();
-            var outbox = provider.GetRequiredService<IOutbox>();
+            var outbox = provider.GetRequiredService<OutboxQueue>();
 
             await outbox.Enqueue(new[] {new DummyMessage(),});
 
