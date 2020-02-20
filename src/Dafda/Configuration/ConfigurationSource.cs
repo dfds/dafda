@@ -1,5 +1,3 @@
-using System;
-
 namespace Dafda.Configuration
 {
     public abstract class ConfigurationSource

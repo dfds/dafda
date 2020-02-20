@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Consuming;
@@ -7,7 +6,7 @@ using Dafda.Logging;
 
 namespace Dafda.Configuration
 {
-    public class ConsumerConfigurationBuilder
+    public sealed class ConsumerConfigurationBuilder
     {
         private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
@@ -37,8 +36,11 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-//        private IConsumerScopeFactory _consumerScopeFactory = new KafkaBasedConsumerScopeFactory();
         private IConsumerScopeFactory _consumerScopeFactory;
+
+        internal ConsumerConfigurationBuilder()
+        {
+        }
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -97,7 +99,7 @@ namespace Dafda.Configuration
             _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
         }
 
-        public IConsumerConfiguration Build()
+        internal ConsumerConfiguration Build()
         {
             if (!_namingConventions.Any())
             {
@@ -174,51 +176,5 @@ namespace Dafda.Configuration
             }
         }
 
-        private class ConsumerConfiguration : IConsumerConfiguration
-        {
-            private readonly IDictionary<string, string> _configuration;
-
-            public ConsumerConfiguration(IDictionary<string, string> configuration, IMessageHandlerRegistry messageHandlerRegistry, 
-                IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory)
-            {
-                _configuration = configuration;
-                MessageHandlerRegistry = messageHandlerRegistry;
-                UnitOfWorkFactory = unitOfWorkFactory;
-                ConsumerScopeFactory = consumerScopeFactory;
-            }
-
-            public IMessageHandlerRegistry MessageHandlerRegistry { get; }
-            public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
-            public IConsumerScopeFactory ConsumerScopeFactory { get; }
-
-            public string GroupId => _configuration[ConfigurationKey.GroupId];
-
-            public bool EnableAutoCommit
-            {
-                get
-                {
-                    const bool defaultAutoCommitStrategy = true;
-                    
-                    if (!_configuration.TryGetValue(ConfigurationKey.EnableAutoCommit, out var value))
-                    {
-                        return defaultAutoCommitStrategy;
-                    }
-
-                    return bool.Parse(value);
-                }
-            }
-
-            public IEnumerable<string> SubscribedTopics => MessageHandlerRegistry.GetAllSubscribedTopics(); 
-
-            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-            {
-                return _configuration.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IEnumerable) _configuration).GetEnumerator();
-            }
-        }
     }
 }

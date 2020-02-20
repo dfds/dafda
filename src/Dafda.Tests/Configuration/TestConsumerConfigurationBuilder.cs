@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Configuration;
@@ -30,9 +31,9 @@ namespace Dafda.Tests.Configuration
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
 
-        private static void AssertKeyValue(IConfiguration configuration, string expectedKey, string expectedValue)
+        private static void AssertKeyValue(ConsumerConfiguration configuration, string expectedKey, string expectedValue)
         {
-            configuration.FirstOrDefault(x => x.Key == expectedKey).Deconstruct(out _, out var actualValue);
+            configuration.KafkaConfiguration.FirstOrDefault(x => x.Key == expectedKey).Deconstruct(out _, out var actualValue);
 
             Assert.Equal(expectedValue, actualValue);
         }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Dafda.Configuration;
 using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
 
@@ -11,7 +8,8 @@ namespace Dafda.Tests.Builders
     {
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private IConsumerScopeFactory _consumerScopeFactory;
-        private MessageRegistration[] _messageRegistrations;
+        private IMessageHandlerRegistry _registry;
+
         private bool _enableAutoCommit;
 
         public ConsumerBuilder()
@@ -20,13 +18,18 @@ namespace Dafda.Tests.Builders
 
             var messageStub = new MessageResultBuilder().Build();
             _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageStub));
-
-            _messageRegistrations = new MessageRegistration[0];
+            _registry = new MessageHandlerRegistryStub();
         }
 
         public ConsumerBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> unitOfWorkFactory)
         {
             _unitOfWorkFactory = new DefaultUnitOfWorkFactory(unitOfWorkFactory);
+            return this;
+        }
+
+        public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitofWorkFactory)
+        {
+            _unitOfWorkFactory = unitofWorkFactory;
             return this;
         }
 
@@ -36,10 +39,15 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public ConsumerBuilder WithMessageHandlerRegistry(IMessageHandlerRegistry registry)
+        {
+            _registry = registry;
+            return this;
+        }
+
         public ConsumerBuilder WithMessageRegistrations(params MessageRegistration[] messageRegistrations)
         {
-            _messageRegistrations = messageRegistrations;
-            return this;
+            return WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrations));
         }
 
         public ConsumerBuilder WithEnableAutoCommit(bool enableAutoCommit)
@@ -51,35 +59,11 @@ namespace Dafda.Tests.Builders
         public Consumer Build()
         {
             return new Consumer(
-                messageHandlerRegistry: new MessageHandlerRegistryStub(_messageRegistrations),
+                messageHandlerRegistry: _registry,
                 unitOfWorkFactory: _unitOfWorkFactory,
                 consumerScopeFactory: _consumerScopeFactory,
                 isAutoCommitEnabled: _enableAutoCommit
             );
         }
-
-        #region private helper classes
-
-        private class ConsumerConfigurationStub : IConsumerConfiguration
-        {
-            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public IMessageHandlerRegistry MessageHandlerRegistry { get; set; }
-            public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; set; }
-            public IConsumerScopeFactory ConsumerScopeFactory { get; set; }
-            public bool EnableAutoCommit { get; set; }
-            public IEnumerable<string> SubscribedTopics { get; set; }
-            public string GroupId { get; set; }
-        }
-
-        #endregion
     }
 }

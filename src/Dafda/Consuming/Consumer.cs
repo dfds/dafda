@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Configuration;
 
 namespace Dafda.Consuming
 {
@@ -10,12 +9,6 @@ namespace Dafda.Consuming
         private readonly IConsumerScopeFactory _consumerScopeFactory;
         private readonly bool _isAutoCommitEnabled;
 
-        public Consumer(IConsumerConfiguration configuration) : 
-            this(configuration.MessageHandlerRegistry, configuration.UnitOfWorkFactory, configuration.ConsumerScopeFactory, configuration.EnableAutoCommit)
-        {
-            
-        }
-        
         public Consumer(IMessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory, bool isAutoCommitEnabled = false)
         {
             _localMessageDispatcher = new LocalMessageDispatcher(messageHandlerRegistry, unitOfWorkFactory);

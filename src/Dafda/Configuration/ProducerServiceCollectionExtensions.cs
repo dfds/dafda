@@ -6,7 +6,7 @@ namespace Dafda.Configuration
 {
     public static class ProducerServiceCollectionExtensions
     {
-        public static void AddProducer(this IServiceCollection services, Action<IProducerOptions> options)
+        public static void AddProducer(this IServiceCollection services, Action<ProducerOptions> options)
         {
             var producerConfiguration = ConfigureProducerConfiguration(services, options);
 
@@ -19,7 +19,7 @@ namespace Dafda.Configuration
             });
         }
 
-        private static IProducerConfiguration ConfigureProducerConfiguration(IServiceCollection services, Action<IProducerOptions> options)
+        private static IProducerConfiguration ConfigureProducerConfiguration(IServiceCollection services, Action<ProducerOptions> options)
         {
             var outgoingMessageRegistry = new OutgoingMessageRegistry();
             var configurationBuilder = new ProducerConfigurationBuilder();

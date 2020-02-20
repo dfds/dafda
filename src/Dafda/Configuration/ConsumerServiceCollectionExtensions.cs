@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Consuming;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -25,7 +23,7 @@ namespace Dafda.Configuration
             public bool Contains(string id) => _ids.Contains(id);
         }
 
-        public static void AddConsumer(this IServiceCollection services, Action<IConsumerOptions> options = null)
+        public static void AddConsumer(this IServiceCollection services, Action<ConsumerOptions> options = null)
         {
             var configurationBuilder = new ConsumerConfigurationBuilder();
             var consumerOptions = new ConsumerOptions(configurationBuilder, services);
@@ -69,35 +67,6 @@ namespace Dafda.Configuration
 
             services.AddTransient<IHostedService, SubscriberHostedService>(hostedServiceFactory);
             services.AddTransient<SubscriberHostedService>(hostedServiceFactory);
-        }
-
-        private class ServiceProviderConsumerConfiguration : IConsumerConfiguration
-        {
-            private readonly IConsumerConfiguration _inner;
-            private readonly IServiceProvider _provider;
-
-            public ServiceProviderConsumerConfiguration(IConsumerConfiguration inner, IServiceProvider provider)
-            {
-                _inner = inner;
-                _provider = provider;
-            }
-
-            public IMessageHandlerRegistry MessageHandlerRegistry => _inner.MessageHandlerRegistry;
-            public IHandlerUnitOfWorkFactory UnitOfWorkFactory => _provider.GetRequiredService<IHandlerUnitOfWorkFactory>();
-            public IConsumerScopeFactory ConsumerScopeFactory => _inner.ConsumerScopeFactory;
-            public bool EnableAutoCommit => _inner.EnableAutoCommit;
-            public IEnumerable<string> SubscribedTopics => _inner.SubscribedTopics;
-            public string GroupId => _inner.GroupId;
-
-            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-            {
-                return _inner.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IEnumerable) _inner).GetEnumerator();
-            }
         }
     }
 }

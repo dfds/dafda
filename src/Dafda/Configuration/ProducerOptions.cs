@@ -5,27 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
 {
-    public interface IProducerOptions
-    {
-        void WithConfigurationSource(ConfigurationSource configurationSource);
-        void WithConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration);
-        void WithNamingConvention(NamingConvention namingConvention);
-        void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes);
-        void WithConfiguration(string key, string value);
-        void WithBootstrapServers(string bootstrapServers);
-        void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory);
-        void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator);
-        void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class;
-        void AddOutbox(Action<IOutboxOptions> config);
-    }
-
-    internal class ProducerOptions : IProducerOptions
+    public  sealed class ProducerOptions
     {
         private readonly ProducerConfigurationBuilder _builder;
         private readonly IServiceCollection _services;
         private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
 
-        public ProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, IOutgoingMessageRegistry outgoingMessageRegistry)
+        internal ProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, IOutgoingMessageRegistry outgoingMessageRegistry)
         {
             _builder = builder;
             _services = services;

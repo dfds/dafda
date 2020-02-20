@@ -7,7 +7,7 @@ using Dafda.Producing.Kafka;
 
 namespace Dafda.Configuration
 {
-    public class ProducerConfigurationBuilder
+    public sealed class ProducerConfigurationBuilder
     {
         private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
@@ -35,6 +35,10 @@ namespace Dafda.Configuration
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
         private IKafkaProducerFactory _kafkaProducerFactory = new KafkaProducerFactory();
+
+        internal ProducerConfigurationBuilder()
+        {
+        }
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {

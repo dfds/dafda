@@ -46,8 +46,14 @@ namespace Dafda.Tests.Configuration
             configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
             configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
 
-            var consumer = new Consumer(configuration.Build());
+            var consumerConfiguration = configuration.Build();
 
+            var consumer = new ConsumerBuilder()
+                .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
+                .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -89,7 +95,14 @@ namespace Dafda.Tests.Configuration
             configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
             configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
 
-            var consumer = new Consumer(configuration.Build());
+            var consumerConfiguration = configuration.Build();
+
+            var consumer = new ConsumerBuilder()
+                .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
+                .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -131,7 +144,14 @@ namespace Dafda.Tests.Configuration
             configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
             configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
 
-            var consumer = new Consumer(configuration.Build());
+            var consumerConfiguration = configuration.Build();
+
+            var consumer = new ConsumerBuilder()
+                .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
+                .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -139,7 +159,7 @@ namespace Dafda.Tests.Configuration
             Assert.Equal(2, createCount);
             Assert.Equal(2, disposeCount);
         }
-        
+
         [Fact]
         public async Task Has_expected_number_of_creations_and_disposals_when_scoped_2()
         {
@@ -173,7 +193,14 @@ namespace Dafda.Tests.Configuration
             configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
             configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
 
-            var consumer = new Consumer(configuration.Build());
+            var consumerConfiguration = configuration.Build();
+
+            var consumer = new ConsumerBuilder()
+                .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
+                .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -230,7 +257,7 @@ namespace Dafda.Tests.Configuration
             {
                 _onCreate = onCreate;
                 _onDispose = onDispose;
-                
+
                 _onCreate?.Invoke();
             }
 

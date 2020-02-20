@@ -27,7 +27,7 @@ namespace Dafda.Tests.Consuming
 
             var sut = new ConsumerBuilder()
                 .WithUnitOfWorkFactory(type => new UnitOfWorkStub(handlerStub))
-                .WithMessageRegistrations(messageRegistrationStub)
+                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
                 .Build();
 
             await sut.ConsumeSingle(CancellationToken.None);
@@ -58,7 +58,7 @@ namespace Dafda.Tests.Consuming
                     post: () => orderOfInvocation.AddLast("after")
                 ))
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(dummyMessageResult)))
-                .WithMessageRegistrations(dummyMessageRegistration)
+                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(dummyMessageRegistration))
                 .Build();
 
             await sut.ConsumeSingle(CancellationToken.None);
@@ -91,7 +91,7 @@ namespace Dafda.Tests.Consuming
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(consumerScopeFactoryStub)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageRegistrations(messageRegistrationStub)
+                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
                 .WithEnableAutoCommit(true)
                 .Build();
 
@@ -125,7 +125,7 @@ namespace Dafda.Tests.Consuming
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(consumerScopeFactoryStub)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageRegistrations(messageRegistrationStub)
+                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
                 .WithEnableAutoCommit(false)
                 .Build();
 
@@ -154,7 +154,7 @@ namespace Dafda.Tests.Consuming
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(mock.Object)
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageRegistrations(messageRegistrationStub)
+                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
                 .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -182,7 +182,7 @@ namespace Dafda.Tests.Consuming
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
                 .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                .WithMessageRegistrations(messageRegistrationStub)
+                .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
                 .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
@@ -228,7 +228,7 @@ namespace Dafda.Tests.Consuming
                 var consumer = new ConsumerBuilder()
                     .WithConsumerScopeFactory(mock.Object)
                     .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                    .WithMessageRegistrations(messageRegistrationStub)
+                    .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
                     .Build();
 
                 await consumer.ConsumeAll(cancellationTokenSource.Token);
@@ -271,7 +271,7 @@ namespace Dafda.Tests.Consuming
                 var consumer = new ConsumerBuilder()
                     .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
                     .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
-                    .WithMessageRegistrations(messageRegistrationStub)
+                    .WithMessageHandlerRegistry(new MessageHandlerRegistryStub(messageRegistrationStub))
                     .Build();
 
                 await consumer.ConsumeAll(cancellationTokenSource.Token);
