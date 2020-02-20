@@ -11,7 +11,7 @@ namespace Dafda.Outbox
         private readonly IOutboxMessageRepository _repository;
         private readonly OutgoingMessageFactory _outgoingMessageFactory;
 
-        public OutboxQueue(MessageIdGenerator messageIdGenerator, IOutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository)
+        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository)
         {
             _outgoingMessageFactory = new OutgoingMessageFactory(outgoingMessageRegistry, messageIdGenerator);
             _repository = repository;

@@ -9,9 +9,9 @@ namespace Dafda.Configuration
     {
         private readonly ProducerConfigurationBuilder _builder;
         private readonly IServiceCollection _services;
-        private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
+        private readonly OutgoingMessageRegistry _outgoingMessageRegistry;
 
-        internal ProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, IOutgoingMessageRegistry outgoingMessageRegistry)
+        internal ProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, OutgoingMessageRegistry outgoingMessageRegistry)
         {
             _builder = builder;
             _services = services;

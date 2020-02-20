@@ -2,7 +2,7 @@ using System;
 
 namespace Dafda.Producing
 {
-    public class OutgoingMessageRegistration
+    internal class OutgoingMessageRegistration
     {
         public OutgoingMessageRegistration(string topic, string type, Func<object, string> keySelector)
         {

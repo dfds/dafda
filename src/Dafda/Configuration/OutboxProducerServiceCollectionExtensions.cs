@@ -10,10 +10,9 @@ namespace Dafda.Configuration
     {
         public static void AddOutbox(this IServiceCollection services, Action<OutboxProducerOptions> options)
         {
-            var outgoingMessageRegistry1 = new OutgoingMessageRegistry();
+            var outgoingMessageRegistry = new OutgoingMessageRegistry();
             var configurationBuilder = new ProducerConfigurationBuilder();
-            configurationBuilder.WithOutgoingMessageRegistry(outgoingMessageRegistry1);
-            var outboxProducerOptions = new OutboxProducerOptions(configurationBuilder, services, outgoingMessageRegistry1);
+            var outboxProducerOptions = new OutboxProducerOptions(configurationBuilder, services, outgoingMessageRegistry);
             options?.Invoke(outboxProducerOptions);
             var producerConfiguration = configurationBuilder.Build();
 
@@ -21,7 +20,6 @@ namespace Dafda.Configuration
 
             services.AddTransient<OutboxQueue>(provider =>
             {
-                var outgoingMessageRegistry = producerConfiguration.OutgoingMessageRegistry;
                 var messageIdGenerator = producerConfiguration.MessageIdGenerator;
                 var outboxMessageRepository = provider.GetRequiredService<IOutboxMessageRepository>();
                 return new OutboxQueue(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository);
@@ -31,7 +29,6 @@ namespace Dafda.Configuration
             {
                 var kafkaProducerFactory = producerConfiguration.KafkaProducerFactory;
                 var kafkaProducer = kafkaProducerFactory.CreateProducer();
-                var outgoingMessageRegistry = producerConfiguration.OutgoingMessageRegistry;
                 var messageIdGenerator = producerConfiguration.MessageIdGenerator;
 
                 var producer = new Producer(kafkaProducer, outgoingMessageRegistry, messageIdGenerator);

@@ -7,10 +7,10 @@ namespace Dafda.Tests.Builders
 {
     internal class OutboxQueueBuilder
     {
-        private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
+        private OutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
         private IOutboxMessageRepository _outboxMessageRepository = new DummyOutboxMessageRepository();
 
-        public OutboxQueueBuilder With(IOutgoingMessageRegistry outgoingMessageRegistry)
+        public OutboxQueueBuilder With(OutgoingMessageRegistry outgoingMessageRegistry)
         {
             _outgoingMessageRegistry = outgoingMessageRegistry;
             return this;

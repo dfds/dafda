@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Dafda.Producing
 {
-    public class OutgoingMessageRegistry : IOutgoingMessageRegistry
+    internal class OutgoingMessageRegistry
     {
         private readonly IDictionary<Type, OutgoingMessageRegistration> _registrations = new ConcurrentDictionary<Type, OutgoingMessageRegistration>();
 

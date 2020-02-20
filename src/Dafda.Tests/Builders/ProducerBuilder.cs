@@ -5,7 +5,7 @@ namespace Dafda.Tests.Builders
     internal class ProducerBuilder
     {
         private IKafkaProducer _kafkaProducer;
-        private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
+        private OutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
 
         public ProducerBuilder With(IKafkaProducer kafkaProducer)
@@ -14,7 +14,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ProducerBuilder With(IOutgoingMessageRegistry outgoingMessageRegistry)
+        public ProducerBuilder With(OutgoingMessageRegistry outgoingMessageRegistry)
         {
             _outgoingMessageRegistry = outgoingMessageRegistry;
             return this;

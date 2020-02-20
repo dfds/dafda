@@ -3,12 +3,12 @@ using Dafda.Outbox;
 
 namespace Dafda.Producing
 {
-    public class Producer : IProducer
+    internal class Producer : IProducer
     {
         private readonly IKafkaProducer _kafkaProducer;
         private readonly OutgoingMessageFactory _outgoingMessageFactory;
 
-        public Producer(IKafkaProducer kafkaProducer, IOutgoingMessageRegistry outgoingMessageRegistry, MessageIdGenerator messageIdGenerator)
+        public Producer(IKafkaProducer kafkaProducer, OutgoingMessageRegistry outgoingMessageRegistry, MessageIdGenerator messageIdGenerator)
         {
             _kafkaProducer = kafkaProducer;
             _outgoingMessageFactory = new OutgoingMessageFactory(outgoingMessageRegistry, messageIdGenerator);

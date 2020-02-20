@@ -5,10 +5,10 @@ namespace Dafda.Producing
 {
     internal class OutgoingMessageFactory
     {
-        private readonly IOutgoingMessageRegistry _outgoingMessageRegistry;
+        private readonly OutgoingMessageRegistry _outgoingMessageRegistry;
         private readonly MessageIdGenerator _messageIdGenerator;
 
-        public OutgoingMessageFactory(IOutgoingMessageRegistry outgoingMessageRegistry, MessageIdGenerator messageIdGenerator)
+        public OutgoingMessageFactory(OutgoingMessageRegistry outgoingMessageRegistry, MessageIdGenerator messageIdGenerator)
         {
             _outgoingMessageRegistry = outgoingMessageRegistry;
             _messageIdGenerator = messageIdGenerator;

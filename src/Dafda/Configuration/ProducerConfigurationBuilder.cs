@@ -32,7 +32,6 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
-        private IOutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
         private IKafkaProducerFactory _kafkaProducerFactory;
 
         internal ProducerConfigurationBuilder()
@@ -74,11 +73,6 @@ namespace Dafda.Configuration
             _messageIdGenerator = messageIdGenerator;
         }
 
-        public void WithOutgoingMessageRegistry(IOutgoingMessageRegistry outgoingMessageRegistry)
-        {
-            _outgoingMessageRegistry = outgoingMessageRegistry;
-        }
-
         public void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory)
         {
             _kafkaProducerFactory = kafkaProducerFactory;
@@ -100,9 +94,8 @@ namespace Dafda.Configuration
             }
 
             return new ProducerConfiguration(
-                configuration: _configurations,
+                _configurations,
                 _messageIdGenerator,
-                _outgoingMessageRegistry,
                 _kafkaProducerFactory
             );
         }

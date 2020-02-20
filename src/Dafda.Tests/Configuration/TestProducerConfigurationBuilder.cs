@@ -131,18 +131,5 @@ namespace Dafda.Tests.Configuration
 
             Assert.Equal(dummy, producerConfiguration.MessageIdGenerator);
         }
-
-        [Fact]
-        public void Has_expected_outgoing_message_registry()
-        {
-            var dummy = new OutgoingMessageRegistry();
-
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithBootstrapServers("foo");
-            sut.WithOutgoingMessageRegistry(dummy);
-            var producerConfiguration = sut.Build();
-
-            Assert.Equal(dummy, producerConfiguration.OutgoingMessageRegistry);
-        }
     }
 }
