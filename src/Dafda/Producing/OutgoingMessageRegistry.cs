@@ -4,12 +4,6 @@ using System.Collections.Generic;
 
 namespace Dafda.Producing
 {
-    public interface IOutgoingMessageRegistry
-    {
-        void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class;
-        OutgoingMessageRegistration GetRegistration(object @event);
-    }
-
     public class OutgoingMessageRegistry : IOutgoingMessageRegistry
     {
         private readonly IDictionary<Type, OutgoingMessageRegistration> _registrations = new ConcurrentDictionary<Type, OutgoingMessageRegistration>();

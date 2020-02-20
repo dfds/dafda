@@ -63,11 +63,4 @@ namespace Dafda.Consuming
             return handler.Handle(message);
         }
     }
-
-    public class InvalidMessageHandlerException : Exception
-    {
-        public InvalidMessageHandlerException(string message) : base(message)
-        {
-        }
-    }
 }
