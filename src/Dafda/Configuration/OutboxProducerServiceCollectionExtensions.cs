@@ -27,7 +27,7 @@ namespace Dafda.Configuration
                 return new OutboxQueue(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository);
             });
 
-            services.AddTransient<IHostedService, PollingPublisher>(provider =>
+            services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
             {
                 var kafkaProducerFactory = producerConfiguration.KafkaProducerFactory;
                 var kafkaProducer = kafkaProducerFactory.CreateProducer();
@@ -36,7 +36,7 @@ namespace Dafda.Configuration
 
                 var producer = new Producer(kafkaProducer, outgoingMessageRegistry, messageIdGenerator);
 
-                return new PollingPublisher(
+                return new OutboxDispatcherHostedService(
                     unitOfWorkFactory: provider.GetRequiredService<IOutboxUnitOfWorkFactory>(),
                     producer: producer,
                     outboxWaiter: provider.GetRequiredService<IOutboxWaiter>()

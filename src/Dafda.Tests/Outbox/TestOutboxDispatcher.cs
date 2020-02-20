@@ -7,14 +7,14 @@ using Xunit;
 
 namespace Dafda.Tests.Outbox
 {
-    public class TestOutboxProcessor
+    public class TestOutboxDispatcher
     {
         [Fact]
         public async Task Can_processes_unpublished_outbox_messages()
         {
             var dummyMessageId = Guid.NewGuid();
             var spy = new KafkaProducerSpy();
-            var sut = A.OutboxProcessor
+            var sut = A.OutboxDispatcher
                 .With(new FakeOutboxPersistence(A.OutboxMessage
                     .WithMessageId(dummyMessageId)
                     .WithTopic("foo")
@@ -29,7 +29,7 @@ namespace Dafda.Tests.Outbox
                 )
                 .Build();
 
-            await sut.ProcessUnpublishedOutboxMessages(CancellationToken.None);
+            await sut.Dispatch(CancellationToken.None);
 
             Assert.Equal(dummyMessageId.ToString(), spy.LastMessage.MessageId);
             Assert.Equal("foo", spy.LastMessage.Topic);

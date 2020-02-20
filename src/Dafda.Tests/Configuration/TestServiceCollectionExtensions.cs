@@ -11,8 +11,6 @@ using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Dafda.Tests.Configuration
@@ -156,8 +154,8 @@ namespace Dafda.Tests.Configuration
 
             var pollingPublisher = provider
                 .GetServices<IHostedService>()
-                .Where(x => x is PollingPublisher)
-                .Cast<PollingPublisher>()
+                .Where(x => x is OutboxDispatcherHostedService)
+                .Cast<OutboxDispatcherHostedService>()
                 .First();
 
             using (var cts = new CancellationTokenSource())

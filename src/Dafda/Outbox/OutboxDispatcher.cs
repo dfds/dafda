@@ -6,20 +6,20 @@ using Dafda.Producing;
 
 namespace Dafda.Outbox
 {
-    public class OutboxProcessor
+    internal class OutboxDispatcher
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly IOutboxUnitOfWorkFactory _unitOfWorkFactory;
         private readonly IProducer _producer;
 
-        public OutboxProcessor(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer)
+        public OutboxDispatcher(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
             _producer = producer;
         }
 
-        public async Task ProcessUnpublishedOutboxMessages(CancellationToken cancellationToken)
+        public async Task Dispatch(CancellationToken cancellationToken)
         {
             using (var outboxUnitOfWork = _unitOfWorkFactory.Begin())
             {

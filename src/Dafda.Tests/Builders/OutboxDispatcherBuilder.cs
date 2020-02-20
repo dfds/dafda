@@ -3,29 +3,29 @@ using Dafda.Producing;
 
 namespace Dafda.Tests.Builders
 {
-    internal class OutboxProcessorBuilder
+    internal class OutboxDispatcherBuilder
     {
         private IOutboxUnitOfWorkFactory _outboxUnitOfWorkFactory;
         private IProducer _producer;
 
-        public OutboxProcessorBuilder With(IOutboxUnitOfWorkFactory outboxUnitOfWorkFactory)
+        public OutboxDispatcherBuilder With(IOutboxUnitOfWorkFactory outboxUnitOfWorkFactory)
         {
             _outboxUnitOfWorkFactory = outboxUnitOfWorkFactory;
             return this;
         }
 
-        public OutboxProcessorBuilder With(IProducer producer)
+        public OutboxDispatcherBuilder With(IProducer producer)
         {
             _producer = producer;
             return this;
         }
 
-        public OutboxProcessor Build()
+        public OutboxDispatcher Build()
         {
-            return new OutboxProcessor(_outboxUnitOfWorkFactory, _producer);
+            return new OutboxDispatcher(_outboxUnitOfWorkFactory, _producer);
         }
 
-        public static implicit operator OutboxProcessor(OutboxProcessorBuilder builder)
+        public static implicit operator OutboxDispatcher(OutboxDispatcherBuilder builder)
         {
             return builder.Build();
         }

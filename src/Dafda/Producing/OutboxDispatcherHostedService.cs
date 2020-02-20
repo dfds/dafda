@@ -6,22 +6,22 @@ using Microsoft.Extensions.Hosting;
 
 namespace Dafda.Producing
 {
-    internal class PollingPublisher : IHostedService, IDisposable
+    internal class OutboxDispatcherHostedService : IHostedService, IDisposable
     {
         private readonly IOutboxWaiter _outboxWaiter;
-        private readonly OutboxProcessor _outboxProcessor;
+        private readonly OutboxDispatcher _outboxDispatcher;
         private Thread _thread;
         private CancellationTokenSource _cancellationTokenSource;
 
-        public PollingPublisher(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer, IOutboxWaiter outboxWaiter)
+        public OutboxDispatcherHostedService(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer, IOutboxWaiter outboxWaiter)
         {
             _outboxWaiter = outboxWaiter;
-            _outboxProcessor = new OutboxProcessor(unitOfWorkFactory, producer);
+            _outboxDispatcher = new OutboxDispatcher(unitOfWorkFactory, producer);
         }
 
         public Task ProcessUnpublishedOutboxMessages(CancellationToken stoppingToken)
         {
-            return _outboxProcessor.ProcessUnpublishedOutboxMessages(stoppingToken);
+            return _outboxDispatcher.Dispatch(stoppingToken);
         }
 
         private void ThreadProc()
