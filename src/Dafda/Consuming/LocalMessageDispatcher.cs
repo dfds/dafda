@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Dafda.Consuming
 {
-    public class LocalMessageDispatcher : ILocalMessageDispatcher
+    internal class LocalMessageDispatcher
     {
         private readonly IMessageHandlerRegistry _messageHandlerRegistry;
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
