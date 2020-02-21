@@ -37,6 +37,7 @@ namespace Dafda.Configuration
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private IConsumerScopeFactory _consumerScopeFactory;
+        private IIncomingMessageFactory _incomingMessageFactory = new IncomingMessageFactory();
 
         internal ConsumerConfigurationBuilder()
         {
@@ -99,6 +100,12 @@ namespace Dafda.Configuration
             _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
         }
 
+        public ConsumerConfigurationBuilder WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
+        {
+            _incomingMessageFactory = incomingMessageFactory;
+            return this;
+        }
+
         internal ConsumerConfiguration Build()
         {
             if (!_namingConventions.Any())
@@ -113,7 +120,8 @@ namespace Dafda.Configuration
             {
                 _consumerScopeFactory = new KafkaBasedConsumerScopeFactory(
                     configuration: _configurations,
-                    topics: _messageHandlerRegistry.GetAllSubscribedTopics()
+                    topics: _messageHandlerRegistry.GetAllSubscribedTopics(), 
+                    incomingMessageFactory: _incomingMessageFactory
                 );
             }
             

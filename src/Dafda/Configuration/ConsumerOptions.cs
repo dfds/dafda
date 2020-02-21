@@ -45,6 +45,11 @@ namespace Dafda.Configuration
             _builder.WithGroupId(groupId);
         }
 
+        public void WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
+        {
+            _builder.WithIncomingMessageFactory(incomingMessageFactory);
+        }
+
         public void WithBootstrapServers(string bootstrapServers)
         {
             _builder.WithBootstrapServers(bootstrapServers);

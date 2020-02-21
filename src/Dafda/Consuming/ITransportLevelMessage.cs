@@ -2,7 +2,12 @@ using System;
 
 namespace Dafda.Consuming
 {
-    internal class IncomingMessageFactory
+    public interface IIncomingMessageFactory
+    {
+        ITransportLevelMessage Create(string rawMessage);
+    }
+
+    internal class IncomingMessageFactory : IIncomingMessageFactory
     {
         public ITransportLevelMessage Create(string rawMessage)
         {

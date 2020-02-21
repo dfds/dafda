@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Dafda.Consuming
 {
-    public class JsonMessageEmbeddedDocument : ITransportLevelMessage
+    internal class JsonMessageEmbeddedDocument : ITransportLevelMessage
     {
         private readonly JsonDocument _jObject;
 
@@ -49,7 +49,7 @@ namespace Dafda.Consuming
         {
         }
 
-        internal Metadata(IDictionary<string, string> metadata)
+        public Metadata(IDictionary<string, string> metadata)
         {
             _metadata = metadata;
         }

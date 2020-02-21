@@ -10,9 +10,9 @@ namespace Dafda.Consuming
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly IConsumer<string, string> _innerKafkaConsumer;
-        private readonly IncomingMessageFactory _incomingMessageFactory;
+        private readonly IIncomingMessageFactory _incomingMessageFactory;
 
-        internal KafkaConsumerScope(IConsumer<string, string> innerKafkaConsumer, IncomingMessageFactory incomingMessageFactory)
+        internal KafkaConsumerScope(IConsumer<string, string> innerKafkaConsumer, IIncomingMessageFactory incomingMessageFactory)
         {
             _innerKafkaConsumer = innerKafkaConsumer;
             _incomingMessageFactory = incomingMessageFactory;
