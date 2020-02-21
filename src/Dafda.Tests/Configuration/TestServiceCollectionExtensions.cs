@@ -113,7 +113,7 @@ namespace Dafda.Tests.Configuration
             services.AddProducer(options =>
             {
                 options.WithBootstrapServers("localhost");
-                options.WithKafkaProducerFactory(new KafkaProducerFactoryStub(spy));
+                options.WithKafkaProducerFactory(() => spy);
                 options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => "qux"));
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
             });
@@ -140,7 +140,7 @@ namespace Dafda.Tests.Configuration
             services.AddOutbox(options =>
             {
                 options.WithBootstrapServers("localhost");
-                options.WithKafkaProducerFactory(new KafkaProducerFactoryStub(spy));
+                options.WithKafkaProducerFactory(() => spy);
                 options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => messageId));
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 

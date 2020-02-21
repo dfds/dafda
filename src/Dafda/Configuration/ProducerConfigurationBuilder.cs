@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Logging;
 using Dafda.Producing;
-using Dafda.Producing.Kafka;
 
 namespace Dafda.Configuration
 {
@@ -32,7 +32,7 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
-        private IKafkaProducerFactory _kafkaProducerFactory;
+        private Func<IKafkaProducer> _kafkaProducerFactory;
 
         internal ProducerConfigurationBuilder()
         {
@@ -73,12 +73,12 @@ namespace Dafda.Configuration
             _messageIdGenerator = messageIdGenerator;
         }
 
-        public void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory)
+        internal void WithKafkaProducerFactory(Func<IKafkaProducer> inlineFactory)
         {
-            _kafkaProducerFactory = kafkaProducerFactory;
+            _kafkaProducerFactory = inlineFactory;
         }
 
-        public ProducerConfiguration Build()
+        internal ProducerConfiguration Build()
         {
             if (!_namingConventions.Any())
             {
@@ -90,7 +90,7 @@ namespace Dafda.Configuration
 
             if (_kafkaProducerFactory == null)
             {
-                _kafkaProducerFactory = new KafkaProducerFactory(_configurations);
+                _kafkaProducerFactory = () => KafkaProducer.Create(_configurations);
             }
 
             return new ProducerConfiguration(

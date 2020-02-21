@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Dafda.Outbox;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,9 +51,9 @@ namespace Dafda.Configuration
             _builder.WithBootstrapServers(bootstrapServers);
         }
 
-        public void WithKafkaProducerFactory(IKafkaProducerFactory kafkaProducerFactory)
+        internal void WithKafkaProducerFactory(Func<IKafkaProducer> inlineFactory)
         {
-            _builder.WithKafkaProducerFactory(kafkaProducerFactory);
+            _builder.WithKafkaProducerFactory(inlineFactory);
         }
 
         public void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)

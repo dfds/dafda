@@ -12,14 +12,14 @@ namespace Dafda.Configuration
             var configurationBuilder = new ProducerConfigurationBuilder();
             var consumerOptions = new ProducerOptions(configurationBuilder, services, outgoingMessageRegistry);
             options?.Invoke(consumerOptions);
+            
             var producerConfiguration = configurationBuilder.Build();
-            var configuration = producerConfiguration;
 
             services.AddSingleton<IProducer>(provider =>
             {
-                var kafkaProducerFactory = configuration.KafkaProducerFactory;
-                IKafkaProducer kafkaProducer = kafkaProducerFactory.CreateProducer();
-                var messageIdGenerator = configuration.MessageIdGenerator;
+                var messageIdGenerator = producerConfiguration.MessageIdGenerator;
+                var kafkaProducer = producerConfiguration.KafkaProducerFactory();
+
                 return new Producer(kafkaProducer, outgoingMessageRegistry, messageIdGenerator);
             });
         }

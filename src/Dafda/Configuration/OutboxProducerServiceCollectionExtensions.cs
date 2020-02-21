@@ -27,9 +27,8 @@ namespace Dafda.Configuration
 
             services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
             {
-                var kafkaProducerFactory = producerConfiguration.KafkaProducerFactory;
-                var kafkaProducer = kafkaProducerFactory.CreateProducer();
                 var messageIdGenerator = producerConfiguration.MessageIdGenerator;
+                var kafkaProducer = producerConfiguration.KafkaProducerFactory();
 
                 var producer = new Producer(kafkaProducer, outgoingMessageRegistry, messageIdGenerator);
 

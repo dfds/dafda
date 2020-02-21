@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Dafda.Producing;
-using Dafda.Producing.Kafka;
 
 namespace Dafda.Tests.TestDoubles
 {

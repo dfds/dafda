@@ -1,13 +1,21 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Dafda.Logging;
 
-namespace Dafda.Producing.Kafka
+namespace Dafda.Producing
 {
     internal class KafkaProducer : IKafkaProducer
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
+
         private readonly IProducer<string, string> _innerKafkaProducer;
+
+        public static KafkaProducer Create(IEnumerable<KeyValuePair<string, string>> configuration)
+        {
+            var producer = new ProducerBuilder<string, string>(configuration).Build();
+            return new KafkaProducer(producer);
+        }
 
         internal KafkaProducer(IProducer<string, string> innerKafkaProducer)
         {
