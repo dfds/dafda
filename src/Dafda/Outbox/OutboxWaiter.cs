@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Dafda.Outbox
 {
-    public class OutboxWaiter : IOutboxWaiter, IDisposable
+    internal class OutboxWaiter : IOutboxWaiter, IDisposable
     {
         private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
         private readonly TimeSpan _delay;
