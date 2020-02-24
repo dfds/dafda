@@ -3,11 +3,6 @@ using System.Text.Json;
 
 namespace Dafda.Consuming
 {
-    public interface IIncomingMessageFactory
-    {
-        TransportLevelMessage Create(string rawMessage);
-    }
-
     internal class JsonIncomingMessageFactory : IIncomingMessageFactory
     {
         private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
