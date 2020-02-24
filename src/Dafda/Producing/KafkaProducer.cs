@@ -17,7 +17,7 @@ namespace Dafda.Producing
             return new KafkaProducer(producer);
         }
 
-        internal KafkaProducer(IProducer<string, string> innerKafkaProducer)
+        private KafkaProducer(IProducer<string, string> innerKafkaProducer)
         {
             _innerKafkaProducer = innerKafkaProducer;
         }

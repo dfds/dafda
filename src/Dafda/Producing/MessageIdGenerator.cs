@@ -4,7 +4,7 @@ namespace Dafda.Producing
 {
     public abstract class MessageIdGenerator
     {
-        public static readonly MessageIdGenerator Default = new DefaultMessageIdGenerator();
+        internal static readonly MessageIdGenerator Default = new DefaultMessageIdGenerator();
 
         public abstract string NextMessageId();
 
