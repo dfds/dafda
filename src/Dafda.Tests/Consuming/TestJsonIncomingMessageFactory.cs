@@ -4,25 +4,28 @@ using Xunit;
 
 namespace Dafda.Tests.Consuming
 {
-    public class TestJsonMessageEmbeddedDocument
+    public class TestJsonIncomingMessageFactory
     {
         private const string MessageJson = "{\"messageId\":\"1\",\"type\":\"vehicle_position_changed\",\"data\":{\"aggregateId\":\"1\",\"messageId\":\"1\",\"vehicleId\":\"1\",\"timeStamp\":\"2019-09-16T07:59:01Z\",\"position\":{\"latitude\":1,\"longitude\":2}}}";
 
         [Fact]
         public void Can_access_message_headers()
         {
-            var sut = new JsonMessageEmbeddedDocument(MessageJson);
+            var sut = new JsonIncomingMessageFactory();
 
-            Assert.Equal("1", sut.Metadata.MessageId);
-            Assert.Equal("vehicle_position_changed", sut.Metadata.Type);
+            var message = sut.Create(MessageJson);
+
+            Assert.Equal("1", message.Metadata.MessageId);
+            Assert.Equal("vehicle_position_changed", message.Metadata.Type);
         }
 
         [Fact]
         public void Can_decode_data_body()
         {
-            var sut = new JsonMessageEmbeddedDocument(MessageJson);
-
-            var data = (VehiclePositionChanged) sut.ReadDataAs(typeof(VehiclePositionChanged));
+            var sut = new JsonIncomingMessageFactory();
+            
+            var message = sut.Create(MessageJson);
+            var data = (VehiclePositionChanged) message.ReadDataAs(typeof(VehiclePositionChanged));
 
             Assert.Equal("1", data.AggregateId);
             Assert.Equal("1", data.MessageId);

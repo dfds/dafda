@@ -1,5 +1,4 @@
 ﻿using Dafda.Consuming;
-using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
@@ -14,7 +13,7 @@ namespace Dafda.Tests.Builders
             _metadata.MessageId = "foo-message-id";
             _metadata.CorrelationId = "foo-correlation-id";
             _metadata.Type = "foo-type";
-            _data = "foo-data";
+            _data = null;
         }
 
         public TransportLevelMessageBuilder WithType(string type)
@@ -31,11 +30,7 @@ namespace Dafda.Tests.Builders
 
         public ITransportLevelMessage Build()
         {
-            return new TransportLevelMessageStub
-            {
-                Metadata = _metadata,
-                Data = _data
-            };
+            return new TransportLevelMessage(_metadata, type => _data);
         }
     }
 }

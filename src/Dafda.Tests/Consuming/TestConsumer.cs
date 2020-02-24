@@ -51,7 +51,7 @@ namespace Dafda.Tests.Consuming
         {
             var orderOfInvocation = new LinkedList<string>();
 
-            var dummyMessageResult = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub(type: "foo")).Build();
+            var dummyMessageResult = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("foo").Build()).Build();
             var dummyMessageRegistration = new MessageRegistrationBuilder().WithMessageType("foo").Build();
 
             var registry = new MessageHandlerRegistry();
@@ -149,7 +149,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task creates_consumer_scope_when_consuming_single_message()
         {
-            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("foo").Build()).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()
@@ -180,7 +180,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task disposes_consumer_scope_when_consuming_single_message()
         {
-            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("foo").Build()).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()
@@ -211,7 +211,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task creates_consumer_scope_when_consuming_multiple_messages()
         {
-            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("foo").Build()).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()
@@ -262,7 +262,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task disposes_consumer_scope_when_consuming_multiple_messages()
         {
-            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageStub("foo")).Build();
+            var messageResultStub = new MessageResultBuilder().WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("foo").Build()).Build();
             var handlerStub = Dummy.Of<IMessageHandler<FooMessage>>();
 
             var messageRegistrationStub = new MessageRegistrationBuilder()

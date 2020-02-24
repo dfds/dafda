@@ -37,7 +37,7 @@ namespace Dafda.Configuration
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private IConsumerScopeFactory _consumerScopeFactory;
-        private IIncomingMessageFactory _incomingMessageFactory = new IncomingMessageFactory();
+        private IIncomingMessageFactory _incomingMessageFactory = new JsonIncomingMessageFactory();
 
         internal ConsumerConfigurationBuilder()
         {

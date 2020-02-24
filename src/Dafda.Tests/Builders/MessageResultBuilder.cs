@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Dafda.Consuming;
-using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
     public class MessageResultBuilder
     {
-        private ITransportLevelMessage _message = new TransportLevelMessageStub("foo");
+        private ITransportLevelMessage _message = new TransportLevelMessageBuilder().WithType("foo").Build();
         private Func<Task> _onCommit;
 
         public MessageResultBuilder()
