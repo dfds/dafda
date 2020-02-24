@@ -2,7 +2,7 @@ namespace Dafda.Configuration
 {
     public abstract class ConfigurationSource
     {
-        public static readonly ConfigurationSource Null = new NullConfigurationSource();
+        internal static readonly ConfigurationSource Null = new NullConfigurationSource();
 
         public abstract string GetByKey(string keyName);
 
