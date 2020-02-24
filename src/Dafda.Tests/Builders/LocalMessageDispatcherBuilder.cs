@@ -1,5 +1,6 @@
 ﻿using System;
 using Dafda.Consuming;
+using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
@@ -25,10 +26,9 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public LocalMessageDispatcherBuilder WithHandlerUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
+        public LocalMessageDispatcherBuilder WithHandlerUnitOfWork(IHandlerUnitOfWork unitOfWork)
         {
-            _handlerUnitOfWorkFactory = new DefaultUnitOfWorkFactory(factory);
-            return this;
+            return WithHandlerUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
         }
 
         public LocalMessageDispatcher Build()

@@ -89,11 +89,6 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
-        {
-            return WithUnitOfWorkFactory(new DefaultUnitOfWorkFactory(factory));
-        }
-        
         public ConsumerConfigurationBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;

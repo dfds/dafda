@@ -29,7 +29,7 @@ namespace Dafda.Tests.Consuming
             registry.Register(messageRegistrationStub);
             
             var sut = new ConsumerBuilder()
-                .WithUnitOfWorkFactory(type => new UnitOfWorkStub(handlerStub))
+                .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
 
@@ -58,7 +58,7 @@ namespace Dafda.Tests.Consuming
             registry.Register(dummyMessageRegistration);
 
             var sut = new ConsumerBuilder()
-                .WithUnitOfWorkFactory(type => new UnitOfWorkSpy(
+                .WithUnitOfWork(new UnitOfWorkSpy(
                     handlerInstance: new MessageHandlerSpy<FooMessage>(() => orderOfInvocation.AddLast("during")),
                     pre: () => orderOfInvocation.AddLast("before"),
                     post: () => orderOfInvocation.AddLast("after")
@@ -99,7 +99,7 @@ namespace Dafda.Tests.Consuming
 
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(consumerScopeFactoryStub)
-                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .WithEnableAutoCommit(true)
                 .Build();
@@ -136,7 +136,7 @@ namespace Dafda.Tests.Consuming
             
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(consumerScopeFactoryStub)
-                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .WithEnableAutoCommit(false)
                 .Build();
@@ -168,7 +168,7 @@ namespace Dafda.Tests.Consuming
             
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(mock.Object)
-                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
 
@@ -199,7 +199,7 @@ namespace Dafda.Tests.Consuming
             
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
-                .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
 
@@ -248,7 +248,7 @@ namespace Dafda.Tests.Consuming
                 
                 var consumer = new ConsumerBuilder()
                     .WithConsumerScopeFactory(mock.Object)
-                    .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                    .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                     .WithMessageHandlerRegistry(registry)
                     .Build();
 
@@ -294,7 +294,7 @@ namespace Dafda.Tests.Consuming
 
                 var consumer = new ConsumerBuilder()
                     .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
-                    .WithUnitOfWorkFactory(x => new UnitOfWorkStub(handlerStub))
+                    .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                     .WithMessageHandlerRegistry(registry)
                     .Build();
 

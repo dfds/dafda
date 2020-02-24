@@ -1,5 +1,4 @@
-﻿using System;
-using Dafda.Consuming;
+﻿using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
@@ -21,10 +20,9 @@ namespace Dafda.Tests.Builders
             _registry = new MessageHandlerRegistry();
         }
 
-        public ConsumerBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> unitOfWorkFactory)
+        public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
         {
-            _unitOfWorkFactory = new DefaultUnitOfWorkFactory(unitOfWorkFactory);
-            return this;
+            return WithUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
         }
 
         public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitofWorkFactory)

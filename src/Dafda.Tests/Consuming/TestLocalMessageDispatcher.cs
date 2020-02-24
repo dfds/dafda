@@ -48,13 +48,12 @@ namespace Dafda.Tests.Consuming
 
             var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
             var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").Build();
-            var typeResolverStub = new TypeResolverStub(mock.Object);
             var registry = new MessageHandlerRegistry();
             registry.Register(registrationDummy);
             
             var sut = new LocalMessageDispatcherBuilder()
                 .WithMessageHandlerRegistry(registry)
-                .WithHandlerUnitOfWorkFactory(new DefaultUnitOfWorkFactory(typeResolverStub))
+                .WithHandlerUnitOfWork(new UnitOfWorkStub(mock.Object))
                 .Build();
 
             await sut.Dispatch(transportMessageDummy);
@@ -72,7 +71,7 @@ namespace Dafda.Tests.Consuming
             
             var sut = new LocalMessageDispatcherBuilder()
                 .WithMessageHandlerRegistry(registry)
-                .WithHandlerUnitOfWorkFactory(new DefaultUnitOfWorkFactory(new TypeResolverStub(new ErroneusHandler())))
+                .WithHandlerUnitOfWork(new UnitOfWorkStub(new ErroneusHandler()))
                 .Build();
 
             await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(transportMessageDummy));

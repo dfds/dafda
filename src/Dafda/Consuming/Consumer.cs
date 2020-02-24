@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace Dafda.Consuming
         public Consumer(MessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory, bool isAutoCommitEnabled = false)
         {
             _localMessageDispatcher = new LocalMessageDispatcher(messageHandlerRegistry, unitOfWorkFactory);
-            _consumerScopeFactory = consumerScopeFactory;
+            _consumerScopeFactory = consumerScopeFactory ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
             _isAutoCommitEnabled = isAutoCommitEnabled;
         }
 
