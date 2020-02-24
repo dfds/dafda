@@ -14,14 +14,10 @@ namespace Dafda.Producing
             {
                 throw new ArgumentException("Value cannot be null or empty.", nameof(type));
             }
-            if (keySelector == null)
-            {
-                throw new ArgumentNullException(nameof(keySelector));
-            }
 
             Type = type;
             Topic = topic;
-            KeySelector = keySelector;
+            KeySelector = keySelector ?? throw new ArgumentNullException(nameof(keySelector));
         }
 
         public string Type { get; }
