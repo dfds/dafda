@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Configuration;
@@ -21,11 +20,10 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_build_minimal_configuration()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithGroupId("foo");
-            sut.WithBootstrapServers("bar");
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
@@ -41,14 +39,12 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_ignore_out_of_scope_values_from_configuration_source()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.GroupId, value: "foo"),
-                (key: ConfigurationKey.BootstrapServers, value: "bar"),
-                (key: "dummy", value: "baz")
-            ));
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar"),
+                    (key: "dummy", value: "baz")
+                )).Build();
 
             AssertKeyValue(configuration, "dummy", null);
         }
@@ -56,13 +52,12 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_use_configuration_value_from_source()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.GroupId, value: "foo"),
-                (key: ConfigurationKey.BootstrapServers, value: "bar")
-            ));
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar")
+                ))
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
@@ -71,14 +66,13 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_use_configuration_value_from_source_with_environment_naming_convention()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: "GROUP_ID", value: "foo"),
-                (key: "BOOTSTRAP_SERVERS", value: "bar")
-            ));
-            sut.WithEnvironmentStyle();
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: "GROUP_ID", value: "foo"),
+                    (key: "BOOTSTRAP_SERVERS", value: "bar")
+                ))
+                .WithEnvironmentStyle()
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
@@ -87,14 +81,13 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_use_configuration_value_from_source_with_environment_naming_convention_and_prefix()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: "DEFAULT_KAFKA_GROUP_ID", value: "foo"),
-                (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
-            ));
-            sut.WithEnvironmentStyle("DEFAULT_KAFKA");
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: "DEFAULT_KAFKA_GROUP_ID", value: "foo"),
+                    (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
+                ))
+                .WithEnvironmentStyle("DEFAULT_KAFKA")
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
@@ -103,14 +96,13 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_overwrite_values_from_source()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.GroupId, value: "foo"),
-                (key: ConfigurationKey.BootstrapServers, value: "bar")
-            ));
-            sut.WithConfiguration(ConfigurationKey.GroupId, "baz");
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar")
+                ))
+                .WithConfiguration(ConfigurationKey.GroupId, "baz")
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "baz");
         }
@@ -118,16 +110,15 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Only_take_value_from_first_source_that_matches()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.GroupId, value: "foo"),
-                (key: ConfigurationKey.BootstrapServers, value: "bar"),
-                (key: "GROUP_ID", value: "baz")
-            ));
-            sut.WithNamingConvention(NamingConvention.Default);
-            sut.WithEnvironmentStyle();
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.GroupId, value: "foo"),
+                    (key: ConfigurationKey.BootstrapServers, value: "bar"),
+                    (key: "GROUP_ID", value: "baz")
+                ))
+                .WithNamingConvention(NamingConvention.Default)
+                .WithEnvironmentStyle()
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
         }
@@ -135,12 +126,11 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_register_message_handler()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithGroupId("foo");
-            sut.WithBootstrapServers("bar");
-            sut.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .Build();
 
             var registration = configuration.MessageHandlerRegistry.GetRegistrationFor(nameof(DummyMessage));
 
@@ -150,11 +140,10 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void returns_expected_auto_commit_when_not_set()
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithGroupId("foo");
-            sut.WithBootstrapServers("bar");
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
+                .Build();
 
             Assert.True(configuration.EnableAutoCommit);
         }
@@ -166,12 +155,11 @@ namespace Dafda.Tests.Configuration
         [InlineData("FALSE", false)]
         public void returns_expected_auto_commit_when_configured_with_valid_value(string configValue, bool expected)
         {
-            var sut = new ConsumerConfigurationBuilder();
-            sut.WithGroupId("foo");
-            sut.WithBootstrapServers("bar");
-            sut.WithConfiguration(ConfigurationKey.EnableAutoCommit, configValue);
-
-            var configuration = sut.Build();
+            var configuration = new ConsumerConfigurationBuilder()
+                .WithGroupId("foo")
+                .WithBootstrapServers("bar")
+                .WithConfiguration(ConfigurationKey.EnableAutoCommit, configValue)
+                .Build();
 
             Assert.Equal(expected, configuration.EnableAutoCommit);
         }

@@ -43,17 +43,19 @@ namespace Dafda.Configuration
         {
         }
 
-        public void WithConfigurationSource(ConfigurationSource configurationSource)
+        public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
             _configurationSource = configurationSource;
+            return this;
         }
 
-        public void WithNamingConvention(NamingConvention namingConvention)
+        public ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
         {
             _namingConventions.Add(namingConvention);
+            return this;
         }
 
-        public void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
+        public ConsumerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
         {
             WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
 
@@ -61,43 +63,49 @@ namespace Dafda.Configuration
             {
                 WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
             }
+
+            return this;
         }
 
-        public void WithConfiguration(string key, string value)
+        public ConsumerConfigurationBuilder WithConfiguration(string key, string value)
         {
             _configurations[key] = value;
+            return this;
         }
 
-        public void WithGroupId(string groupId)
+        public ConsumerConfigurationBuilder WithGroupId(string groupId)
         {
-            WithConfiguration(ConfigurationKey.GroupId, groupId);
+            return WithConfiguration(ConfigurationKey.GroupId, groupId);
         }
 
-        public void WithBootstrapServers(string bootstrapServers)
+        public ConsumerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
         {
-            WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
+            return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
-        public void WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
+        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
+            return this;
         }
 
-        public void WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
+        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(Func<Type, IHandlerUnitOfWork> factory)
         {
-            _unitOfWorkFactory = new DefaultUnitOfWorkFactory(factory);
+            return WithUnitOfWorkFactory(new DefaultUnitOfWorkFactory(factory));
         }
         
-        public void WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+        public ConsumerConfigurationBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
+            return this;
         }
 
-        public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
+        public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessage : class, new()
             where TMessageHandler : IMessageHandler<TMessage>
         {
             _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
+            return this;
         }
 
         public ConsumerConfigurationBuilder WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)

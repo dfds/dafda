@@ -39,14 +39,13 @@ namespace Dafda.Tests.Configuration
 
             var serviceProvider = services.BuildServiceProvider();
 
-            var configuration = new ConsumerConfigurationBuilder();
-            configuration.WithGroupId("dummy");
-            configuration.WithBootstrapServers("dummy");
-            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
-            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
-            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
-
-            var consumerConfiguration = configuration.Build();
+            var consumerConfiguration = new ConsumerConfigurationBuilder()
+                .WithGroupId("dummy")
+                .WithBootstrapServers("dummy")
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
@@ -88,14 +87,13 @@ namespace Dafda.Tests.Configuration
 
             var serviceProvider = services.BuildServiceProvider();
 
-            var configuration = new ConsumerConfigurationBuilder();
-            configuration.WithGroupId("dummy");
-            configuration.WithBootstrapServers("dummy");
-            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
-            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
-            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
-
-            var consumerConfiguration = configuration.Build();
+            var consumerConfiguration = new ConsumerConfigurationBuilder()
+                .WithGroupId("dummy")
+                .WithBootstrapServers("dummy")
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
@@ -137,14 +135,13 @@ namespace Dafda.Tests.Configuration
 
             var serviceProvider = services.BuildServiceProvider();
 
-            var configuration = new ConsumerConfigurationBuilder();
-            configuration.WithGroupId("dummy");
-            configuration.WithBootstrapServers("dummy");
-            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
-            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
-            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
-
-            var consumerConfiguration = configuration.Build();
+            var consumerConfiguration = new ConsumerConfigurationBuilder()
+                .WithGroupId("dummy")
+                .WithBootstrapServers("dummy")
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
@@ -186,14 +183,13 @@ namespace Dafda.Tests.Configuration
 
             var serviceProvider = services.BuildServiceProvider();
 
-            var configuration = new ConsumerConfigurationBuilder();
-            configuration.WithGroupId("dummy");
-            configuration.WithBootstrapServers("dummy");
-            configuration.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
-            configuration.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
-            configuration.WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider));
-
-            var consumerConfiguration = configuration.Build();
+            var consumerConfiguration = new ConsumerConfigurationBuilder()
+                .WithGroupId("dummy")
+                .WithBootstrapServers("dummy")
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)

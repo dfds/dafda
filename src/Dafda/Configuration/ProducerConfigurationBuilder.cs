@@ -38,17 +38,19 @@ namespace Dafda.Configuration
         {
         }
 
-        public void WithConfigurationSource(ConfigurationSource configurationSource)
+        public ProducerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
             _configurationSource = configurationSource;
+            return this;
         }
 
-        public void WithNamingConvention(NamingConvention namingConvention)
+        public ProducerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
         {
             _namingConventions.Add(namingConvention);
+            return this;
         }
 
-        public void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
+        public ProducerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
         {
             WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
 
@@ -56,26 +58,31 @@ namespace Dafda.Configuration
             {
                 WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
             }
+
+            return this;
         }
 
-        public void WithConfiguration(string key, string value)
+        public ProducerConfigurationBuilder WithConfiguration(string key, string value)
         {
             _configurations[key] = value;
+            return this;
         }
 
-        public void WithBootstrapServers(string bootstrapServers)
+        public ProducerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
         {
-            WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
+            return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
-        public void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
+        public ProducerConfigurationBuilder WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
         {
             _messageIdGenerator = messageIdGenerator;
+            return this;
         }
 
-        internal void WithKafkaProducerFactory(Func<IKafkaProducer> inlineFactory)
+        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<IKafkaProducer> inlineFactory)
         {
             _kafkaProducerFactory = inlineFactory;
+            return this;
         }
 
         internal ProducerConfiguration Build()

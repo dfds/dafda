@@ -19,10 +19,9 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_build_minimal_configuration()
         {
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithBootstrapServers("bar");
-
-            var configuration = sut.Build();
+            var configuration = new ProducerConfigurationBuilder()
+                .WithBootstrapServers("bar")
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
@@ -37,13 +36,12 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_ignore_out_of_scope_values_from_configuration_source()
         {
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.BootstrapServers, value: "bar"),
-                (key: "dummy", value: "baz")
-            ));
-
-            var configuration = sut.Build();
+            var configuration = new ProducerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.BootstrapServers, value: "bar"),
+                    (key: "dummy", value: "baz")
+                ))
+                .Build();
 
             AssertKeyValue(configuration, "dummy", null);
         }
@@ -51,12 +49,11 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_use_configuration_value_from_source()
         {
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.BootstrapServers, value: "bar")
-            ));
-
-            var configuration = sut.Build();
+            var configuration = new ProducerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.BootstrapServers, value: "bar")
+                ))
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
@@ -64,13 +61,12 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_use_configuration_value_from_source_with_environment_naming_convention()
         {
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: "BOOTSTRAP_SERVERS", value: "bar")
-            ));
-            sut.WithEnvironmentStyle();
-
-            var configuration = sut.Build();
+            var configuration = new ProducerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: "BOOTSTRAP_SERVERS", value: "bar")
+                ))
+                .WithEnvironmentStyle()
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
@@ -78,13 +74,12 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_use_configuration_value_from_source_with_environment_naming_convention_and_prefix()
         {
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
-            ));
-            sut.WithEnvironmentStyle("DEFAULT_KAFKA");
-
-            var configuration = sut.Build();
+            var configuration = new ProducerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
+                ))
+                .WithEnvironmentStyle("DEFAULT_KAFKA")
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
@@ -92,13 +87,12 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_overwrite_values_from_source()
         {
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.BootstrapServers, value: "foo")
-            ));
-            sut.WithConfiguration(ConfigurationKey.BootstrapServers, "bar");
-
-            var configuration = sut.Build();
+            var configuration = new ProducerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.BootstrapServers, value: "foo")
+                ))
+                .WithConfiguration(ConfigurationKey.BootstrapServers, "bar")
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
         }
@@ -106,15 +100,14 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Only_take_value_from_first_source_that_matches()
         {
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithConfigurationSource(new ConfigurationSourceStub(
-                (key: ConfigurationKey.BootstrapServers, value: "foo"),
-                (key: "BOOTSTRAP_SERVERS", value: "bar")
-            ));
-            sut.WithNamingConvention(NamingConvention.Default);
-            sut.WithEnvironmentStyle();
-
-            var configuration = sut.Build();
+            var configuration = new ProducerConfigurationBuilder()
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: ConfigurationKey.BootstrapServers, value: "foo"),
+                    (key: "BOOTSTRAP_SERVERS", value: "bar")
+                ))
+                .WithNamingConvention(NamingConvention.Default)
+                .WithEnvironmentStyle()
+                .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "foo");
         }
@@ -124,10 +117,10 @@ namespace Dafda.Tests.Configuration
         {
             var dummy = MessageIdGenerator.Default;
 
-            var sut = new ProducerConfigurationBuilder();
-            sut.WithBootstrapServers("foo");
-            sut.WithMessageIdGenerator(dummy);
-            var producerConfiguration = sut.Build();
+            var producerConfiguration = new ProducerConfigurationBuilder()
+                .WithBootstrapServers("foo")
+                .WithMessageIdGenerator(dummy)
+                .Build();
 
             Assert.Equal(dummy, producerConfiguration.MessageIdGenerator);
         }
