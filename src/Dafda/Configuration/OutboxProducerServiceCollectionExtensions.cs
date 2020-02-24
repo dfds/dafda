@@ -16,13 +16,13 @@ namespace Dafda.Configuration
             options?.Invoke(outboxProducerOptions);
             var producerConfiguration = configurationBuilder.Build();
 
-            services.AddSingleton<IOutboxWaiter, OutboxWaiter>(provider => new OutboxWaiter(outboxProducerOptions.DispatchInterval));
+            var outboxWaiter = new OutboxNotification(outboxProducerOptions.DispatchInterval);
 
             services.AddTransient<OutboxQueue>(provider =>
             {
                 var messageIdGenerator = producerConfiguration.MessageIdGenerator;
                 var outboxMessageRepository = provider.GetRequiredService<IOutboxMessageRepository>();
-                return new OutboxQueue(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository);
+                return new OutboxQueue(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository, outboxWaiter);
             });
 
             services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
@@ -35,7 +35,7 @@ namespace Dafda.Configuration
                 return new OutboxDispatcherHostedService(
                     unitOfWorkFactory: provider.GetRequiredService<IOutboxUnitOfWorkFactory>(),
                     producer: producer,
-                    outboxWaiter: provider.GetRequiredService<IOutboxWaiter>()
+                    outboxNotification: outboxWaiter
                 );
             });
         }

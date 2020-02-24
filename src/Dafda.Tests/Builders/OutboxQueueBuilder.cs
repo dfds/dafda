@@ -22,12 +22,12 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public Dafda.Outbox.OutboxQueue Build()
+        public OutboxQueue Build()
         {
-            return new Dafda.Outbox.OutboxQueue(MessageIdGenerator.Default, _outgoingMessageRegistry, _outboxMessageRepository);
+            return new OutboxQueue(MessageIdGenerator.Default, _outgoingMessageRegistry, _outboxMessageRepository, new NullOutboxNotifier());
         }
 
-        public static implicit operator Dafda.Outbox.OutboxQueue(OutboxQueueBuilder builder)
+        public static implicit operator OutboxQueue(OutboxQueueBuilder builder)
         {
             return builder.Build();
         }
@@ -39,5 +39,13 @@ namespace Dafda.Tests.Builders
                 return Task.CompletedTask;
             }
         }
+
+        private class NullOutboxNotifier : IOutboxNotifier
+        {
+            public void Notify()
+            {
+            }
+        }
     }
+
 }

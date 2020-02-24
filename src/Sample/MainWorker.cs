@@ -28,7 +28,7 @@ namespace Sample
                 {
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-
+                    IOutboxNotifier outboxNotifier;
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
                         var dbContext = scope.ServiceProvider.GetRequiredService<SampleDbContext>();
@@ -36,15 +36,14 @@ namespace Sample
                         {
                             var outboxQueue = scope.ServiceProvider.GetRequiredService<OutboxQueue>();
 
-                            await outboxQueue.Enqueue(new[] {new TestEvent {AggregateId = "aggregate-id"}});
+                            outboxNotifier = await outboxQueue.Enqueue(new[] {new TestEvent {AggregateId = "aggregate-id"}});
 
                             await dbContext.SaveChangesAsync(stoppingToken);
                             transaction.Commit();
                         }
 
-                        var waiter = scope.ServiceProvider.GetRequiredService<IOutboxWaiter>();
-                        waiter.WakeUp();
                     }
+                    outboxNotifier?.Notify(); // NOTE: when using postgres LISTEN/NOTIFY this should/could be part of the transaction scope above
 
                     await Task.Delay(1000, stoppingToken);
                 }

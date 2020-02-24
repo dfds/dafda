@@ -8,14 +8,14 @@ namespace Dafda.Producing
 {
     internal class OutboxDispatcherHostedService : IHostedService, IDisposable
     {
-        private readonly IOutboxWaiter _outboxWaiter;
+        private readonly IOutboxNotification _outboxNotification;
         private readonly OutboxDispatcher _outboxDispatcher;
         private Thread _thread;
         private CancellationTokenSource _cancellationTokenSource;
 
-        public OutboxDispatcherHostedService(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer, IOutboxWaiter outboxWaiter)
+        public OutboxDispatcherHostedService(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer, IOutboxNotification outboxNotification)
         {
-            _outboxWaiter = outboxWaiter;
+            _outboxNotification = outboxNotification;
             _outboxDispatcher = new OutboxDispatcher(unitOfWorkFactory, producer);
         }
 
@@ -31,7 +31,7 @@ namespace Dafda.Producing
                 while (!_cancellationTokenSource.IsCancellationRequested)
                 {
                     ProcessUnpublishedOutboxMessages(_cancellationTokenSource.Token).Wait();
-                    _outboxWaiter.Wait();
+                    _outboxNotification.Wait();
                 }
             }
             catch (ThreadAbortException)
@@ -62,7 +62,7 @@ namespace Dafda.Producing
         {
             _cancellationTokenSource?.Cancel();
             
-            _outboxWaiter.WakeUp();
+            _outboxNotification.Notify();
             _thread?.Join();
             _thread = null;
         }

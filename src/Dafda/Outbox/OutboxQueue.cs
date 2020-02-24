@@ -9,21 +9,25 @@ namespace Dafda.Outbox
     public class OutboxQueue
     {
         private readonly IOutboxMessageRepository _repository;
+        private readonly IOutboxNotifier _outboxNotifier;
         private readonly OutgoingMessageFactory _outgoingMessageFactory;
 
-        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository)
+        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository, IOutboxNotifier outboxNotifier)
         {
-            _outgoingMessageFactory = new OutgoingMessageFactory(outgoingMessageRegistry, messageIdGenerator);
             _repository = repository;
+            _outboxNotifier = outboxNotifier;
+            _outgoingMessageFactory = new OutgoingMessageFactory(outgoingMessageRegistry, messageIdGenerator);
         }
 
-        public async Task Enqueue(IEnumerable<object> events)
+        public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> events)
         {
             var outboxMessages = events
                 .Select(CreateOutboxMessage)
                 .ToArray();
 
             await _repository.Add(outboxMessages);
+
+            return _outboxNotifier;
         }
 
         private OutboxMessage CreateOutboxMessage(object @event)

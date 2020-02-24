@@ -1,8 +1,7 @@
 namespace Dafda.Outbox
 {
-    public interface IOutboxWaiter
+    public interface IOutboxNotification : IOutboxNotifier
     {
-        void WakeUp();
         void Wait();
     }
 }
