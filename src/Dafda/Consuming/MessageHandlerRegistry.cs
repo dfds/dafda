@@ -4,15 +4,15 @@ using System.Linq;
 
 namespace Dafda.Consuming
 {
-    public sealed class MessageHandlerRegistry
+    internal sealed class MessageHandlerRegistry
     {
         private readonly List<MessageRegistration> _registrations = new List<MessageRegistration>();
 
-        public MessageRegistration Register<TMessage, THandler>(string topic, string messageType) 
+        public void Register<TMessage, THandler>(string topic, string messageType) 
             where THandler : IMessageHandler<TMessage> 
             where TMessage : class, new()
         {
-            return Register(
+            Register(
                 handlerInstanceType: typeof(THandler),
                 messageInstanceType: typeof(TMessage),
                 topic: topic,
@@ -29,20 +29,20 @@ namespace Dafda.Consuming
                 messageType: messageType
             );
 
-            return Register(registration);
-        }
-
-        public MessageRegistration Register(MessageRegistration registration)
-        {
-            _registrations.Add(registration);
+            Register(registration);
 
             return registration;
+        }
+
+        public void Register(MessageRegistration registration)
+        {
+            _registrations.Add(registration);
         }
 
         public IEnumerable<string> GetAllSubscribedTopics() => _registrations.Select(x => x.Topic).Distinct();
 
         public IEnumerable<MessageRegistration> Registrations => _registrations;
-        
+
         public MessageRegistration GetRegistrationFor(string messageType)
         {
             return _registrations.SingleOrDefault(x => x.MessageType == messageType);

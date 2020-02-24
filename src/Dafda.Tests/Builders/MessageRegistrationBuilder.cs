@@ -4,7 +4,7 @@ using Dafda.Consuming;
 
 namespace Dafda.Tests.Builders
 {
-    public class MessageRegistrationBuilder
+    internal class MessageRegistrationBuilder
     {
         private string _topic;
         private string _messageType;

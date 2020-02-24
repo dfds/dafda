@@ -2,7 +2,7 @@ using System;
 
 namespace Dafda.Consuming
 {
-    public sealed class MessageRegistration
+    internal sealed class MessageRegistration
     {
         public MessageRegistration(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType)
         {
