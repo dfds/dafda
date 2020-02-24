@@ -5,7 +5,7 @@ namespace Dafda.Configuration
 {
     public sealed class NamingConvention
     {
-        public static readonly NamingConvention Default = new NamingConvention();
+        internal static readonly NamingConvention Default = new NamingConvention();
 
         public static NamingConvention UseCustom(Func<string, string> converter)
         {
