@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Sample.Application
 {
-    internal class TestHandler : IMessageHandler<Test>
+    internal class TestHandler : IMessageHandler<TestEvent>
     {
         private readonly ILogger<TestHandler> _logger;
 
@@ -13,7 +13,7 @@ namespace Sample.Application
             _logger = logger;
         }
 
-        public Task Handle(Test message, MessageHandlerContext context)
+        public Task Handle(TestEvent message, MessageHandlerContext context)
         {
             _logger.LogInformation($@"{this.GetType().Name} handled: {{@Message}}", message);
 
@@ -21,7 +21,7 @@ namespace Sample.Application
         }
     }
 
-    internal class AnotherTestHandler : IMessageHandler<Test>
+    internal class AnotherTestHandler : IMessageHandler<TestEvent>
     {
         private readonly ILogger<TestHandler> _logger;
 
@@ -30,7 +30,7 @@ namespace Sample.Application
             _logger = logger;
         }
 
-        public Task Handle(Test message, MessageHandlerContext context)
+        public Task Handle(TestEvent message, MessageHandlerContext context)
         {
             _logger.LogInformation($@"{this.GetType().Name} handled: {{@Message}}", message);
            

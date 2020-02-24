@@ -55,9 +55,6 @@ namespace Sample
                     // configure main application
                     services.AddHostedService<MainWorker>();
 
-                    // configure the application commands
-                    services.ConfigureCommands(cfg => cfg.Register<TestCommand, TestCommandHandler>());
-
                     // configure persistence (PostgreSQL)
                     services.ConfigurePersistence(configuration["SAMPLE_DATABASE_CONNECTION_STRING"]);
 
@@ -71,7 +68,7 @@ namespace Sample
                         options.WithGroupId("foo");
 
                         // register message handlers
-                        options.RegisterMessageHandler<Test, TestHandler>("test-topic", "test-event");
+                        options.RegisterMessageHandler<TestEvent, TestHandler>("test-topic", "test-event");
                     });
 
                     // configure ANOTHER messaging: consumer
@@ -84,7 +81,7 @@ namespace Sample
                         options.WithGroupId("bar");
 
                         // register message handlers
-                        options.RegisterMessageHandler<Test, AnotherTestHandler>("test-topic", "test-event");
+                        options.RegisterMessageHandler<TestEvent, AnotherTestHandler>("test-topic", "test-event");
                     });
 
                     // configure messaging: producer
@@ -96,7 +93,7 @@ namespace Sample
                         options.WithEnvironmentStyle("SAMPLE_KAFKA");
 
                         // register outgoing messages (includes outbox messages)
-                        options.Register<Test>("test-topic", "test-event", @event => @event.AggregateId);
+                        options.Register<TestEvent>("test-topic", "test-event", @event => @event.AggregateId);
 
                         // include outbox (polling publisher)
                         options.WithOutboxMessageRepository<OutboxMessageRepository>();
