@@ -4,13 +4,13 @@ namespace Dafda.Configuration
     {
         internal static readonly ConfigurationSource Null = new NullConfigurationSource();
 
-        public abstract string GetByKey(string keyName);
+        public abstract string GetByKey(string key);
 
         #region Null Object
 
         private class NullConfigurationSource : ConfigurationSource
         {
-            public override string GetByKey(string keyName)
+            public override string GetByKey(string key)
             {
                 return null;
             }

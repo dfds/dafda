@@ -101,9 +101,9 @@ namespace Dafda.Configuration
                 _configuration = configuration;
             }
 
-            public override string GetByKey(string keyName)
+            public override string GetByKey(string key)
             {
-                return _configuration[keyName];
+                return _configuration[key];
             }
         }
     }

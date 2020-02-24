@@ -13,9 +13,9 @@ namespace Dafda.Tests.TestDoubles
             _configuration = configuration.ToDictionary(x => x.key, x => x.value);
         }
 
-        public override string GetByKey(string keyName)
+        public override string GetByKey(string key)
         {
-            _configuration.TryGetValue(keyName, out var value);
+            _configuration.TryGetValue(key, out var value);
             return value;
         }
     }
