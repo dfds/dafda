@@ -8,10 +8,6 @@
         private string _type;
         private string _value;
 
-        public OutgoingMessageBuilder()
-        {
-        }
-        
         public OutgoingMessageBuilder WithTopic(string topic)
         {
             _topic = topic;
