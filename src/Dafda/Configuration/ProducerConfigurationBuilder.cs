@@ -44,7 +44,13 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ProducerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
+        public ProducerConfigurationBuilder WithNamingConvention(Func<string, string> converter)
+        {
+            _namingConventions.Add(NamingConvention.UseCustom(converter));
+            return this;
+        }
+
+        internal ProducerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
         {
             _namingConventions.Add(namingConvention);
             return this;

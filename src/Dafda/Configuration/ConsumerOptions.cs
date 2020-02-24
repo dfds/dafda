@@ -25,11 +25,10 @@ namespace Dafda.Configuration
             _builder.WithConfigurationSource(new DefaultConfigurationSource(configuration));
         }
 
-        public void WithNamingConvention(NamingConvention namingConvention)
+        public void WithNamingConvention(Func<string, string> converter)
         {
-            _builder.WithNamingConvention(namingConvention);
+            _builder.WithNamingConvention(converter);
         }
-
         public void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
         {
             _builder.WithEnvironmentStyle(prefix, additionalPrefixes);

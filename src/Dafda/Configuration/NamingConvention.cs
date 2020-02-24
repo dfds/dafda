@@ -3,9 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace Dafda.Configuration
 {
-    public sealed class NamingConvention
+    internal sealed class NamingConvention
     {
-        internal static readonly NamingConvention Default = new NamingConvention();
+        public static readonly NamingConvention Default = new NamingConvention();
 
         public static NamingConvention UseCustom(Func<string, string> converter)
         {

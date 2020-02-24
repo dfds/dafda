@@ -49,7 +49,13 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
+        public ConsumerConfigurationBuilder WithNamingConvention(Func<string, string> converter)
+        {
+            _namingConventions.Add(NamingConvention.UseCustom(converter));
+            return this;
+        }
+
+        internal ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
         {
             _namingConventions.Add(namingConvention);
             return this;
