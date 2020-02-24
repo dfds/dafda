@@ -1,19 +1,11 @@
-using System;
 using System.Linq;
 using System.Text.Json;
 
 namespace Dafda.Consuming
 {
-    public interface ITransportLevelMessage
-    {
-        Metadata Metadata { get; }
-
-        object ReadDataAs(Type messageInstanceType);
-    }
-
     public interface IIncomingMessageFactory
     {
-        ITransportLevelMessage Create(string rawMessage);
+        TransportLevelMessage Create(string rawMessage);
     }
 
     internal class JsonIncomingMessageFactory : IIncomingMessageFactory
@@ -23,7 +15,7 @@ namespace Dafda.Consuming
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        public ITransportLevelMessage Create(string rawMessage)
+        public TransportLevelMessage Create(string rawMessage)
         {
             var jsonDocument = JsonDocument.Parse(rawMessage);
 
@@ -37,24 +29,6 @@ namespace Dafda.Consuming
                 .ToDictionary(x => x.Name, x => x.Value.GetString());
 
             return new TransportLevelMessage(new Metadata(metadataProperties), type => JsonSerializer.Deserialize(jsonData, type, JsonSerializerOptions));
-        }
-    }
-
-    public sealed class TransportLevelMessage : ITransportLevelMessage
-    {
-        private readonly Func<Type, object> _deserializer;
-
-        public TransportLevelMessage(Metadata metadata, Func<Type, object> deserializer)
-        {
-            Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
-            _deserializer = deserializer ?? throw new ArgumentNullException(nameof(deserializer));
-        }
-
-        public Metadata Metadata { get; }
-
-        public object ReadDataAs(Type messageInstanceType)
-        {
-            return _deserializer(messageInstanceType);
         }
     }
 }

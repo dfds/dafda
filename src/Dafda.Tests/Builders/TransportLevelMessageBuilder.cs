@@ -28,7 +28,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ITransportLevelMessage Build()
+        public TransportLevelMessage Build()
         {
             return new TransportLevelMessage(_metadata, type => _data);
         }

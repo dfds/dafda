@@ -8,13 +8,13 @@ namespace Dafda.Consuming
         private static readonly Func<Task> EmptyCommitAction = () => Task.CompletedTask;
         private readonly Func<Task> _onCommit;
 
-        public MessageResult(ITransportLevelMessage message, Func<Task> onCommit = null)
+        public MessageResult(TransportLevelMessage message, Func<Task> onCommit = null)
         {
             Message = message;
             _onCommit = onCommit ?? EmptyCommitAction;
         }
 
-        public ITransportLevelMessage Message { get; }
+        public TransportLevelMessage Message { get; }
 
         public async Task Commit()
         {

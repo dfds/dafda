@@ -14,7 +14,7 @@ namespace Dafda.Consuming
             _unitOfWorkFactory = handlerUnitOfWorkFactory ?? throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
         }
 
-        private MessageRegistration GetMessageRegistrationFor(ITransportLevelMessage message)
+        private MessageRegistration GetMessageRegistrationFor(TransportLevelMessage message)
         {
             var messageId = message.Metadata.MessageId;
             var messageType = message.Metadata.Type;
@@ -28,7 +28,7 @@ namespace Dafda.Consuming
             return registration;
         }
 
-        public async Task Dispatch(ITransportLevelMessage message)
+        public async Task Dispatch(TransportLevelMessage message)
         {
             var registration = GetMessageRegistrationFor(message);
 
