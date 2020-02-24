@@ -15,20 +15,18 @@ namespace Dafda.Consuming
 
         public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
         {
-            return new ServiceScopedUnitOfWork(_serviceProvider, handlerType, _serviceProvider.GetRequiredService<ScopedUnitOfWork>());
+            return new ServiceScopedUnitOfWork(_serviceProvider, handlerType);
         }
 
         private class ServiceScopedUnitOfWork : IHandlerUnitOfWork
         {
             private readonly IServiceProvider _serviceProvider;
             private readonly Type _handlerType;
-            private readonly ScopedUnitOfWork _unitOfWork;
 
-            public ServiceScopedUnitOfWork(IServiceProvider serviceProvider, Type handlerType, ScopedUnitOfWork unitOfWork)
+            public ServiceScopedUnitOfWork(IServiceProvider serviceProvider, Type handlerType)
             {
                 _serviceProvider = serviceProvider;
                 _handlerType = handlerType;
-                _unitOfWork = unitOfWork;
             }
 
             public async Task Run(Func<object, Task> handlingAction)
@@ -37,7 +35,7 @@ namespace Dafda.Consuming
                 {
                     var handlerInstance = scope.ServiceProvider.GetRequiredService(_handlerType);
 
-                    await _unitOfWork.ExecuteInScope(scope, () => handlingAction(handlerInstance));
+                    await handlingAction(handlerInstance);
                 }
             }
         }

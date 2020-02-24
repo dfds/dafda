@@ -29,6 +29,7 @@ namespace Dafda.Configuration
         {
             _builder.WithNamingConvention(converter);
         }
+
         public void WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
         {
             _builder.WithEnvironmentStyle(prefix, additionalPrefixes);
@@ -60,16 +61,6 @@ namespace Dafda.Configuration
         }
 
         public void WithUnitOfWorkFactory(Func<IServiceProvider, IHandlerUnitOfWorkFactory> implementationFactory)
-        {
-            _services.AddTransient(implementationFactory);
-        }
-
-        public void WithUnitOfWork<T>() where T : ScopedUnitOfWork
-        {
-            _services.AddTransient<ScopedUnitOfWork, T>();
-        }
-
-        public void WithUnitOfWork(Func<IServiceProvider, ScopedUnitOfWork> implementationFactory)
         {
             _services.AddTransient(implementationFactory);
         }

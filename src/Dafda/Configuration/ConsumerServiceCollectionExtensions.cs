@@ -28,7 +28,6 @@ namespace Dafda.Configuration
             var configurationBuilder = new ConsumerConfigurationBuilder();
             var consumerOptions = new ConsumerOptions(configurationBuilder, services);
             consumerOptions.WithUnitOfWorkFactory<ServiceProviderUnitOfWorkFactory>();
-            consumerOptions.WithUnitOfWork<ScopedUnitOfWork>();
             options?.Invoke(consumerOptions);
             var configuration = configurationBuilder.Build();
 

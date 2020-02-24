@@ -30,7 +30,6 @@ namespace Dafda.Tests.Configuration
             services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
-            services.AddTransient<ScopedUnitOfWork>();
 
             var createCount = 0;
             var disposeCount = 0;
@@ -78,7 +77,6 @@ namespace Dafda.Tests.Configuration
             services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
-            services.AddTransient<ScopedUnitOfWork>();
 
             var createCount = 0;
             var disposeCount = 0;
@@ -126,7 +124,6 @@ namespace Dafda.Tests.Configuration
             services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
-            services.AddTransient<ScopedUnitOfWork>();
 
             var createCount = 0;
             var disposeCount = 0;
@@ -174,7 +171,6 @@ namespace Dafda.Tests.Configuration
             services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
-            services.AddTransient<ScopedUnitOfWork>();
 
             var createCount = 0;
             var disposeCount = 0;

@@ -60,16 +60,15 @@ namespace Dafda.Tests.Configuration
                 .WithTransportLevelMessage(messageStub)
                 .Build();
 
+            var instances = 0;
+            
             var services = new ServiceCollection();
-            services.AddScoped<Scoped>();
+            services.AddScoped<Scoped>(provider => new Scoped(() => ++instances));
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId");
                 options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
-
-                options.WithUnitOfWork<UnitOfWork>();
-
                 options.WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
             });
             var serviceProvider = services.BuildServiceProvider();
@@ -79,7 +78,7 @@ namespace Dafda.Tests.Configuration
             await consumer.ConsumeSingle(CancellationToken.None);
 
             Assert.Equal(dummyMessage, DummyMessageHandler.LastHandledMessage);
-            Assert.Equal(1, Scoped.Instanciated);
+            Assert.Equal(1, instances);
         }
 
         [Fact]
@@ -223,23 +222,11 @@ namespace Dafda.Tests.Configuration
         }
     }
 
-    public class UnitOfWork : ScopedUnitOfWork
-    {
-        public override Task ExecuteInScope(IServiceScope scope, Func<Task> execute)
-        {
-            var scoped = scope.ServiceProvider.GetRequiredService<Scoped>();
-
-            return base.ExecuteInScope(scope, execute);
-        }
-    }
-
     public class Scoped
     {
-        public static int Instanciated { get; set; }
-
-        public Scoped()
+        public Scoped(Action onCreated =null)
         {
-            Instanciated++;
+            onCreated?.Invoke();
         }
     }
 
