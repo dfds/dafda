@@ -47,6 +47,8 @@ namespace Dafda.Consuming
                 {
                     throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
                 }
+                
+                // TODO -- verify that the handler is in fact an implementation of IMessageHandler<registration.MessageInstanceType> to provider sane error messages.
 
                 await ExecuteHandler((dynamic) messageInstance, (dynamic) handler, context);
             });
