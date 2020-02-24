@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Dafda.Outbox;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +18,7 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
-        public TimeSpan DispatchInterval { get; private set; } = TimeSpan.FromSeconds(5);
+        internal TimeSpan DispatchInterval { get; private set; } = TimeSpan.FromSeconds(5);
 
         public void WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -90,7 +89,6 @@ namespace Dafda.Configuration
         {
             DispatchInterval = interval;
         }
-
 
         private class DefaultConfigurationSource : ConfigurationSource
         {
