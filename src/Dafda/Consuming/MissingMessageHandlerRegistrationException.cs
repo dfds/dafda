@@ -4,9 +4,8 @@ namespace Dafda.Consuming
 {
     public sealed class MissingMessageHandlerRegistrationException : Exception
     {
-        public MissingMessageHandlerRegistrationException(string message) : base(message)
+        internal MissingMessageHandlerRegistrationException(string message) : base(message)
         {
-            
         }
     }
 }
