@@ -72,6 +72,9 @@ docs-deploy: ## deploy documentation to github pages
 		squidfunk/mkdocs-material:4.1.2 \
 		gh-deploy --clean --config-file docs/mkdocs.yml
 
+sample:
+	@cd src/sample && dotnet run --build
+
 .PHONY: help
 help:
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
