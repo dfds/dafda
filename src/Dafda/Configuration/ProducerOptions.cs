@@ -1,21 +1,16 @@
 using System;
-using System.Collections.Generic;
-using Dafda.Outbox;
 using Dafda.Producing;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
 {
     public sealed class ProducerOptions
     {
         private readonly ProducerConfigurationBuilder _builder;
-        private readonly IServiceCollection _services;
         private readonly OutgoingMessageRegistry _outgoingMessageRegistry;
 
-        internal ProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, OutgoingMessageRegistry outgoingMessageRegistry)
+        internal ProducerOptions(ProducerConfigurationBuilder builder, OutgoingMessageRegistry outgoingMessageRegistry)
         {
             _builder = builder;
-            _services = services;
             _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
@@ -63,19 +58,6 @@ namespace Dafda.Configuration
         {
             _outgoingMessageRegistry.Register(topic, type, keySelector);
         }
-
-        //public void AddOutbox(Action<IOutboxOptions> config)
-        //{
-        //    var configuration = new OutboxOptions(_services);
-        //    config?.Invoke(configuration);
-
-        //    _services.AddTransient<IOutbox>(provider =>
-        //    {
-        //        var producerConfiguration = provider.GetRequiredService<ProducerConfiguration>();
-        //        var repository = provider.GetRequiredService<IOutboxMessageRepository>();
-        //        return new OutboxMessageCollector(producerConfiguration.MessageIdGenerator, producerConfiguration.OutgoingMessageRegistry, repository);
-        //    });
-        //}
 
         private class DefaultConfigurationSource : ConfigurationSource
         {

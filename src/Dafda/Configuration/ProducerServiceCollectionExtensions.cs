@@ -10,7 +10,7 @@ namespace Dafda.Configuration
         {
             var outgoingMessageRegistry = new OutgoingMessageRegistry();
             var configurationBuilder = new ProducerConfigurationBuilder();
-            var consumerOptions = new ProducerOptions(configurationBuilder, services, outgoingMessageRegistry);
+            var consumerOptions = new ProducerOptions(configurationBuilder, outgoingMessageRegistry);
             options?.Invoke(consumerOptions);
             
             var producerConfiguration = configurationBuilder.Build();
