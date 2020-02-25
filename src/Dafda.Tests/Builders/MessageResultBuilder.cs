@@ -4,7 +4,7 @@ using Dafda.Consuming;
 
 namespace Dafda.Tests.Builders
 {
-    public class MessageResultBuilder
+    internal class MessageResultBuilder
     {
         private TransportLevelMessage _message = new TransportLevelMessageBuilder().WithType("foo").Build();
         private Func<Task> _onCommit;

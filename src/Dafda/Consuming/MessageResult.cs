@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Dafda.Consuming
 {
-    public sealed class MessageResult
+    internal sealed class MessageResult
     {
         private static readonly Func<Task> EmptyCommitAction = () => Task.CompletedTask;
         private readonly Func<Task> _onCommit;
