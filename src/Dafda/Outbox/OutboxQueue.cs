@@ -6,7 +6,7 @@ using Dafda.Producing;
 
 namespace Dafda.Outbox
 {
-    public class OutboxQueue
+    public sealed class OutboxQueue
     {
         private readonly IOutboxMessageRepository _repository;
         private readonly IOutboxNotifier _outboxNotifier;
