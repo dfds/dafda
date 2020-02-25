@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Dafda.Consuming
 {
-    public class Consumer
+    internal class Consumer
     {
         private readonly LocalMessageDispatcher _localMessageDispatcher;
         private readonly IConsumerScopeFactory _consumerScopeFactory;
