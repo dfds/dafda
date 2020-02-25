@@ -4,7 +4,7 @@ using Dafda.Consuming;
 
 namespace Dafda.Tests.TestDoubles
 {
-    public class ConsumerScopeStub : ConsumerScope
+    internal class ConsumerScopeStub : ConsumerScope
     {
         private readonly MessageResult _result;
 

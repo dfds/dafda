@@ -187,23 +187,21 @@ namespace Dafda.Tests.Consuming
                 .WithMessageType("foo")
                 .Build();
 
-            var mock = new Mock<ConsumerScope>();
-            mock
-                .Setup(x => x.GetNext(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(messageResultStub));
+            var spy = new ConsumerScopeSpy(messageResultStub);
 
             var registry = new MessageHandlerRegistry();
             registry.Register(messageRegistrationStub);
             
             var consumer = new ConsumerBuilder()
-                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(spy))
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
 
-            mock.Verify(x => x.Dispose(), Times.Once);
+
+            Assert.Equal(1, spy.Disposed);
         }
 
         [Fact]
@@ -269,25 +267,21 @@ namespace Dafda.Tests.Consuming
             {
                 var loops = 0;
 
-                var mock = new Mock<ConsumerScope>();
-                mock
-                    .Setup(x => x.GetNext(It.IsAny<CancellationToken>()))
-                    .Callback(() =>
-                    {
-                        loops++;
+                var spy = new ConsumerScopeSpy(messageResultStub, () =>
+                {
+                    loops++;
 
-                        if (loops == 2)
-                        {
-                            cancellationTokenSource.Cancel();
-                        }
-                    })
-                    .Returns(Task.FromResult(messageResultStub));
+                    if (loops == 2)
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+                });
 
                 var registry = new MessageHandlerRegistry();
                 registry.Register(messageRegistrationStub);
 
                 var consumer = new ConsumerBuilder()
-                    .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(mock.Object))
+                    .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(spy))
                     .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                     .WithMessageHandlerRegistry(registry)
                     .Build();
@@ -295,14 +289,13 @@ namespace Dafda.Tests.Consuming
                 await consumer.ConsumeAll(cancellationTokenSource.Token);
 
                 Assert.Equal(2, loops);
-
-                mock.Verify(x => x.Dispose(), Times.Once);
+                Assert.Equal(1, spy.Disposed);
             }
         }
 
         #region helper classes
 
-        public class ConsumerScopeDecoratorWithHooks : ConsumerScope
+        private class ConsumerScopeDecoratorWithHooks : ConsumerScope
         {
             private readonly ConsumerScope _inner;
             private readonly Action _preHook;
@@ -336,5 +329,31 @@ namespace Dafda.Tests.Consuming
         }
 
         #endregion
+    }
+
+    internal class ConsumerScopeSpy : ConsumerScope
+    {
+        private readonly MessageResult _messageResult;
+        private readonly Action _onGetNext;
+
+        public ConsumerScopeSpy(MessageResult messageResult, Action onGetNext = null)
+        {
+            _messageResult = messageResult;
+            _onGetNext = onGetNext;
+        }
+
+        public override Task<MessageResult> GetNext(CancellationToken cancellationToken)
+        {
+            _onGetNext?.Invoke();
+
+            return Task.FromResult(_messageResult);
+        }
+
+        public override void Dispose()
+        {
+            Disposed++;
+        }
+
+        public int Disposed { get; private set; }
     }
 }
