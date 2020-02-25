@@ -158,23 +158,21 @@ namespace Dafda.Tests.Consuming
                 .WithMessageType("foo")
                 .Build();
 
-            var mock = new Mock<IConsumerScopeFactory>();
-            mock
-                .Setup(x => x.CreateConsumerScope())
-                .Returns(new ConsumerScopeStub(messageResultStub));
+            var spy = new ConsumerScopeFactorySpy(new ConsumerScopeStub(messageResultStub));
 
             var registry = new MessageHandlerRegistry();
             registry.Register(messageRegistrationStub);
             
             var consumer = new ConsumerBuilder()
-                .WithConsumerScopeFactory(mock.Object)
+                .WithConsumerScopeFactory(spy)
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
 
             await consumer.ConsumeSingle(CancellationToken.None);
 
-            mock.Verify(x => x.CreateConsumerScope(), Times.Once);
+
+            Assert.Equal(1, spy.CreateConsumerScopeCalled);
         }
 
         [Fact]
@@ -237,17 +235,13 @@ namespace Dafda.Tests.Consuming
                     }
                 );
 
-                var mock = new Mock<IConsumerScopeFactory>();
-
-                mock
-                    .Setup(x => x.CreateConsumerScope())
-                    .Returns(subscriberScopeStub);
-
+                var spy = new ConsumerScopeFactorySpy(subscriberScopeStub);
+                    
                 var registry = new MessageHandlerRegistry();
                 registry.Register(messageRegistrationStub);
                 
                 var consumer = new ConsumerBuilder()
-                    .WithConsumerScopeFactory(mock.Object)
+                    .WithConsumerScopeFactory(spy)
                     .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                     .WithMessageHandlerRegistry(registry)
                     .Build();
@@ -255,7 +249,7 @@ namespace Dafda.Tests.Consuming
                 await consumer.ConsumeAll(cancellationTokenSource.Token);
 
                 Assert.Equal(2, loops);
-                mock.Verify(x => x.CreateConsumerScope(), Times.Once);
+                Assert.Equal(1, spy.CreateConsumerScopeCalled);
             }
         }
 

@@ -1,6 +1,6 @@
 namespace Dafda.Consuming
 {
-    public interface IConsumerScopeFactory
+    internal interface IConsumerScopeFactory
     {
         ConsumerScope CreateConsumerScope();
     }

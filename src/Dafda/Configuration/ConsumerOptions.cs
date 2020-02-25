@@ -65,7 +65,7 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        public void WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+        internal void WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
             _builder.WithConsumerScopeFactory(consumerScopeFactory);
         }

@@ -95,7 +95,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ConsumerConfigurationBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;
