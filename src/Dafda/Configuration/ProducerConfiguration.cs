@@ -6,7 +6,7 @@ namespace Dafda.Configuration
 {
     internal class ProducerConfiguration
     {
-        public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, Func<IKafkaProducer> kafkaProducerFactory)
+        public ProducerConfiguration(IDictionary<string, string> configuration, MessageIdGenerator messageIdGenerator, Func<KafkaProducer> kafkaProducerFactory)
         {
             KafkaConfiguration = configuration;
             MessageIdGenerator = messageIdGenerator;
@@ -15,6 +15,6 @@ namespace Dafda.Configuration
 
         public IDictionary<string, string> KafkaConfiguration { get; }
         public MessageIdGenerator MessageIdGenerator { get; }
-        public Func<IKafkaProducer> KafkaProducerFactory { get; }
+        public Func<KafkaProducer> KafkaProducerFactory { get; }
     }
 }

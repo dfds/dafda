@@ -50,7 +50,7 @@ namespace Dafda.Configuration
             _builder.WithBootstrapServers(bootstrapServers);
         }
 
-        internal void WithKafkaProducerFactory(Func<IKafkaProducer> inlineFactory)
+        internal void WithKafkaProducerFactory(Func<KafkaProducer> inlineFactory)
         {
             _builder.WithKafkaProducerFactory(inlineFactory);
         }

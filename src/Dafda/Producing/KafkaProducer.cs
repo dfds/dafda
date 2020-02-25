@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -5,24 +6,18 @@ using Dafda.Logging;
 
 namespace Dafda.Producing
 {
-    internal class KafkaProducer : IKafkaProducer
+    internal class KafkaProducer : IDisposable
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly IProducer<string, string> _innerKafkaProducer;
 
-        public static KafkaProducer Create(IEnumerable<KeyValuePair<string, string>> configuration)
+        public KafkaProducer(IEnumerable<KeyValuePair<string, string>> configuration)
         {
-            var producer = new ProducerBuilder<string, string>(configuration).Build();
-            return new KafkaProducer(producer);
+            _innerKafkaProducer = new ProducerBuilder<string, string>(configuration).Build();
         }
 
-        private KafkaProducer(IProducer<string, string> innerKafkaProducer)
-        {
-            _innerKafkaProducer = innerKafkaProducer;
-        }
-
-        public async Task Produce(OutgoingMessage outgoingMessage)
+        public virtual async Task Produce(OutgoingMessage outgoingMessage)
         {
             try
             {
@@ -49,7 +44,7 @@ namespace Dafda.Producing
             };
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             _innerKafkaProducer?.Dispose();
         }

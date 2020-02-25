@@ -3,21 +3,22 @@ using Dafda.Outbox;
 
 namespace Dafda.Producing
 {
-    internal class Producer : IProducer
+    public sealed class Producer
     {
-        private readonly IKafkaProducer _kafkaProducer;
+        private readonly KafkaProducer _kafkaProducer;
         private readonly OutgoingMessageFactory _outgoingMessageFactory;
 
-        public Producer(IKafkaProducer kafkaProducer, OutgoingMessageRegistry outgoingMessageRegistry, MessageIdGenerator messageIdGenerator)
+        internal Producer(KafkaProducer kafkaProducer, OutgoingMessageRegistry outgoingMessageRegistry, MessageIdGenerator messageIdGenerator)
         {
             _kafkaProducer = kafkaProducer;
             _outgoingMessageFactory = new OutgoingMessageFactory(outgoingMessageRegistry, messageIdGenerator);
         }
 
+        internal string Name { get; set; } = "__Default Producer__";
+        
         public async Task Produce(object message)
         {
             var outgoingMessage = AssembleOutgoingMessage(message);
-
             await _kafkaProducer.Produce(outgoingMessage);
         }
 
@@ -35,11 +36,6 @@ namespace Dafda.Producing
             }
 
             return _outgoingMessageFactory.Create(message);
-        }
-
-        public void Dispose()
-        {
-            _kafkaProducer?.Dispose();
         }
     }
 }

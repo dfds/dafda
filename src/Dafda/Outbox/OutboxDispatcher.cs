@@ -11,9 +11,9 @@ namespace Dafda.Outbox
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly IOutboxUnitOfWorkFactory _unitOfWorkFactory;
-        private readonly IProducer _producer;
+        private readonly Producer _producer;
 
-        public OutboxDispatcher(IOutboxUnitOfWorkFactory unitOfWorkFactory, IProducer producer)
+        public OutboxDispatcher(IOutboxUnitOfWorkFactory unitOfWorkFactory, Producer producer)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
             _producer = producer;

@@ -6,7 +6,7 @@ namespace Dafda.Tests.Builders
     internal class OutboxDispatcherBuilder
     {
         private IOutboxUnitOfWorkFactory _outboxUnitOfWorkFactory;
-        private IProducer _producer;
+        private Producer _producer;
 
         public OutboxDispatcherBuilder With(IOutboxUnitOfWorkFactory outboxUnitOfWorkFactory)
         {
@@ -14,7 +14,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public OutboxDispatcherBuilder With(IProducer producer)
+        public OutboxDispatcherBuilder With(Producer producer)
         {
             _producer = producer;
             return this;

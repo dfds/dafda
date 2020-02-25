@@ -4,11 +4,11 @@ namespace Dafda.Tests.Builders
 {
     internal class ProducerBuilder
     {
-        private IKafkaProducer _kafkaProducer;
+        private KafkaProducer _kafkaProducer;
         private OutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
 
-        public ProducerBuilder With(IKafkaProducer kafkaProducer)
+        public ProducerBuilder With(KafkaProducer kafkaProducer)
         {
             _kafkaProducer = kafkaProducer;
             return this;

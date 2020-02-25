@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,7 +7,7 @@ namespace Dafda.Configuration
 {
     public static class ProducerServiceCollectionExtensions
     {
-        public static void AddProducer(this IServiceCollection services, Action<ProducerOptions> options)
+        public static void AddProducerFor<TClient>(this IServiceCollection services, Action<ProducerOptions> options) where TClient : class
         {
             var outgoingMessageRegistry = new OutgoingMessageRegistry();
             var configurationBuilder = new ProducerConfigurationBuilder();
@@ -15,13 +16,31 @@ namespace Dafda.Configuration
             
             var producerConfiguration = configurationBuilder.Build();
 
-            services.AddSingleton<IProducer>(provider =>
-            {
-                var messageIdGenerator = producerConfiguration.MessageIdGenerator;
-                var kafkaProducer = producerConfiguration.KafkaProducerFactory();
+            var factory = AddOrGetRegisteredProducerFactory(services);
+            factory.ConfigureProducerFor<TClient>(producerConfiguration, outgoingMessageRegistry);
 
-                return new Producer(kafkaProducer, outgoingMessageRegistry, messageIdGenerator);
+            services.AddTransient<TClient>(provider =>
+            {
+                var producer = factory.GetFor<TClient>();
+                return ActivatorUtilities.CreateInstance<TClient>(provider, producer);
             });
+        }
+
+        private static ProducerFactory AddOrGetRegisteredProducerFactory(IServiceCollection services)
+        {
+            var factory = services
+                .Where(x => x.ServiceType == typeof(ProducerFactory))
+                .Select(x => x.ImplementationInstance)
+                .Cast<ProducerFactory>()
+                .SingleOrDefault();
+
+            if (factory == null)
+            {
+                factory = new ProducerFactory();
+                services.AddSingleton(factory);
+            }
+
+            return factory;
         }
     }
 }

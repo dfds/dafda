@@ -32,7 +32,7 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
-        private Func<IKafkaProducer> _kafkaProducerFactory;
+        private Func<KafkaProducer> _kafkaProducerFactory;
 
         internal ProducerConfigurationBuilder()
         {
@@ -85,7 +85,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<IKafkaProducer> inlineFactory)
+        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<KafkaProducer> inlineFactory)
         {
             _kafkaProducerFactory = inlineFactory;
             return this;
@@ -103,7 +103,7 @@ namespace Dafda.Configuration
 
             if (_kafkaProducerFactory == null)
             {
-                _kafkaProducerFactory = () => KafkaProducer.Create(_configurations);
+                _kafkaProducerFactory = () => new KafkaProducer(_configurations);
             }
 
             return new ProducerConfiguration(
