@@ -16,7 +16,7 @@ namespace Dafda.Consuming
 
             var dataProperty = jsonDocument.RootElement.GetProperty(MessageEnvelopeProperties.Data);
             var jsonData = dataProperty.GetRawText();
-
+            
             var metadataProperties = jsonDocument
                 .RootElement
                 .EnumerateObject()

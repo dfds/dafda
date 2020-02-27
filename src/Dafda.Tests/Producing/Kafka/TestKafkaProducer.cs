@@ -1,32 +1,54 @@
-using Dafda.Producing;
+using System.Threading.Tasks;
+using Dafda.Tests.Builders;
+using Dafda.Tests.TestDoubles;
 using Xunit;
 
 namespace Dafda.Tests.Producing.Kafka
 {
     public class TestKafkaProducer
     {
-        private static OutgoingMessageBuilder EmptyOutgoingMessage =>
-            new OutgoingMessageBuilder()
-                .WithTopic("")
-                .WithMessageId("")
-                .WithKey("")
-                .WithValue("")
-                .WithType("");
-
         [Fact]
-        public void Message_has_expected_key()
+        public async Task produces_to_expected_topic()
         {
-            var message = KafkaProducer.PrepareOutgoingMessage(EmptyOutgoingMessage.WithKey("dummyKey"));
+            var spy = new KafkaProducerSpy();
 
-            Assert.Equal("dummyKey", message.Key);
+            var expected = "foo topic name";
+
+            var payloadStub = new PayloadDescriptorBuilder()
+                .WithTopicName(expected)
+                .Build();
+
+            await spy.Produce(payloadStub);
+
+            Assert.Equal(expected, spy.Topic);
         }
 
         [Fact]
-        public void Message_has_expected_value()
+        public async Task produces_message_with_expected_key()
         {
-            var message = KafkaProducer.PrepareOutgoingMessage(EmptyOutgoingMessage.WithValue("dummyMessage"));
+            var spy = new KafkaProducerSpy();
 
-            Assert.Equal("dummyMessage", message.Value);
+            var expected = "foo partition key";
+            
+            var payloadStub = new PayloadDescriptorBuilder()
+                .WithPartitionKey(expected)
+                .Build();
+
+            await spy.Produce(payloadStub);
+
+            Assert.Equal(expected, spy.Key);
+        }
+
+        [Fact]
+        public async Task produces_message_with_expected_value()
+        {
+            var expected = "foo value 123";
+            var spy = new KafkaProducerSpy(new PayloadSerializerStub(expected));
+
+            var payloadStub = new PayloadDescriptorBuilder().Build();
+            await spy.Produce(payloadStub);
+
+            Assert.Equal(expected, spy.Value);
         }
     }
 }

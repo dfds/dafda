@@ -7,19 +7,28 @@ namespace Dafda.Tests.TestDoubles
 {
     internal class KafkaProducerSpy : KafkaProducer
     {
-        public KafkaProducerSpy() : this(Enumerable.Empty<KeyValuePair<string, string>>())
+        public KafkaProducerSpy() : base(Enumerable.Empty<KeyValuePair<string, string>>())
         {
             
         }
 
-        public KafkaProducerSpy(IEnumerable<KeyValuePair<string, string>> configuration) : base(configuration)
+        public KafkaProducerSpy(IPayloadSerializer payloadSerializer) 
+            : this(Enumerable.Empty<KeyValuePair<string, string>>(), payloadSerializer)
+        {
+            
+        }
+
+        public KafkaProducerSpy(IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer) : base(configuration, payloadSerializer)
         {
 
         }
 
-        public override Task Produce(OutgoingMessage outgoingMessage)
+        internal override Task InternalProduce(string topic, string key, string value)
         {
-            LastMessage = outgoingMessage;
+            Topic = topic;
+            Key = key;
+            Value = value;
+
             return Task.CompletedTask;
         }
 
@@ -29,7 +38,10 @@ namespace Dafda.Tests.TestDoubles
             WasDisposed = true;
         }
 
-        public OutgoingMessage LastMessage { get; private set; }
         public bool WasDisposed { get; private set; }
+
+        public string Topic { get; private set; }
+        public string Key { get; private set; }
+        public string Value { get; private set; }
     }
 }

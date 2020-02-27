@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dafda.Configuration;
 using Dafda.Outbox;
 using Dafda.Producing;
 
@@ -9,6 +10,7 @@ namespace Dafda.Tests.Builders
     {
         private OutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
         private IOutboxMessageRepository _outboxMessageRepository = new DummyOutboxMessageRepository();
+        private IPayloadSerializer _payloadSerializer = new DefaultPayloadSerializer();
 
         public OutboxQueueBuilder With(OutgoingMessageRegistry outgoingMessageRegistry)
         {
@@ -22,9 +24,21 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public OutboxQueueBuilder With(IPayloadSerializer payloadSerializer)
+        {
+            _payloadSerializer = payloadSerializer;
+            return this;
+        }
+
         public OutboxQueue Build()
         {
-            return new OutboxQueue(MessageIdGenerator.Default, _outgoingMessageRegistry, _outboxMessageRepository, new NullOutboxNotifier());
+            return new OutboxQueue(
+                messageIdGenerator: MessageIdGenerator.Default,
+                outgoingMessageRegistry: _outgoingMessageRegistry,
+                repository: _outboxMessageRepository,
+                outboxNotifier: new NullOutboxNotifier(),
+                serializerRegistry: new TopicPayloadSerializerRegistry(() => _payloadSerializer)
+            );
         }
 
         public static implicit operator OutboxQueue(OutboxQueueBuilder builder)
@@ -47,5 +61,4 @@ namespace Dafda.Tests.Builders
             }
         }
     }
-
 }

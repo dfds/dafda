@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Dafda.Configuration;
 using Dafda.Producing;
 
 namespace Dafda.Outbox
@@ -10,39 +10,51 @@ namespace Dafda.Outbox
     {
         private readonly IOutboxMessageRepository _repository;
         private readonly IOutboxNotifier _outboxNotifier;
-        private readonly OutgoingMessageFactory _outgoingMessageFactory;
+        private readonly TopicPayloadSerializerRegistry _serializerRegistry;
+        private readonly PayloadDescriptorFactory _payloadDescriptorFactory;
 
-        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository, IOutboxNotifier outboxNotifier)
+        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository, IOutboxNotifier outboxNotifier, TopicPayloadSerializerRegistry serializerRegistry)
         {
             _repository = repository;
             _outboxNotifier = outboxNotifier;
-            _outgoingMessageFactory = new OutgoingMessageFactory(outgoingMessageRegistry, messageIdGenerator);
+            _serializerRegistry = serializerRegistry;
+            _payloadDescriptorFactory = new PayloadDescriptorFactory(outgoingMessageRegistry, messageIdGenerator);
         }
 
-        public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> events)
+        public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> messages)
         {
-            var outboxMessages = events
-                .Select(CreateOutboxMessage)
-                .ToArray();
+            var outboxMessages = new LinkedList<OutboxMessage>();
+
+            foreach (var @event in messages)
+            {
+                var message = await CreateOutboxMessage(@event);
+                outboxMessages.AddLast(message);
+            }
 
             await _repository.Add(outboxMessages);
 
             return _outboxNotifier;
         }
 
-        private OutboxMessage CreateOutboxMessage(object @event)
+        private async Task<OutboxMessage> CreateOutboxMessage(object message)
         {
-            var outgoingMessage = _outgoingMessageFactory.Create(@event);
+            var payloadDescriptor = _payloadDescriptorFactory.Create(message, new Dictionary<string, object>());
 
-            var messageId = outgoingMessage.MessageId;
+            var messageId = Guid.Parse(payloadDescriptor.MessageId);
             var correlationId = Guid.NewGuid().ToString();
-            var topic = outgoingMessage.Topic;
-            var key = outgoingMessage.Key;
-            var type = outgoingMessage.Type;
-            var format = "application/json";
-            var data = outgoingMessage.Value;
 
-            return new OutboxMessage(Guid.Parse(messageId), correlationId, topic, key, type, format, data, DateTime.UtcNow);
+            var payloadSerializer = _serializerRegistry.Get(payloadDescriptor.TopicName);
+
+            return new OutboxMessage(
+                messageId: messageId,
+                correlationId: correlationId,
+                topic: payloadDescriptor.TopicName,
+                key: payloadDescriptor.PartitionKey,
+                type: payloadDescriptor.MessageType,
+                format: payloadSerializer.PayloadFormat,
+                data: await payloadSerializer.Serialize(payloadDescriptor),
+                occurredOnUtc: DateTime.UtcNow
+            );
         }
     }
 }

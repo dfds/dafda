@@ -35,7 +35,6 @@ namespace Dafda.Tests.Configuration
             {
                 options.WithBootstrapServers("dummy");
                 options.WithKafkaProducerFactory(() => spy);
-                options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => "qux"));
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
             });
 
@@ -46,10 +45,8 @@ namespace Dafda.Tests.Configuration
 
             await producer.Produce(new DummyMessage());
 
-            Assert.Equal("foo", spy.LastMessage.Topic);
-            Assert.Equal("qux", spy.LastMessage.MessageId);
-            Assert.Equal("bar", spy.LastMessage.Type);
-            Assert.Equal("baz", spy.LastMessage.Key);
+            Assert.Equal("foo", spy.Topic);
+            Assert.Equal("baz", spy.Key);
         }
 
         [Fact]

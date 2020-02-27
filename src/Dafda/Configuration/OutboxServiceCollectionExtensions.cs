@@ -16,19 +16,13 @@ namespace Dafda.Configuration
             options?.Invoke(outboxOptions);
             var configuration = outboxOptions.Build();
 
-            services.AddTransient(provider =>
-            {
-                var messageIdGenerator = configuration.MessageIdGenerator;
-                var outboxMessageRepository = provider.GetRequiredService<IOutboxMessageRepository>();
-                var outboxNotifier = configuration.Notifier;
-
-                return new OutboxQueue(
-                    messageIdGenerator,
-                    outgoingMessageRegistry,
-                    outboxMessageRepository,
-                    outboxNotifier
-                );
-            });
+            services.AddTransient(provider => new OutboxQueue(
+                configuration.MessageIdGenerator,
+                outgoingMessageRegistry,
+                provider.GetRequiredService<IOutboxMessageRepository>(),
+                configuration.Notifier,
+                configuration.TopicPayloadSerializerRegistry
+            ));
         }
 
         public static void AddOutboxProducer(this IServiceCollection services, Action<OutboxProducerOptions> options)

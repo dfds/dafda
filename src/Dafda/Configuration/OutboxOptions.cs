@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Dafda.Outbox;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,7 @@ namespace Dafda.Configuration
     {
         private readonly IServiceCollection _services;
         private readonly OutgoingMessageRegistry _outgoingMessageRegistry;
+        private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => new DefaultPayloadSerializer());
 
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private IOutboxNotifier _notifier = new DoNotNotify();
@@ -44,9 +46,29 @@ namespace Dafda.Configuration
             _notifier = notifier;
         }
 
+        public void WithDefaultPayloadSerializer(IPayloadSerializer payloadSerializer)
+        {
+            WithDefaultPayloadSerializer(() => payloadSerializer);
+        }
+
+        public void WithDefaultPayloadSerializer(Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _topicPayloadSerializerRegistry.SetDefaultPayloadSerializer(payloadSerializerFactory);
+        }
+
+        public void WithPayloadSerializer(string topic, IPayloadSerializer payloadSerializer)
+        {
+            WithPayloadSerializer(topic, () => payloadSerializer);
+        }
+
+        public void WithPayloadSerializer(string topic, Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _topicPayloadSerializerRegistry.Register(topic, payloadSerializerFactory);
+        }
+
         internal OutboxConfiguration Build()
         {
-            return new OutboxConfiguration(_messageIdGenerator, _notifier);
+            return new OutboxConfiguration(_messageIdGenerator, _notifier, _topicPayloadSerializerRegistry);
         }
 
         private class DoNotNotify : IOutboxNotifier
@@ -54,6 +76,37 @@ namespace Dafda.Configuration
             public void Notify()
             {
             }
+        }
+    }
+
+    internal sealed class TopicPayloadSerializerRegistry
+    {
+        private readonly Dictionary<string, Func<IPayloadSerializer>> _serializerFactories = new Dictionary<string, Func<IPayloadSerializer>>();
+        private Func<IPayloadSerializer> _defaultPayloadSerializerFactory;
+
+        public TopicPayloadSerializerRegistry(Func<IPayloadSerializer> defaultPayloadSerializerFactory)
+        {
+            _defaultPayloadSerializerFactory = defaultPayloadSerializerFactory;
+        }
+
+        public void Register(string topic, Func<IPayloadSerializer> serializerFactory)
+        {
+            _serializerFactories.Add(topic, serializerFactory);
+        }
+
+        public void SetDefaultPayloadSerializer(Func<IPayloadSerializer> factory)
+        {
+            _defaultPayloadSerializerFactory = factory;
+        }
+
+        public IPayloadSerializer Get(string topic)
+        {
+            if (_serializerFactories.TryGetValue(topic, out var factory))
+            {
+                return factory();
+            }
+
+            return _defaultPayloadSerializerFactory();
         }
     }
 }

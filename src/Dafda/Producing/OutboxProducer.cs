@@ -14,19 +14,7 @@ namespace Dafda.Producing
 
         public async Task Produce(OutboxMessage message)
         {
-            var outgoingMessage = BuildOutgoingMessage(message);
-            await _kafkaProducer.Produce(outgoingMessage);
-        }
-
-        private static OutgoingMessage BuildOutgoingMessage(OutboxMessage message)
-        {
-            return new OutgoingMessageBuilder()
-                .WithTopic(message.Topic)
-                .WithMessageId(message.MessageId.ToString())
-                .WithKey(message.Key)
-                .WithValue(message.Data)
-                .WithType(message.Type)
-                .Build();
+            await _kafkaProducer.InternalProduce(message.Topic, message.Key, message.Data);
         }
     }
 }

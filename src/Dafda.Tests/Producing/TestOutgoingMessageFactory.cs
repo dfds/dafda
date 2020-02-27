@@ -27,7 +27,7 @@ namespace Dafda.Tests.Producing
 
             await sut.Produce(new DummyMessage(dummyAggregateId));
 
-            Assert.Equal($@"{{""messageId"":""{dummyMessageId}"",""type"":""{DummyType}"",""data"":{{""aggregateId"":""{dummyAggregateId}""}}}}", spy.LastMessage.Value);
+            Assert.Equal($@"{{""messageId"":""{dummyMessageId}"",""type"":""{DummyType}"",""data"":{{""aggregateId"":""{dummyAggregateId}""}}}}", spy.Value);
         }
 
         private class DummyMessage

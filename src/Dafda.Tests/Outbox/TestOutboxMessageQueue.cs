@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Dafda.Tests.Outbox
 {
-    public class TestOutboxMessageCollector
+    public class TestOutboxMessageQueue
     {
         [Fact]
         public async Task Fails_for_unregistered_outgoing_messages()

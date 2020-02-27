@@ -21,11 +21,15 @@ namespace Dafda.Outbox
         {
         }
 
-        public Guid MessageId { get; private set; }
+        [Obsolete]
         public string CorrelationId { get; private set; }
+
+        [Obsolete]
+        public string Type { get; private set; }
+
+        public Guid MessageId { get; private set; }
         public string Topic { get; private set; }
         public string Key { get; private set; }
-        public string Type { get; private set; }
         public string Format { get; private set; }
         public string Data { get; private set; }
         public DateTime OccurredOnUtc { get; private set; }
