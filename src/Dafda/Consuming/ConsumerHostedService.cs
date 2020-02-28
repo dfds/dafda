@@ -21,6 +21,11 @@ namespace Dafda.Consuming
             _groupId = groupId;
         }
 
+        public Task ConsumeAll(CancellationToken stoppingToken)
+        {
+            return _consumer.ConsumeAll(stoppingToken);
+        }
+
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             return Task.Run(async () =>
@@ -28,7 +33,7 @@ namespace Dafda.Consuming
                 try
                 {
                     _logger.LogDebug("ConsumerHostedService [{GroupId}] started", _groupId);
-                    await _consumer.ConsumeAll(stoppingToken);
+                    await ConsumeAll(stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
