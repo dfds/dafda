@@ -16,8 +16,6 @@ namespace Dafda.Configuration
             _builder = builder;
         }
 
-        internal TimeSpan DispatchInterval { get; private set; } = TimeSpan.FromSeconds(5);
-
         public void WithConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _builder.WithConfigurationSource(new DefaultConfigurationSource(configuration));
@@ -63,9 +61,9 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        public void WithDispatchInterval(TimeSpan interval)
+        public void WithNotification(Func<IServiceProvider, IOutboxNotification> implementationFactory)
         {
-            DispatchInterval = interval;
+            _services.AddTransient(implementationFactory);
         }
 
         private class DefaultConfigurationSource : ConfigurationSource

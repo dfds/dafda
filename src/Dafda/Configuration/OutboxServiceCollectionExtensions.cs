@@ -12,17 +12,22 @@ namespace Dafda.Configuration
         {
             var outgoingMessageRegistry = new OutgoingMessageRegistry();
 
-            var outboxProducerOptions = new OutboxOptions(services, outgoingMessageRegistry);
-            options?.Invoke(outboxProducerOptions);
-            var producerConfiguration = outboxProducerOptions.Build();
+            var outboxOptions = new OutboxOptions(services, outgoingMessageRegistry);
+            options?.Invoke(outboxOptions);
+            var configuration = outboxOptions.Build();
 
-            var outboxWaiter = new OutboxNotification(outboxProducerOptions.DispatchInterval);
-
-            services.AddTransient<OutboxQueue>(provider =>
+            services.AddTransient(provider =>
             {
-                var messageIdGenerator = producerConfiguration.MessageIdGenerator;
+                var messageIdGenerator = configuration.MessageIdGenerator;
                 var outboxMessageRepository = provider.GetRequiredService<IOutboxMessageRepository>();
-                return new OutboxQueue(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository, outboxWaiter);
+                var outboxNotifier = provider.GetRequiredService<IOutboxNotifier>();
+
+                return new OutboxQueue(
+                    messageIdGenerator,
+                    outgoingMessageRegistry,
+                    outboxMessageRepository,
+                    outboxNotifier
+                );
             });
         }
 
@@ -31,20 +36,20 @@ namespace Dafda.Configuration
             var builder = new ProducerConfigurationBuilder();
             var outboxProducerOptions = new OutboxProducerOptions(builder, services);
             options?.Invoke(outboxProducerOptions);
-            var producerConfiguration = builder.Build();
+            var configuration = builder.Build();
 
-            var outboxWaiter = new OutboxNotification(outboxProducerOptions.DispatchInterval);
 
             services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
             {
-                var kafkaProducer = producerConfiguration.KafkaProducerFactory();
-                
+                var outboxUnitOfWorkFactory = provider.GetRequiredService<IOutboxUnitOfWorkFactory>();
+                var kafkaProducer = configuration.KafkaProducerFactory();
                 var producer = new OutboxProducer(kafkaProducer);
-                
+                var outboxNotification = provider.GetRequiredService<IOutboxNotification>();
+
                 return new OutboxDispatcherHostedService(
-                    unitOfWorkFactory: provider.GetRequiredService<IOutboxUnitOfWorkFactory>(),
-                    producer: producer,
-                    outboxNotification: outboxWaiter
+                    outboxUnitOfWorkFactory,
+                    producer,
+                    outboxNotification
                 );
             });
         }

@@ -20,6 +20,7 @@ namespace Dafda.Tests.Configuration
             var spy = new KafkaProducerSpy();
             var services = new ServiceCollection();
             var fake = new FakeOutboxPersistence();
+            var dummyNotification = new DummyNotification();
             var messageId = Guid.NewGuid().ToString();
 
             services.AddLogging();
@@ -29,33 +30,36 @@ namespace Dafda.Tests.Configuration
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
                 options.WithOutboxMessageRepository(serviceProvider => fake);
+                options.WithNotifier(serviceProvider => dummyNotification);
             });
             services.AddOutboxProducer(options =>
             {
                 options.WithBootstrapServers("localhost");
                 options.WithKafkaProducerFactory(() => spy);
                 options.WithUnitOfWorkFactory(serviceProvider => fake);
+                options.WithNotification(serviceProvider => dummyNotification);
             });
 
             var provider = services.BuildServiceProvider();
             var outbox = provider.GetRequiredService<OutboxQueue>();
 
-            await outbox.Enqueue(new[] {new DummyMessage(),});
+            await outbox.Enqueue(new[] {new DummyMessage()});
 
             var pollingPublisher = provider
                 .GetServices<IHostedService>()
-                .Where(x => x is OutboxDispatcherHostedService)
-                .Cast<OutboxDispatcherHostedService>()
+                .OfType<OutboxDispatcherHostedService>()
                 .First();
 
             using (var cts = new CancellationTokenSource())
             {
-                cts.CancelAfter(500);
+                cts.CancelAfter(10);
 
-                await pollingPublisher.ProcessUnpublishedOutboxMessages(cts.Token);
+                pollingPublisher.ProcessOutbox(cts.Token);
             }
 
             Assert.True(fake.OutboxMessages.All(x => x.ProcessedUtc.HasValue));
+
+            Assert.True(fake.Committed);
 
             Assert.Equal("foo", spy.LastMessage.Topic);
             Assert.Equal(messageId, spy.LastMessage.MessageId);
@@ -66,6 +70,17 @@ namespace Dafda.Tests.Configuration
 
         public class DummyMessage
         {
+        }
+
+        private class DummyNotification : IOutboxNotification
+        {
+            public void Notify()
+            {
+            }
+
+            public void Wait()
+            {
+            }
         }
     }
 }

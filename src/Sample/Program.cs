@@ -1,5 +1,6 @@
 ﻿using System;
 using Dafda.Configuration;
+using Dafda.Outbox;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -84,6 +85,8 @@ namespace Sample
                         options.RegisterMessageHandler<TestEvent, AnotherTestHandler>("test-topic", "test-event");
                     });
 
+                    services.AddSingleton(provider => new OutboxNotification(TimeSpan.FromSeconds(5)));
+
                     // configure messaging: producer
                     services.AddOutbox(options =>
                     {
@@ -92,8 +95,9 @@ namespace Sample
 
                         // include outbox persistence
                         options.WithOutboxMessageRepository<OutboxMessageRepository>();
-                        options.WithDispatchInterval(TimeSpan.FromSeconds(10));
+                        options.WithNotifier(provider => provider.GetRequiredService<OutboxNotification>());
                     });
+
                     services.AddOutboxProducer(options =>
                     {
                         // configuration settings
@@ -102,8 +106,8 @@ namespace Sample
                         options.WithEnvironmentStyle("SAMPLE_KAFKA");
 
                         // include outbox (polling publisher)
-                        options.WithDispatchInterval(TimeSpan.FromSeconds(10));
                         options.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
+                        options.WithNotification(provider => provider.GetRequiredService<OutboxNotification>());
                     });
                 });
         }

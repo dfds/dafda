@@ -18,8 +18,6 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry = outgoingMessageRegistry;
         }
 
-        internal TimeSpan DispatchInterval { get; private set; } = TimeSpan.FromSeconds(5);
-
         public void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
         {
             _messageIdGenerator = messageIdGenerator;
@@ -40,9 +38,9 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        public void WithDispatchInterval(TimeSpan interval)
+        public void WithNotifier(Func<IServiceProvider, IOutboxNotifier> implementationFactory)
         {
-            DispatchInterval = interval;
+            _services.AddTransient(implementationFactory);
         }
 
         internal OutboxConfiguration Build()

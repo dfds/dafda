@@ -19,36 +19,35 @@ namespace Dafda.Producing
             _outboxDispatcher = new OutboxDispatcher(unitOfWorkFactory, producer);
         }
 
-        public Task ProcessUnpublishedOutboxMessages(CancellationToken stoppingToken)
-        {
-            return _outboxDispatcher.Dispatch(stoppingToken);
-        }
-
         private void ThreadProc()
         {
             try
             {
-                while (!_cancellationTokenSource.IsCancellationRequested)
-                {
-                    ProcessUnpublishedOutboxMessages(_cancellationTokenSource.Token).Wait();
-                    _outboxNotification.Wait();
-                }
+                ProcessOutbox(_cancellationTokenSource.Token);
             }
             catch (ThreadAbortException)
             {
-                
             }
         }
-        
+
+        public void ProcessOutbox(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                _outboxDispatcher.Dispatch(cancellationToken).Wait(cancellationToken);
+                _outboxNotification.Wait();
+            }
+        }
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            
+
             _thread = new Thread(ThreadProc);
             _thread.IsBackground = true;
 
             _thread.Start();
-            
+
             return Task.CompletedTask;
         }
 
@@ -61,7 +60,7 @@ namespace Dafda.Producing
         private void Stop()
         {
             _cancellationTokenSource?.Cancel();
-            
+
             _outboxNotification.Notify();
             _thread?.Join();
             _thread = null;
