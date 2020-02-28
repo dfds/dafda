@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Dafda.Configuration
 {
-    public static class OutboxProducerServiceCollectionExtensions
+    public static class OutboxServiceCollectionExtensions
     {
         public static void AddOutbox(this IServiceCollection services, Action<OutboxProducerOptions> options)
         {
