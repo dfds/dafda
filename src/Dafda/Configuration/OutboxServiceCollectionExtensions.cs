@@ -8,13 +8,13 @@ namespace Dafda.Configuration
 {
     public static class OutboxServiceCollectionExtensions
     {
-        public static void AddOutbox(this IServiceCollection services, Action<OutboxProducerOptions> options)
+        public static void AddOutbox(this IServiceCollection services, Action<OutboxOptions> options)
         {
             var outgoingMessageRegistry = new OutgoingMessageRegistry();
-            var configurationBuilder = new ProducerConfigurationBuilder();
-            var outboxProducerOptions = new OutboxProducerOptions(configurationBuilder, services, outgoingMessageRegistry);
+
+            var outboxProducerOptions = new OutboxOptions(services, outgoingMessageRegistry);
             options?.Invoke(outboxProducerOptions);
-            var producerConfiguration = configurationBuilder.Build();
+            var producerConfiguration = outboxProducerOptions.Build();
 
             var outboxWaiter = new OutboxNotification(outboxProducerOptions.DispatchInterval);
 
@@ -24,14 +24,23 @@ namespace Dafda.Configuration
                 var outboxMessageRepository = provider.GetRequiredService<IOutboxMessageRepository>();
                 return new OutboxQueue(messageIdGenerator, outgoingMessageRegistry, outboxMessageRepository, outboxWaiter);
             });
+        }
+
+        public static void AddOutboxProducer(this IServiceCollection services, Action<OutboxProducerOptions> options)
+        {
+            var builder = new ProducerConfigurationBuilder();
+            var outboxProducerOptions = new OutboxProducerOptions(builder, services);
+            options?.Invoke(outboxProducerOptions);
+            var producerConfiguration = builder.Build();
+
+            var outboxWaiter = new OutboxNotification(outboxProducerOptions.DispatchInterval);
 
             services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
             {
-                var messageIdGenerator = producerConfiguration.MessageIdGenerator;
                 var kafkaProducer = producerConfiguration.KafkaProducerFactory();
-
+                
                 var producer = new OutboxProducer(kafkaProducer);
-
+                
                 return new OutboxDispatcherHostedService(
                     unitOfWorkFactory: provider.GetRequiredService<IOutboxUnitOfWorkFactory>(),
                     producer: producer,

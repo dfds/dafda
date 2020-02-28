@@ -25,15 +25,16 @@ namespace Dafda.Tests.Configuration
             services.AddLogging();
             services.AddOutbox(options =>
             {
-                options.WithBootstrapServers("localhost");
-                options.WithKafkaProducerFactory(() => spy);
-
                 options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => messageId));
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
                 options.WithOutboxMessageRepository(serviceProvider => fake);
+            });
+            services.AddOutboxProducer(options =>
+            {
+                options.WithBootstrapServers("localhost");
+                options.WithKafkaProducerFactory(() => spy);
                 options.WithUnitOfWorkFactory(serviceProvider => fake);
-
             });
 
             var provider = services.BuildServiceProvider();

@@ -9,25 +9,23 @@ namespace Dafda.Configuration
     {
         private readonly ProducerConfigurationBuilder _builder;
         private readonly IServiceCollection _services;
-        private readonly OutgoingMessageRegistry _outgoingMessageRegistry;
 
-        internal OutboxProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services, OutgoingMessageRegistry outgoingMessageRegistry)
+        internal OutboxProducerOptions(ProducerConfigurationBuilder builder, IServiceCollection services)
         {
-            _builder = builder;
             _services = services;
-            _outgoingMessageRegistry = outgoingMessageRegistry;
+            _builder = builder;
         }
 
         internal TimeSpan DispatchInterval { get; private set; } = TimeSpan.FromSeconds(5);
 
-        public void WithConfigurationSource(ConfigurationSource configurationSource)
-        {
-            _builder.WithConfigurationSource(configurationSource);
-        }
-
         public void WithConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _builder.WithConfigurationSource(new DefaultConfigurationSource(configuration));
+        }
+
+        public void WithConfigurationSource(ConfigurationSource configurationSource)
+        {
+            _builder.WithConfigurationSource(configurationSource);
         }
 
         public void WithNamingConvention(Func<string, string> converter)
@@ -53,26 +51,6 @@ namespace Dafda.Configuration
         internal void WithKafkaProducerFactory(Func<KafkaProducer> inlineFactory)
         {
             _builder.WithKafkaProducerFactory(inlineFactory);
-        }
-
-        public void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
-        {
-            _builder.WithMessageIdGenerator(messageIdGenerator);
-        }
-
-        public void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class
-        {
-            _outgoingMessageRegistry.Register(topic, type, keySelector);
-        }
-
-        public void WithOutboxMessageRepository<T>() where T : class, IOutboxMessageRepository
-        {
-            _services.AddTransient<IOutboxMessageRepository, T>();
-        }
-
-        public void WithOutboxMessageRepository(Func<IServiceProvider, IOutboxMessageRepository> implementationFactory)
-        {
-            _services.AddTransient(implementationFactory);
         }
 
         public void WithUnitOfWorkFactory<T>() where T : class, IOutboxUnitOfWorkFactory

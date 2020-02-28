@@ -87,16 +87,21 @@ namespace Sample
                     // configure messaging: producer
                     services.AddOutbox(options =>
                     {
+                        // register outgoing messages (includes outbox messages)
+                        options.Register<TestEvent>("test-topic", "test-event", @event => @event.AggregateId);
+
+                        // include outbox persistence
+                        options.WithOutboxMessageRepository<OutboxMessageRepository>();
+                        options.WithDispatchInterval(TimeSpan.FromSeconds(10));
+                    });
+                    services.AddOutboxProducer(options =>
+                    {
                         // configuration settings
                         options.WithConfigurationSource(configuration);
                         options.WithEnvironmentStyle("DEFAULT_KAFKA");
                         options.WithEnvironmentStyle("SAMPLE_KAFKA");
 
-                        // register outgoing messages (includes outbox messages)
-                        options.Register<TestEvent>("test-topic", "test-event", @event => @event.AggregateId);
-
                         // include outbox (polling publisher)
-                        options.WithOutboxMessageRepository<OutboxMessageRepository>();
                         options.WithDispatchInterval(TimeSpan.FromSeconds(10));
                         options.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
                     });
