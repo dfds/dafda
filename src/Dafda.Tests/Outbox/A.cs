@@ -6,7 +6,7 @@ namespace Dafda.Tests.Outbox
     {
         public static OutboxQueueBuilder OutboxQueue => new OutboxQueueBuilder();
         public static OutgoingMessageRegistryBuilder OutgoingMessageRegistry => new OutgoingMessageRegistryBuilder();
-        public static ProducerBuilder Producer => new ProducerBuilder();
+        public static OutboxProducerBuilder OutboxProducer => new OutboxProducerBuilder();
         public static OutboxDispatcherBuilder OutboxDispatcher => new OutboxDispatcherBuilder();
         public static OutboxMessageBuilder OutboxMessage => new OutboxMessageBuilder();
     }

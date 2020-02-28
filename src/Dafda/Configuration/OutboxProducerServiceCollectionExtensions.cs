@@ -30,7 +30,7 @@ namespace Dafda.Configuration
                 var messageIdGenerator = producerConfiguration.MessageIdGenerator;
                 var kafkaProducer = producerConfiguration.KafkaProducerFactory();
 
-                var producer = new Producer(kafkaProducer, outgoingMessageRegistry, messageIdGenerator);
+                var producer = new OutboxProducer(kafkaProducer);
 
                 return new OutboxDispatcherHostedService(
                     unitOfWorkFactory: provider.GetRequiredService<IOutboxUnitOfWorkFactory>(),

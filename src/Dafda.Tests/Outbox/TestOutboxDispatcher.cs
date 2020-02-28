@@ -23,7 +23,7 @@ namespace Dafda.Tests.Outbox
                     .WithValue("qux")
                     .OccurredOnUtc(DateTime.UtcNow)
                 ))
-                .With(A.Producer
+                .With(A.OutboxProducer
                     .With(spy)
                     .Build()
                 )
