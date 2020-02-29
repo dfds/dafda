@@ -40,7 +40,7 @@ namespace Dafda.Configuration
 
         public void WithNotifier(Func<IServiceProvider, IOutboxNotifier> implementationFactory)
         {
-            _services.AddTransient(implementationFactory);
+            _services.AddSingleton(implementationFactory);
         }
 
         internal OutboxConfiguration Build()

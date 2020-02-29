@@ -63,7 +63,7 @@ namespace Dafda.Configuration
 
         public void WithNotification(Func<IServiceProvider, IOutboxNotification> implementationFactory)
         {
-            _services.AddTransient(implementationFactory);
+            _services.AddSingleton(implementationFactory);
         }
 
         private class DefaultConfigurationSource : ConfigurationSource
