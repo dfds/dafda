@@ -20,7 +20,7 @@ namespace Dafda.Configuration
             {
                 var messageIdGenerator = configuration.MessageIdGenerator;
                 var outboxMessageRepository = provider.GetRequiredService<IOutboxMessageRepository>();
-                var outboxNotifier = provider.GetRequiredService<IOutboxNotifier>();
+                var outboxNotifier = configuration.Notifier;
 
                 return new OutboxQueue(
                     messageIdGenerator,
@@ -38,18 +38,18 @@ namespace Dafda.Configuration
             options?.Invoke(outboxProducerOptions);
             var configuration = builder.Build();
 
+            var outboxListener = outboxProducerOptions.OutboxListener;
 
             services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
             {
                 var outboxUnitOfWorkFactory = provider.GetRequiredService<IOutboxUnitOfWorkFactory>();
                 var kafkaProducer = configuration.KafkaProducerFactory();
                 var producer = new OutboxProducer(kafkaProducer);
-                var outboxNotification = provider.GetRequiredService<IOutboxNotification>();
 
                 return new OutboxDispatcherHostedService(
                     outboxUnitOfWorkFactory,
                     producer,
-                    outboxNotification
+                    outboxListener
                 );
             });
         }

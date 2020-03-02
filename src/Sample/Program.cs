@@ -85,7 +85,9 @@ namespace Sample
                         options.RegisterMessageHandler<TestEvent, AnotherTestHandler>("test-topic", "test-event");
                     });
 
-                    services.AddSingleton(provider => new OutboxNotification(TimeSpan.FromSeconds(5)));
+                    var outboxNotification = new OutboxNotification(TimeSpan.FromSeconds(5));
+
+                    services.AddSingleton(provider => outboxNotification); // register to dispose
 
                     // configure messaging: producer
                     services.AddOutbox(options =>
@@ -95,7 +97,7 @@ namespace Sample
 
                         // include outbox persistence
                         options.WithOutboxMessageRepository<OutboxMessageRepository>();
-                        options.WithNotifier(provider => provider.GetRequiredService<OutboxNotification>());
+                        options.WithNotifier(outboxNotification);
                     });
 
                     services.AddOutboxProducer(options =>
@@ -107,7 +109,7 @@ namespace Sample
 
                         // include outbox (polling publisher)
                         options.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
-                        options.WithNotification(provider => provider.GetRequiredService<OutboxNotification>());
+                        options.WithListener(outboxNotification);
                     });
                 });
         }

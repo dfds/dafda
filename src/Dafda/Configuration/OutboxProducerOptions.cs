@@ -16,6 +16,8 @@ namespace Dafda.Configuration
             _builder = builder;
         }
 
+        internal IOutboxListener OutboxListener { get; private set; }
+
         public void WithConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _builder.WithConfigurationSource(new DefaultConfigurationSource(configuration));
@@ -61,9 +63,9 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        public void WithNotification(Func<IServiceProvider, IOutboxNotification> implementationFactory)
+        public void WithListener(IOutboxListener outboxListener)
         {
-            _services.AddSingleton(implementationFactory);
+            OutboxListener = outboxListener;
         }
 
         private class DefaultConfigurationSource : ConfigurationSource

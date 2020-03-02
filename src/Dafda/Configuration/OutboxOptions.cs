@@ -11,6 +11,7 @@ namespace Dafda.Configuration
         private readonly OutgoingMessageRegistry _outgoingMessageRegistry;
 
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
+        private IOutboxNotifier _notifier = new DoNotNotify();
 
         internal OutboxOptions(IServiceCollection services, OutgoingMessageRegistry outgoingMessageRegistry)
         {
@@ -38,14 +39,21 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        public void WithNotifier(Func<IServiceProvider, IOutboxNotifier> implementationFactory)
+        public void WithNotifier(IOutboxNotifier notifier)
         {
-            _services.AddSingleton(implementationFactory);
+            _notifier = notifier;
         }
 
         internal OutboxConfiguration Build()
         {
-            return new OutboxConfiguration(_messageIdGenerator);
+            return new OutboxConfiguration(_messageIdGenerator, _notifier);
+        }
+
+        private class DoNotNotify : IOutboxNotifier
+        {
+            public void Notify()
+            {
+            }
         }
     }
 }
