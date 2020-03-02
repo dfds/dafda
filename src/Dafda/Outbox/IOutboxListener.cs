@@ -1,9 +1,10 @@
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dafda.Outbox
 {
     public interface IOutboxListener
     {
-        bool Wait(CancellationToken cancellationToken);
+        Task<bool> Wait(CancellationToken cancellationToken);
     }
 }

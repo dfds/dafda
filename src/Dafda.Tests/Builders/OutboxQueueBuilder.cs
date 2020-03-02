@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Outbox;
@@ -57,8 +58,9 @@ namespace Dafda.Tests.Builders
 
         private class NullOutboxNotifier : IOutboxNotifier
         {
-            public void Notify()
+            public Task Notify(CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
         }
     }

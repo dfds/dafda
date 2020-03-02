@@ -122,7 +122,7 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Producer_can_wait_for_notification()
+        public async Task Producer_can_wait_for_notification()
         {
             var services = new ServiceCollection();
             var spy = new OutboxListenerSpy();
@@ -144,7 +144,7 @@ namespace Dafda.Tests.Configuration
 
             using (var cts = new CancellationTokenSource(10))
             {
-                pollingPublisher.ProcessOutbox(cts.Token);
+                await pollingPublisher.ProcessOutbox(cts.Token);
             }
 
             Assert.True(spy.Waited);
@@ -188,7 +188,7 @@ namespace Dafda.Tests.Configuration
             {
                 cts.CancelAfter(10);
 
-                pollingPublisher.ProcessOutbox(cts.Token);
+                await pollingPublisher.ProcessOutbox(cts.Token);
             }
 
             Assert.True(fake.OutboxEntries.All(x => x.ProcessedUtc.HasValue));
@@ -209,22 +209,23 @@ namespace Dafda.Tests.Configuration
 
         private class DummyNotification : IOutboxListener, IOutboxNotifier
         {
-            public void Notify()
+            public Task Notify(CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
 
-            public bool Wait(CancellationToken cancellationToken)
+            public Task<bool> Wait(CancellationToken cancellationToken)
             {
-                return false;
+                return Task.FromResult(false);
             }
         }
 
         public class OutboxListenerSpy : IOutboxListener
         {
-            public bool Wait(CancellationToken cancellationToken)
+            public Task<bool> Wait(CancellationToken cancellationToken)
             {
                 Waited = true;
-                return true;
+                return Task.FromResult(true);
             }
 
             public bool Waited { get; private set; }

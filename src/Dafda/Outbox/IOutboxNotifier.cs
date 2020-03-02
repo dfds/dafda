@@ -1,7 +1,10 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Dafda.Outbox
 {
     public interface IOutboxNotifier
     {
-        void Notify();
+        Task Notify(CancellationToken cancellationToken);
     }
 }

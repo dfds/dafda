@@ -1,4 +1,7 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using Dafda.Outbox;
 using Dafda.Producing;
 using Dafda.Serializing;
@@ -73,8 +76,9 @@ namespace Dafda.Configuration
 
         private class DoNotNotify : IOutboxNotifier
         {
-            public void Notify()
+            public Task Notify(CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
         }
     }

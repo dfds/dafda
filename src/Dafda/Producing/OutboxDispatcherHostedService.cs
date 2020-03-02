@@ -24,7 +24,7 @@ namespace Dafda.Producing
         {
             try
             {
-                ProcessOutbox(_cancellationTokenSource.Token);
+                ProcessOutbox(_cancellationTokenSource.Token).GetAwaiter().GetResult();
             }
             catch (OperationCanceledException)
             {
@@ -34,12 +34,12 @@ namespace Dafda.Producing
             }
         }
 
-        public void ProcessOutbox(CancellationToken cancellationToken)
+        public async Task ProcessOutbox(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                _outboxDispatcher.Dispatch(cancellationToken).Wait(cancellationToken);
-                _outboxListener.Wait(cancellationToken);
+                await _outboxDispatcher.Dispatch(cancellationToken);
+                await _outboxListener.Wait(cancellationToken);
             }
         }
 

@@ -43,9 +43,12 @@ namespace Sample
                             await dbContext.SaveChangesAsync(stoppingToken);
                             transaction.Commit();
                         }
-
                     }
-                    outboxNotifier?.Notify(); // NOTE: when using postgres LISTEN/NOTIFY this should/could be part of the transaction scope above
+
+                    if (outboxNotifier != null)
+                    {
+                        await outboxNotifier.Notify(stoppingToken); // NOTE: when using postgres LISTEN/NOTIFY this should/could be part of the transaction scope above
+                    }
 
                     _logger.LogInformation("{Stats}", _stats.ToString());
 
