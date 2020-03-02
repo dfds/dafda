@@ -73,14 +73,15 @@ namespace Dafda.Tests.Configuration
         {
         }
 
-        private class DummyNotification : IOutboxNotification
+        private class DummyNotification : IOutboxListener, IOutboxNotifier
         {
             public void Notify()
             {
             }
 
-            public void Wait()
+            public bool Wait(CancellationToken cancellationToken)
             {
+                return false;
             }
         }
     }

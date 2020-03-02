@@ -3,9 +3,10 @@ using System.Threading;
 
 namespace Dafda.Outbox
 {
-    public class OutboxNotification : IOutboxNotification, IDisposable
+    public class OutboxNotification : IOutboxListener, IOutboxNotifier, IDisposable
     {
-        private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
+        private readonly ManualResetEventSlim _resetEvent = new ManualResetEventSlim(false);
+
         private readonly TimeSpan _delay;
 
         private bool _disposed;
@@ -22,17 +23,21 @@ namespace Dafda.Outbox
                 return;
             }
 
-            _autoResetEvent.Set();
+            _resetEvent.Set();
         }
 
-        public void Wait()
+        public bool Wait(CancellationToken cancellationToken)
         {
             if (_disposed)
             {
-                return;
+                return false;
             }
 
-            _autoResetEvent.WaitOne(_delay);
+            var wasSignaled = _resetEvent.Wait(_delay, cancellationToken);
+
+            _resetEvent.Reset();
+
+            return wasSignaled;
         }
 
         public void Dispose()
@@ -42,7 +47,7 @@ namespace Dafda.Outbox
                 return;
             }
 
-            _autoResetEvent.Dispose();
+            _resetEvent.Dispose();
             _disposed = true;
         }
     }
