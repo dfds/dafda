@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Dafda.Outbox;
 
 namespace Dafda.Producing
 {
@@ -18,24 +17,8 @@ namespace Dafda.Producing
         
         public async Task Produce(object message)
         {
-            var outgoingMessage = AssembleOutgoingMessage(message);
+            var outgoingMessage = _outgoingMessageFactory.Create(message);
             await _kafkaProducer.Produce(outgoingMessage);
-        }
-
-        private OutgoingMessage AssembleOutgoingMessage(object message)
-        {
-            if (message is OutboxMessage outboxMessage)
-            {
-                return new OutgoingMessageBuilder()
-                    .WithTopic(outboxMessage.Topic)
-                    .WithMessageId(outboxMessage.MessageId.ToString())
-                    .WithKey(outboxMessage.Key)
-                    .WithValue(outboxMessage.Data)
-                    .WithType(outboxMessage.Type)
-                    .Build();
-            }
-
-            return _outgoingMessageFactory.Create(message);
         }
     }
 }
