@@ -13,11 +13,13 @@ namespace Sample
     {
         private readonly ILogger<MainWorker> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly Stats _stats;
 
-        public MainWorker(ILogger<MainWorker> logger, IServiceScopeFactory serviceScopeFactory)
+        public MainWorker(ILogger<MainWorker> logger, IServiceScopeFactory serviceScopeFactory, Stats stats)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
+            _stats = stats;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,7 +28,7 @@ namespace Sample
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    _logger.LogDebug("Worker running at: {time}", DateTimeOffset.Now);
 
                     IOutboxNotifier outboxNotifier;
                     using (var scope = _serviceScopeFactory.CreateScope())
@@ -44,6 +46,10 @@ namespace Sample
 
                     }
                     outboxNotifier?.Notify(); // NOTE: when using postgres LISTEN/NOTIFY this should/could be part of the transaction scope above
+
+                    _stats.Produce();
+
+                    _logger.LogInformation("{Stats}", _stats.ToString());
 
                     await Task.Delay(1000, stoppingToken);
                 }

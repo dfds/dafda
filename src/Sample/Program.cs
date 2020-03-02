@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Dafda.Configuration;
 using Dafda.Outbox;
 using Microsoft.Extensions.Configuration;
@@ -16,8 +17,8 @@ namespace Sample
         public static int Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Dafda.Configuration", LogEventLevel.Warning)
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Dafda", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
@@ -55,6 +56,8 @@ namespace Sample
 
                     // configure main application
                     services.AddHostedService<MainWorker>();
+
+                    services.AddSingleton<Stats>();
 
                     // configure persistence (PostgreSQL)
                     services.ConfigurePersistence(configuration["SAMPLE_DATABASE_CONNECTION_STRING"]);
@@ -112,6 +115,30 @@ namespace Sample
                         options.WithListener(outboxNotification);
                     });
                 });
+        }
+    }
+
+    public class Stats
+    {
+        private long _produced;
+        private long _consumed;
+
+        public long Produced => Interlocked.Read(ref _produced);
+        public long Consumed => Interlocked.Read(ref _consumed);
+
+        public void Produce()
+        {
+            Interlocked.Increment(ref _produced);
+        }
+
+        public void Consume()
+        {
+            Interlocked.Increment(ref _consumed);
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(Produced)}: {Produced}, {nameof(Consumed)}: {Consumed}";
         }
     }
 }
