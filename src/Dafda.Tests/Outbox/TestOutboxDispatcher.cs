@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Tests.Configuration;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
