@@ -20,10 +20,10 @@ namespace Dafda.Tests.Configuration
         public void Can_build_minimal_configuration()
         {
             var configuration = new ProducerConfigurationBuilder()
-                .WithBootstrapServers("bar")
+                .WithBootstrapServers("foo")
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
+            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "foo");
         }
 
         private static void AssertKeyValue(ProducerConfiguration configuration, string expectedKey, string expectedValue)
@@ -34,82 +34,26 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Can_ignore_out_of_scope_values_from_configuration_source()
-        {
-            var configuration = new ProducerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: ConfigurationKey.BootstrapServers, value: "bar"),
-                    (key: "dummy", value: "baz")
-                ))
-                .Build();
-
-            AssertKeyValue(configuration, "dummy", null);
-        }
-
-        [Fact]
-        public void Can_use_configuration_value_from_source()
-        {
-            var configuration = new ProducerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: ConfigurationKey.BootstrapServers, value: "bar")
-                ))
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
-        }
-
-        [Fact]
-        public void Can_use_configuration_value_from_source_with_environment_naming_convention()
-        {
-            var configuration = new ProducerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: "BOOTSTRAP_SERVERS", value: "bar")
-                ))
-                .WithEnvironmentStyle()
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
-        }
-
-        [Fact]
-        public void Can_use_configuration_value_from_source_with_environment_naming_convention_and_prefix()
-        {
-            var configuration = new ProducerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
-                ))
-                .WithEnvironmentStyle("DEFAULT_KAFKA")
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
-        }
-
-        [Fact]
-        public void Can_overwrite_values_from_source()
-        {
-            var configuration = new ProducerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: ConfigurationKey.BootstrapServers, value: "foo")
-                ))
-                .WithConfiguration(ConfigurationKey.BootstrapServers, "bar")
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
-        }
-
-        [Fact]
-        public void Only_take_value_from_first_source_that_matches()
+        public void Can_build_producer_configuration()
         {
             var configuration = new ProducerConfigurationBuilder()
                 .WithConfigurationSource(new ConfigurationSourceStub(
                     (key: ConfigurationKey.BootstrapServers, value: "foo"),
-                    (key: "BOOTSTRAP_SERVERS", value: "bar")
+                    (key: ConfigurationKey.SaslUsername, value: "username"),
+                    (key: ConfigurationKey.SaslMechanisms, value: "foo"),
+                    (key: "DEFAULT_KAFKA_SASL_MECHANISMS", value: "default"),
+                    (key: "SAMPLE_KAFKA_SASL_MECHANISMS", value: "sample"),
+                    (key: "dummy", value: "ignored")
                 ))
+                .WithEnvironmentStyle("DEFAULT_KAFKA", "SAMPLE_KAFKA")
                 .WithNamingConvention(NamingConvention.Default)
-                .WithEnvironmentStyle()
+                .WithConfiguration(ConfigurationKey.BootstrapServers, "bar")
                 .Build();
 
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "foo");
+            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
+            AssertKeyValue(configuration, ConfigurationKey.SaslUsername, "username");
+            AssertKeyValue(configuration, ConfigurationKey.SaslMechanisms, "default");
+            AssertKeyValue(configuration, "dummy", null);
         }
 
         [Fact]

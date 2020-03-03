@@ -37,90 +37,26 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void Can_ignore_out_of_scope_values_from_configuration_source()
+        public void Can_build_consumer_configuration()
         {
             var configuration = new ConsumerConfigurationBuilder()
                 .WithConfigurationSource(new ConfigurationSourceStub(
+                    (key: "DEFAULT_KAFKA_GROUP_ID", value: "default_foo"),
+                    (key: "SAMPLE_KAFKA_ENABLE_AUTO_COMMIT", value: "true"),
                     (key: ConfigurationKey.GroupId, value: "foo"),
                     (key: ConfigurationKey.BootstrapServers, value: "bar"),
-                    (key: "dummy", value: "baz")
-                )).Build();
+                    (key: "dummy", value: "ignored")
 
-            AssertKeyValue(configuration, "dummy", null);
-        }
-
-        [Fact]
-        public void Can_use_configuration_value_from_source()
-        {
-            var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: ConfigurationKey.GroupId, value: "foo"),
-                    (key: ConfigurationKey.BootstrapServers, value: "bar")
                 ))
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
-        }
-
-        [Fact]
-        public void Can_use_configuration_value_from_source_with_environment_naming_convention()
-        {
-            var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: "GROUP_ID", value: "foo"),
-                    (key: "BOOTSTRAP_SERVERS", value: "bar")
-                ))
-                .WithEnvironmentStyle()
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
-        }
-
-        [Fact]
-        public void Can_use_configuration_value_from_source_with_environment_naming_convention_and_prefix()
-        {
-            var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: "DEFAULT_KAFKA_GROUP_ID", value: "foo"),
-                    (key: "DEFAULT_KAFKA_BOOTSTRAP_SERVERS", value: "bar")
-                ))
-                .WithEnvironmentStyle("DEFAULT_KAFKA")
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
-            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
-        }
-
-        [Fact]
-        public void Can_overwrite_values_from_source()
-        {
-            var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: ConfigurationKey.GroupId, value: "foo"),
-                    (key: ConfigurationKey.BootstrapServers, value: "bar")
-                ))
+                .WithNamingConvention(NamingConvention.Default)
+                .WithEnvironmentStyle("DEFAULT_KAFKA", "SAMPLE_KAFKA")
                 .WithConfiguration(ConfigurationKey.GroupId, "baz")
                 .Build();
 
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "baz");
-        }
-
-        [Fact]
-        public void Only_take_value_from_first_source_that_matches()
-        {
-            var configuration = new ConsumerConfigurationBuilder()
-                .WithConfigurationSource(new ConfigurationSourceStub(
-                    (key: ConfigurationKey.GroupId, value: "foo"),
-                    (key: ConfigurationKey.BootstrapServers, value: "bar"),
-                    (key: "GROUP_ID", value: "baz")
-                ))
-                .WithNamingConvention(NamingConvention.Default)
-                .WithEnvironmentStyle()
-                .Build();
-
-            AssertKeyValue(configuration, ConfigurationKey.GroupId, "foo");
+            AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
+            AssertKeyValue(configuration, ConfigurationKey.EnableAutoCommit, "true");
+            AssertKeyValue(configuration, "dummy", null);
         }
 
         [Fact]
