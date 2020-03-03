@@ -13,44 +13,56 @@ namespace Dafda.Configuration
         private readonly NamingConvention[] _namingConventions;
         private readonly ConfigurationSource _configurationSource;
         private readonly IDictionary<string, string> _configurations;
+        private readonly ConfigurationReporter _configurationReporter;
 
         public ConfigurationBuilder()
-            : this(EmptyConfigurationKeys, EmptyConfigurationKeys, DefaultNamingConventions, ConfigurationSource.Null, new Dictionary<string, string>())
+            : this(EmptyConfigurationKeys, EmptyConfigurationKeys, DefaultNamingConventions, ConfigurationSource.Null, new Dictionary<string, string>(), ConfigurationReporter.Null)
         {
         }
 
-        private ConfigurationBuilder(string[] configurationKeys, string[] requiredConfigurationKeys, NamingConvention[] namingConventions, ConfigurationSource configurationSource, IDictionary<string, string> configurations)
+        public ConfigurationBuilder(string[] configurationKeys, string[] requiredConfigurationKeys)
+            : this(configurationKeys ?? EmptyConfigurationKeys, requiredConfigurationKeys ?? EmptyConfigurationKeys, DefaultNamingConventions, ConfigurationSource.Null, new Dictionary<string, string>(), ConfigurationReporter.Null)
+        {
+        }
+
+        private ConfigurationBuilder(string[] configurationKeys, string[] requiredConfigurationKeys, NamingConvention[] namingConventions, ConfigurationSource configurationSource, IDictionary<string, string> configurations, ConfigurationReporter configurationReporter)
         {
             _configurationKeys = configurationKeys;
             _requiredConfigurationKeys = requiredConfigurationKeys;
             _namingConventions = namingConventions.Length == 0 ? DefaultNamingConventions : namingConventions;
             _configurationSource = configurationSource;
             _configurations = configurations;
+            _configurationReporter = configurationReporter;
         }
 
         public ConfigurationBuilder WithConfigurationKeys(params string[] configurationKeys)
         {
-            return new ConfigurationBuilder(configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations);
+            return new ConfigurationBuilder(configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations, _configurationReporter);
         }
 
         public ConfigurationBuilder WithRequiredConfigurationKeys(params string[] requiredConfigurationKeys)
         {
-            return new ConfigurationBuilder(_configurationKeys, requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations);
+            return new ConfigurationBuilder(_configurationKeys, requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations, _configurationReporter);
         }
 
         public ConfigurationBuilder WithNamingConventions(params NamingConvention[] namingConventions)
         {
-            return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, namingConventions, _configurationSource, _configurations);
+            return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, namingConventions, _configurationSource, _configurations, _configurationReporter);
         }
 
         public ConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
-            return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, configurationSource, _configurations);
+            return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, configurationSource, _configurations, _configurationReporter);
         }
 
         public ConfigurationBuilder WithConfigurations(IDictionary<string, string> configurations)
         {
-            return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, configurations);
+            return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, configurations, _configurationReporter);
+        }
+
+        public ConfigurationBuilder WithConfigurationReporter(ConfigurationReporter configurationReporter)
+        {
+            return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations, configurationReporter);
         }
 
         public IDictionary<string, string> Build()
@@ -64,7 +76,13 @@ namespace Dafda.Configuration
 
         private IDictionary<string, string> FillConfiguration()
         {
-            var configurations = new Dictionary<string, string>(_configurations);
+            var configurations = new Dictionary<string, string>();
+
+            foreach (var configuration in _configurations)
+            {
+                configurations[configuration.Key] = configuration.Value;
+                _configurationReporter.AddManual(configuration.Key, configuration.Value);
+            }
 
             foreach (var key in AllKeys)
             {
@@ -87,12 +105,20 @@ namespace Dafda.Configuration
 
         private string GetByKey(string key)
         {
-            //ConsumerConfigurationBuilder.Logger.LogDebug("Looking for {Key} in {SourceName} using keys {AttemptedKeys}", key, GetSourceName(), GetAttemptedKeys(key));
+            foreach (var namingConvention in _namingConventions)
+            {
+                var attemptedKey = namingConvention.GetKey(key);
+                var value = _configurationSource.GetByKey(attemptedKey);
+                if (value != null)
+                {
+                    _configurationReporter.AddValue(key, GetSourceName(), value, attemptedKey);
+                    return value;
+                }
+            }
 
-            return _namingConventions
-                .Select(namingConvention => namingConvention.GetKey(key))
-                .Select(actualKey => _configurationSource.GetByKey(actualKey))
-                .FirstOrDefault(value => value != null);
+            _configurationReporter.AddMissing(key, GetSourceName(), GetAttemptedKeys(key));
+
+            return null;
         }
 
         private string GetSourceName()
@@ -100,9 +126,9 @@ namespace Dafda.Configuration
             return _configurationSource.GetType().Name;
         }
 
-        private IEnumerable<string> GetAttemptedKeys(string key)
+        private string[] GetAttemptedKeys(string key)
         {
-            return _namingConventions.Select(convention => convention.GetKey(key));
+            return _namingConventions.Select(convention => convention.GetKey(key)).ToArray();
         }
 
         private void ValidateConfiguration(IDictionary<string, string> configurations)
@@ -111,7 +137,8 @@ namespace Dafda.Configuration
             {
                 if (!configurations.TryGetValue(key, out var value) || string.IsNullOrEmpty(value))
                 {
-                    var message = $"Expected key '{key}' not supplied in '{GetSourceName()}' (attempted keys: '{string.Join("', '", GetAttemptedKeys(key))}')";
+                    //var message = $"Expected key '{key}' not supplied in '{GetSourceName()}' (attempted keys: '{string.Join("', '", GetAttemptedKeys(key))}')";
+                    var message = "Invalid configuration:" + System.Environment.NewLine + _configurationReporter.Report();
                     throw new InvalidConfigurationException(message);
                 }
             }

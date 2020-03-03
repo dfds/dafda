@@ -3,11 +3,19 @@ using System.Linq;
 using Dafda.Configuration;
 using Dafda.Tests.TestDoubles;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Dafda.Tests.Configuration
 {
     public class TestConfigurationBuilder
     {
+        private readonly ITestOutputHelper _output;
+
+        public TestConfigurationBuilder(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         #region Test Helpers
 
         private static readonly string[] None = new string[0];
@@ -133,6 +141,53 @@ namespace Dafda.Tests.Configuration
                 .Build();
 
             AssertKeyValue(configuration, "key1", "foo");
+        }
+
+        private static readonly string NL = System.Environment.NewLine;
+
+        [Fact]
+        public void Can_create_configuration_report()
+        {
+            var sut = ConfigurationReporter.CreateDefault();
+
+            new ConfigurationBuilder(ConfigurationKeys("key1", "key2"), None)
+                .WithConfigurationSource(new ConfigurationSourceStub(
+                    ("KEY2", "value")
+                ))
+                .WithConfigurations(new Dictionary<string, string>
+                {
+                    {"key3", "value"}
+                })
+                .WithNamingConventions(NamingConvention.Default, NamingConvention.UseCustom(x => x.ToUpper()))
+                .WithConfigurationReporter(sut)
+                .Build();
+
+            var report = sut.Report();
+
+            _output.WriteLine(report);
+
+            Assert.Equal(expected:
+                $"{NL}" +
+                $"key  source                  value   keys{NL}" +
+                $"-----------------------------------------------{NL}" +
+                $"key3 MANUAL                  value   {NL}" +
+                $"key1 ConfigurationSourceStub MISSING key1, KEY1{NL}" +
+                $"key2 ConfigurationSourceStub value   KEY2{NL}",
+                report);
+        }
+
+        [Fact]
+        public void Can_use_configuration_report_for_exceptions()
+        {
+            var spy = new ConfigurationReporterStub("no report");
+
+            var exception = Assert.Throws<InvalidConfigurationException>(() =>
+                new ConfigurationBuilder(None, ConfigurationKeys("key"))
+                    .WithConfigurationReporter(spy)
+                    .Build()
+            );
+
+            Assert.Equal($"Invalid configuration:{NL}no report", exception.Message);
         }
     }
 }

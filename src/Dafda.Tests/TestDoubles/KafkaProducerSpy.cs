@@ -7,20 +7,19 @@ namespace Dafda.Tests.TestDoubles
 {
     internal class KafkaProducerSpy : KafkaProducer
     {
-        public KafkaProducerSpy() : base(Enumerable.Empty<KeyValuePair<string, string>>())
+        public KafkaProducerSpy()
+            : this(Enumerable.Empty<KeyValuePair<string, string>>(), new DefaultPayloadSerializer())
         {
-            
         }
 
-        public KafkaProducerSpy(IPayloadSerializer payloadSerializer) 
+        public KafkaProducerSpy(IPayloadSerializer payloadSerializer)
             : this(Enumerable.Empty<KeyValuePair<string, string>>(), payloadSerializer)
         {
-            
         }
 
-        public KafkaProducerSpy(IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer) : base(configuration, payloadSerializer)
+        public KafkaProducerSpy(IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer)
+            : base(configuration, payloadSerializer)
         {
-
         }
 
         internal override Task InternalProduce(string topic, string key, string value)
