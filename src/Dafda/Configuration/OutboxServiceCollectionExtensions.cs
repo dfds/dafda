@@ -39,12 +39,9 @@ namespace Dafda.Configuration
                 var outboxUnitOfWorkFactory = provider.GetRequiredService<IOutboxUnitOfWorkFactory>();
                 var kafkaProducer = configuration.KafkaProducerFactory();
                 var producer = new OutboxProducer(kafkaProducer);
+                var outboxDispatcher = new OutboxDispatcher(outboxUnitOfWorkFactory, producer);
 
-                return new OutboxDispatcherHostedService(
-                    outboxUnitOfWorkFactory,
-                    producer,
-                    outboxListener
-                );
+                return new OutboxDispatcherHostedService(outboxListener, outboxDispatcher);
             });
         }
     }

@@ -14,10 +14,10 @@ namespace Dafda.Producing
         private CancellationTokenSource _cancellationTokenSource;
         private Thread _thread;
 
-        public OutboxDispatcherHostedService(IOutboxUnitOfWorkFactory unitOfWorkFactory, OutboxProducer producer, IOutboxListener outboxListener)
+        public OutboxDispatcherHostedService(IOutboxListener outboxListener, OutboxDispatcher outboxDispatcher)
         {
             _outboxListener = outboxListener;
-            _outboxDispatcher = new OutboxDispatcher(unitOfWorkFactory, producer);
+            _outboxDispatcher = outboxDispatcher;
         }
 
         private void ThreadProc()
