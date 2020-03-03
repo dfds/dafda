@@ -1,20 +1,20 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Logging;
 using Dafda.Producing;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Outbox
 {
     internal class OutboxDispatcher
     {
-        private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
-
+        private readonly ILogger<OutboxDispatcher> _logger;
         private readonly IOutboxUnitOfWorkFactory _unitOfWorkFactory;
         private readonly OutboxProducer _producer;
 
-        public OutboxDispatcher(IOutboxUnitOfWorkFactory unitOfWorkFactory, OutboxProducer producer)
+        public OutboxDispatcher(ILoggerFactory loggerFactory, IOutboxUnitOfWorkFactory unitOfWorkFactory, OutboxProducer producer)
         {
+            _logger = loggerFactory.CreateLogger<OutboxDispatcher>();
             _unitOfWorkFactory = unitOfWorkFactory;
             _producer = producer;
         }
@@ -25,7 +25,7 @@ namespace Dafda.Outbox
             {
                 var outboxMessages = await outboxUnitOfWork.GetAllUnpublishedMessages(cancellationToken);
 
-                Log.Debug("Unpublished outbox messages: {OutboxMessageCount}", outboxMessages.Count);
+                _logger.LogDebug("Unpublished outbox messages: {OutboxMessageCount}", outboxMessages.Count);
 
                 try
                 {
@@ -35,12 +35,12 @@ namespace Dafda.Outbox
 
                         outboxMessage.MaskAsProcessed();
 
-                        Log.Debug(@"Published outbox message {MessageId} ({Type})", outboxMessage.MessageId, outboxMessage.Type);
+                        _logger.LogDebug(@"Published outbox message {MessageId} ({Type})", outboxMessage.MessageId, outboxMessage.Type);
                     }
                 }
                 catch (Exception exception)
                 {
-                    Log.Error("Error while publishing outbox messages", exception);
+                    _logger.LogDebug("Error while publishing outbox messages", exception);
                     throw;
                 }
 

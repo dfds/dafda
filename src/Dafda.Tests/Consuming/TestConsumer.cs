@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Configuration;
 using Dafda.Consuming;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
@@ -63,7 +62,7 @@ namespace Dafda.Tests.Consuming
                     pre: () => orderOfInvocation.AddLast("before"),
                     post: () => orderOfInvocation.AddLast("after")
                 ))
-                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(dummyMessageResult)))
+                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(dummyMessageResult)))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
 
@@ -98,7 +97,7 @@ namespace Dafda.Tests.Consuming
             registry.Register(messageRegistrationStub);
 
             var consumer = new ConsumerBuilder()
-                .WithConsumerScopeFactory(consumerScopeFactoryStub)
+                .WithConsumerScopeFactory(_ => consumerScopeFactoryStub)
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .WithEnableAutoCommit(true)
@@ -135,7 +134,7 @@ namespace Dafda.Tests.Consuming
             registry.Register(messageRegistrationStub);
             
             var consumer = new ConsumerBuilder()
-                .WithConsumerScopeFactory(consumerScopeFactoryStub)
+                .WithConsumerScopeFactory(_ => consumerScopeFactoryStub)
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .WithEnableAutoCommit(false)
@@ -164,7 +163,7 @@ namespace Dafda.Tests.Consuming
             registry.Register(messageRegistrationStub);
             
             var consumer = new ConsumerBuilder()
-                .WithConsumerScopeFactory(spy)
+                .WithConsumerScopeFactory(_ => spy)
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
@@ -193,7 +192,7 @@ namespace Dafda.Tests.Consuming
             registry.Register(messageRegistrationStub);
             
             var consumer = new ConsumerBuilder()
-                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(spy))
+                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(spy))
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
                 .Build();
@@ -239,7 +238,7 @@ namespace Dafda.Tests.Consuming
                 registry.Register(messageRegistrationStub);
                 
                 var consumer = new ConsumerBuilder()
-                    .WithConsumerScopeFactory(spy)
+                    .WithConsumerScopeFactory(_ => spy)
                     .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                     .WithMessageHandlerRegistry(registry)
                     .Build();
@@ -281,7 +280,7 @@ namespace Dafda.Tests.Consuming
                 registry.Register(messageRegistrationStub);
 
                 var consumer = new ConsumerBuilder()
-                    .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(spy))
+                    .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(spy))
                     .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                     .WithMessageHandlerRegistry(registry)
                     .Build();

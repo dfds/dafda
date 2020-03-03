@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -152,10 +151,11 @@ namespace Dafda.Tests.Configuration
             var services = new ServiceCollection();
             var spy = new OutboxListenerSpy();
 
+            services.AddLogging();
             services.AddOutboxProducer(options =>
             {
                 options.WithBootstrapServers("localhost");
-                options.WithKafkaProducerFactory(() => new KafkaProducerSpy());
+                options.WithKafkaProducerFactory(_ => new KafkaProducerSpy());
                 options.WithListener(spy);
                 options.WithUnitOfWorkFactory(serviceProvider => new FakeOutboxPersistence());
             });
@@ -194,7 +194,7 @@ namespace Dafda.Tests.Configuration
             services.AddOutboxProducer(options =>
             {
                 options.WithBootstrapServers("localhost");
-                options.WithKafkaProducerFactory(() => spy);
+                options.WithKafkaProducerFactory(_ => spy);
                 options.WithUnitOfWorkFactory(serviceProvider => fake);
                 options.WithListener(dummyNotification);
             });

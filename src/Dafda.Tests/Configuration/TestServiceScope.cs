@@ -42,7 +42,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -89,7 +89,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -136,7 +136,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -183,7 +183,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 

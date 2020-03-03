@@ -1,5 +1,6 @@
 using System;
 using Dafda.Producing;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -44,7 +45,7 @@ namespace Dafda.Configuration
             _builder.WithBootstrapServers(bootstrapServers);
         }
 
-        internal void WithKafkaProducerFactory(Func<KafkaProducer> inlineFactory)
+        internal void WithKafkaProducerFactory(Func<ILoggerFactory, KafkaProducer> inlineFactory)
         {
             _builder.WithKafkaProducerFactory(inlineFactory);
         }

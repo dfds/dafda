@@ -1,5 +1,6 @@
 using Dafda.Outbox;
 using Dafda.Producing;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dafda.Tests.Builders
 {
@@ -22,7 +23,7 @@ namespace Dafda.Tests.Builders
 
         public OutboxDispatcher Build()
         {
-            return new OutboxDispatcher(_outboxUnitOfWorkFactory, _producer);
+            return new OutboxDispatcher(NullLoggerFactory.Instance, _outboxUnitOfWorkFactory, _producer);
         }
 
         public static implicit operator OutboxDispatcher(OutboxDispatcherBuilder builder)

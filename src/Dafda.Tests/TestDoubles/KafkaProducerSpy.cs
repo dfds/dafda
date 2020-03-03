@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Producing;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dafda.Tests.TestDoubles
 {
@@ -18,7 +19,7 @@ namespace Dafda.Tests.TestDoubles
         }
 
         public KafkaProducerSpy(IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer)
-            : base(configuration, payloadSerializer)
+            : base(NullLoggerFactory.Instance, configuration, payloadSerializer)
         {
         }
 

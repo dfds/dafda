@@ -3,6 +3,7 @@ using Dafda.Outbox;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -37,9 +38,10 @@ namespace Dafda.Configuration
             services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
             {
                 var outboxUnitOfWorkFactory = provider.GetRequiredService<IOutboxUnitOfWorkFactory>();
-                var kafkaProducer = configuration.KafkaProducerFactory();
+                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                var kafkaProducer = configuration.KafkaProducerFactory(loggerFactory);
                 var producer = new OutboxProducer(kafkaProducer);
-                var outboxDispatcher = new OutboxDispatcher(outboxUnitOfWorkFactory, producer);
+                var outboxDispatcher = new OutboxDispatcher(loggerFactory, outboxUnitOfWorkFactory, producer);
 
                 return new OutboxDispatcherHostedService(outboxListener, outboxDispatcher);
             });

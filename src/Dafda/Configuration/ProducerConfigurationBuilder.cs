@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Producing;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -29,7 +30,7 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
-        private Func<KafkaProducer> _kafkaProducerFactory;
+        private Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
 
         internal ProducerConfigurationBuilder()
         {
@@ -82,7 +83,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<KafkaProducer> inlineFactory)
+        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<ILoggerFactory,KafkaProducer> inlineFactory)
         {
             _kafkaProducerFactory = inlineFactory;
             return this;
@@ -100,7 +101,7 @@ namespace Dafda.Configuration
 
             if (_kafkaProducerFactory == null)
             {
-                _kafkaProducerFactory = () => new KafkaProducer(configurations, new DefaultPayloadSerializer());
+                _kafkaProducerFactory = loggerFactory => new KafkaProducer(loggerFactory, configurations, new DefaultPayloadSerializer());
             }
 
             return new ProducerConfiguration(

@@ -1,6 +1,7 @@
 using System;
 using Dafda.Consuming;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -65,7 +66,7 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        internal void WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+        internal void WithConsumerScopeFactory(Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
         {
             _builder.WithConsumerScopeFactory(consumerScopeFactory);
         }

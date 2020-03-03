@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Consuming;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -33,7 +34,7 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private IConsumerScopeFactory _consumerScopeFactory;
+        private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
         private IIncomingMessageFactory _incomingMessageFactory = new JsonIncomingMessageFactory();
 
         internal ConsumerConfigurationBuilder()
@@ -92,7 +93,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;
@@ -124,7 +125,8 @@ namespace Dafda.Configuration
 
             if (_consumerScopeFactory == null)
             {
-                _consumerScopeFactory = new KafkaBasedConsumerScopeFactory(
+                _consumerScopeFactory = loggerFactory => new KafkaBasedConsumerScopeFactory(
+                    loggerFactory: loggerFactory,
                     configuration: configurations,
                     topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
                     incomingMessageFactory: _incomingMessageFactory

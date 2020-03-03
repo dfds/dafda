@@ -1,12 +1,14 @@
+using System;
 using System.Collections.Generic;
 using Dafda.Consuming;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
     internal class ConsumerConfiguration
     {
         public ConsumerConfiguration(IDictionary<string, string> configuration, MessageHandlerRegistry messageHandlerRegistry, 
-            IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory)
+            IHandlerUnitOfWorkFactory unitOfWorkFactory, Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
         {
             KafkaConfiguration = configuration;
             MessageHandlerRegistry = messageHandlerRegistry;
@@ -17,7 +19,7 @@ namespace Dafda.Configuration
         public IDictionary<string, string> KafkaConfiguration { get; }
         public MessageHandlerRegistry MessageHandlerRegistry { get; }
         public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
-        public IConsumerScopeFactory ConsumerScopeFactory { get; }
+        public Func<ILoggerFactory, IConsumerScopeFactory> ConsumerScopeFactory { get; }
 
         public string GroupId => KafkaConfiguration[ConfigurationKey.GroupId];
 

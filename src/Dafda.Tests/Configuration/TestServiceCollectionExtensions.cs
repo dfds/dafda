@@ -31,10 +31,11 @@ namespace Dafda.Tests.Configuration
             var spy = new KafkaProducerSpy();
 
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddProducerFor<SimpleSender>(options =>
             {
                 options.WithBootstrapServers("dummy");
-                options.WithKafkaProducerFactory(() => spy);
+                options.WithKafkaProducerFactory(_ => spy);
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
             });
 
@@ -53,6 +54,7 @@ namespace Dafda.Tests.Configuration
         public void registers_a_typed_producer()
         {
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddTransient<MessageSenderOne.AnotherDependency>();
 
             services.AddProducerFor<MessageSenderOne>(options =>
@@ -76,6 +78,7 @@ namespace Dafda.Tests.Configuration
         {
             var services = new ServiceCollection();
             
+            services.AddLogging();
             services.AddTransient<MessageSenderOne.AnotherDependency>();
             services.AddProducerFor<MessageSenderOne>(options =>
             {

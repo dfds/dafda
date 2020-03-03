@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -21,7 +22,8 @@ namespace Dafda.Configuration
 
             services.AddTransient<TClient>(provider =>
             {
-                var producer = factory.GetFor<TClient>();
+                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                var producer = factory.GetFor<TClient>(loggerFactory);
                 return ActivatorUtilities.CreateInstance<TClient>(provider, producer);
             });
         }

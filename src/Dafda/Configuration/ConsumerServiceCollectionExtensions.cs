@@ -59,7 +59,7 @@ namespace Dafda.Configuration
                 consumer: new Consumer(
                         messageHandlerRegistry: configuration.MessageHandlerRegistry,
                         unitOfWorkFactory: provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
-                        consumerScopeFactory: configuration.ConsumerScopeFactory,
+                        consumerScopeFactory: configuration.ConsumerScopeFactory(provider.GetRequiredService<ILoggerFactory>()),
                         isAutoCommitEnabled: configuration.EnableAutoCommit
                     ),
                 configuration.GroupId

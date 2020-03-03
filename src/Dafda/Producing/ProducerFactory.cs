@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Dafda.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Producing
 {
@@ -30,20 +31,20 @@ namespace Dafda.Producing
             ConfigureProducer(producerName, configuration, outgoingMessageRegistry);
         }
 
-        public Producer Get(string producerName) 
+        public Producer Get(string producerName, ILoggerFactory loggerFactory) 
         {
             if (_producerBuilders.TryGetValue(producerName, out var builder))
             {
-                return builder.Build();
+                return builder.Build(loggerFactory);
             }
 
             return null;
         }
 
-        public Producer GetFor<TClient>()
+        public Producer GetFor<TClient>(ILoggerFactory loggerFactory)
         {
             var producerName = GetKeyNameOf<TClient>();
-            return Get(producerName);
+            return Get(producerName, loggerFactory);
         }
 
         public void Dispose()
@@ -60,7 +61,7 @@ namespace Dafda.Producing
         private class ProducerBuilder : IDisposable
         {
             private readonly OutgoingMessageRegistry _messageRegistry;
-            private readonly Func<KafkaProducer> _kafkaProducerFactory;
+            private readonly Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
             private readonly MessageIdGenerator _messageIdGenerator;
             private readonly string _producerName;
             private KafkaProducer _kafkaProducer;
@@ -73,11 +74,11 @@ namespace Dafda.Producing
                 _messageIdGenerator = configuration.MessageIdGenerator;
             }
 
-            public Producer Build()
+            public Producer Build(ILoggerFactory loggerFactory)
             {
                 if (_kafkaProducer is null)
                 {
-                    _kafkaProducer = _kafkaProducerFactory();
+                    _kafkaProducer = _kafkaProducerFactory(loggerFactory);
                 }
 
                 var producer = new Producer(

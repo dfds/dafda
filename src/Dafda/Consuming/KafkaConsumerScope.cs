@@ -1,19 +1,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using Dafda.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
     internal class KafkaConsumerScope : ConsumerScope
     {
-        private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
-
+        private readonly ILogger<KafkaConsumerScope> _logger;
         private readonly IConsumer<string, string> _innerKafkaConsumer;
         private readonly IIncomingMessageFactory _incomingMessageFactory;
 
-        internal KafkaConsumerScope(IConsumer<string, string> innerKafkaConsumer, IIncomingMessageFactory incomingMessageFactory)
+        internal KafkaConsumerScope(ILoggerFactory loggerFactory, IConsumer<string, string> innerKafkaConsumer, IIncomingMessageFactory incomingMessageFactory)
         {
+            _logger = loggerFactory.CreateLogger<KafkaConsumerScope>();
             _innerKafkaConsumer = innerKafkaConsumer;
             _incomingMessageFactory = incomingMessageFactory;
         }
@@ -22,7 +22,7 @@ namespace Dafda.Consuming
         {
             var innerResult = _innerKafkaConsumer.Consume(cancellationToken);
 
-            Log.Debug("Received message {Key}: {RawMessage}", innerResult.Key, innerResult.Value);
+            _logger.LogDebug("Received message {Key}: {RawMessage}", innerResult.Key, innerResult.Value);
 
             var result = new MessageResult(
                 message: _incomingMessageFactory.Create(innerResult.Value),

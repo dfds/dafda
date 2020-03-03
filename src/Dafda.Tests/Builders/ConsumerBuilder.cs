@@ -1,12 +1,15 @@
-﻿using Dafda.Consuming;
+﻿using System;
+using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dafda.Tests.Builders
 {
     internal class ConsumerBuilder
     {
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private IConsumerScopeFactory _consumerScopeFactory;
+        private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
         private MessageHandlerRegistry _registry;
 
         private bool _enableAutoCommit;
@@ -16,7 +19,7 @@ namespace Dafda.Tests.Builders
             _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
 
             var messageStub = new MessageResultBuilder().Build();
-            _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageStub));
+            _consumerScopeFactory = _ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageStub));
             _registry = new MessageHandlerRegistry();
         }
 
@@ -31,7 +34,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ConsumerBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+        public ConsumerBuilder WithConsumerScopeFactory(Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;
@@ -54,7 +57,7 @@ namespace Dafda.Tests.Builders
             return new Consumer(
                 messageHandlerRegistry: _registry,
                 unitOfWorkFactory: _unitOfWorkFactory,
-                consumerScopeFactory: _consumerScopeFactory,
+                consumerScopeFactory: _consumerScopeFactory(NullLoggerFactory.Instance),
                 isAutoCommitEnabled: _enableAutoCommit
             );
         }

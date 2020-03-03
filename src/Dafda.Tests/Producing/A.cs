@@ -1,3 +1,4 @@
+using Dafda.Configuration;
 using Dafda.Tests.Builders;
 
 namespace Dafda.Tests.Producing
@@ -6,5 +7,6 @@ namespace Dafda.Tests.Producing
     {
         public static ProducerBuilder Producer => new ProducerBuilder();
         public static OutgoingMessageRegistryBuilder OutgoingMessageRegistry => new OutgoingMessageRegistryBuilder();
+        public static ProducerConfigurationBuilder ValidProducerConfiguration => new ProducerConfigurationBuilder().WithBootstrapServers("dummy");
     }
 }

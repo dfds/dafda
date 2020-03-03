@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Confluent.Kafka" Version="1.1.0" />
-    <PackageReference Include="LibLog" Version="5.0.6" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="System.Text.Json" Version="4.7.1" />
 
