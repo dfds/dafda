@@ -100,7 +100,7 @@ namespace Dafda.Configuration
 
             if (_kafkaProducerFactory == null)
             {
-                _kafkaProducerFactory = () => new KafkaProducer(configurations);
+                _kafkaProducerFactory = () => new KafkaProducer(configurations, new DefaultPayloadSerializer());
             }
 
             return new ProducerConfiguration(

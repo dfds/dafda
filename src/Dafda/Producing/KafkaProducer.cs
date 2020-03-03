@@ -12,12 +12,6 @@ namespace Dafda.Producing
         private readonly IProducer<string, string> _innerKafkaProducer;
         private readonly IPayloadSerializer _serializer;
 
-        public KafkaProducer(IEnumerable<KeyValuePair<string, string>> configuration)
-            : this(configuration, new DefaultPayloadSerializer())
-        {
-
-        }
-
         public KafkaProducer(IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer)
         {
             _innerKafkaProducer = new ProducerBuilder<string, string>(configuration).Build();
