@@ -75,6 +75,12 @@ docs-deploy: ## deploy documentation to github pages
 sample:
 	@cd src/sample && dotnet run --build
 
+sample-outbox:
+	@cd src/sample.outbox && dotnet run --build
+
+sample-outbox-producer:
+	@cd src/sample.outbox.producer && dotnet run --build
+
 .PHONY: help
 help:
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \

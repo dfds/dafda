@@ -1,0 +1,14 @@
+﻿{
+  "profiles": {
+    "Sample": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "DEFAULT_KAFKA_BOOTSTRAP_SERVERS": "localhost:29092",
+        "SAMPLE_KAFKA_GROUP_ID": "terminal-operation-service-vehicles-consumer",
+        "SAMPLE_KAFKA_ENABLE_AUTO_COMMIT": "false",
+        "SAMPLE_DATABASE_CONNECTION_STRING": "User ID=postgres;Password=p;Host=localhost;Database=db"
+      }
+    }
+  }
+}
