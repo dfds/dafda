@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
-    public sealed class ConsumerConfigurationBuilder
+    internal sealed class ConsumerConfigurationBuilder
     {
         private static readonly string[] DefaultConfigurationKeys =
         {
