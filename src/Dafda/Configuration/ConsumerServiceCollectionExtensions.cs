@@ -52,21 +52,21 @@ namespace Dafda.Configuration
             }
 
             consumerGroupIdRepository.Add(configuration.GroupId);
-            
-            Func<IServiceProvider, ConsumerHostedService> hostedServiceFactory = provider => new ConsumerHostedService(
+
+            ConsumerHostedService HostedServiceFactory(IServiceProvider provider) => new ConsumerHostedService(
                 logger: provider.GetRequiredService<ILogger<ConsumerHostedService>>(),
                 applicationLifetime: provider.GetRequiredService<IApplicationLifetime>(),
                 consumer: new Consumer(
-                        messageHandlerRegistry: configuration.MessageHandlerRegistry,
-                        unitOfWorkFactory: provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
-                        consumerScopeFactory: configuration.ConsumerScopeFactory(provider.GetRequiredService<ILoggerFactory>()),
-                        isAutoCommitEnabled: configuration.EnableAutoCommit
-                    ),
+                    messageHandlerRegistry: configuration.MessageHandlerRegistry,
+                    unitOfWorkFactory: provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
+                    consumerScopeFactory: configuration.ConsumerScopeFactory(provider.GetRequiredService<ILoggerFactory>()),
+                    isAutoCommitEnabled: configuration.EnableAutoCommit
+                ),
                 configuration.GroupId
             );
 
-            services.AddTransient<IHostedService, ConsumerHostedService>(hostedServiceFactory);
-            services.AddTransient<ConsumerHostedService>(hostedServiceFactory);
+            services.AddTransient<IHostedService, ConsumerHostedService>(HostedServiceFactory);
+            services.AddTransient<ConsumerHostedService>(HostedServiceFactory); // NOTE: [jandr] is this needed?
         }
     }
 }
