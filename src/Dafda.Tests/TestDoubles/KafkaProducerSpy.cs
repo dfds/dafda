@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Dafda.Configuration;
 using Dafda.Producing;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -18,8 +19,8 @@ namespace Dafda.Tests.TestDoubles
         {
         }
 
-        public KafkaProducerSpy(IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer)
-            : base(NullLoggerFactory.Instance, configuration, payloadSerializer)
+        private KafkaProducerSpy(IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer)
+            : base(NullLoggerFactory.Instance, configuration, new TopicPayloadSerializerRegistry(() => payloadSerializer))
         {
         }
 

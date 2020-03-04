@@ -31,6 +31,7 @@ namespace Dafda.Configuration
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
+        private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => new DefaultPayloadSerializer());
 
         internal ProducerConfigurationBuilder()
         {
@@ -88,7 +89,31 @@ namespace Dafda.Configuration
             _kafkaProducerFactory = inlineFactory;
             return this;
         }
+        
+        public ProducerConfigurationBuilder WithDefaultPayloadSerializer(IPayloadSerializer payloadSerializer)
+        {
+            WithDefaultPayloadSerializer(() => payloadSerializer);
+            return this;
+        }
 
+        public ProducerConfigurationBuilder WithDefaultPayloadSerializer(Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _topicPayloadSerializerRegistry.SetDefaultPayloadSerializer(payloadSerializerFactory);
+            return this;
+        }
+
+        public ProducerConfigurationBuilder WithPayloadSerializer(string topic, IPayloadSerializer payloadSerializer)
+        {
+            WithPayloadSerializer(topic, () => payloadSerializer);
+            return this;
+        }
+
+        public ProducerConfigurationBuilder WithPayloadSerializer(string topic, Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _topicPayloadSerializerRegistry.Register(topic, payloadSerializerFactory);
+            return this;
+        }
+        
         internal ProducerConfiguration Build()
         {
             var configurations = new ConfigurationBuilder()
@@ -101,7 +126,7 @@ namespace Dafda.Configuration
 
             if (_kafkaProducerFactory == null)
             {
-                _kafkaProducerFactory = loggerFactory => new KafkaProducer(loggerFactory, configurations, new DefaultPayloadSerializer());
+                _kafkaProducerFactory = loggerFactory => new KafkaProducer(loggerFactory, configurations, _topicPayloadSerializerRegistry);
             }
 
             return new ProducerConfiguration(

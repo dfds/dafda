@@ -2,29 +2,32 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Confluent.Kafka;
+using Dafda.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Producing
 {
     internal class KafkaProducer : IDisposable
     {
+        private readonly TopicPayloadSerializerRegistry _payloadSerializerRegistry;
         private readonly ILogger<KafkaProducer> _logger;
         private readonly IProducer<string, string> _innerKafkaProducer;
-        private readonly IPayloadSerializer _serializer;
 
-        public KafkaProducer(ILoggerFactory loggerFactory, IEnumerable<KeyValuePair<string, string>> configuration, IPayloadSerializer payloadSerializer)
+        public KafkaProducer(ILoggerFactory loggerFactory, IEnumerable<KeyValuePair<string, string>> configuration, TopicPayloadSerializerRegistry payloadSerializerRegistry)
         {
+            _payloadSerializerRegistry = payloadSerializerRegistry;
             _logger = loggerFactory.CreateLogger<KafkaProducer>();
             _innerKafkaProducer = new ProducerBuilder<string, string>(configuration).Build();
-            _serializer = payloadSerializer;
         }
 
         public async Task Produce(PayloadDescriptor payloadDescriptor)
         {
+            var serializer = _payloadSerializerRegistry.Get(payloadDescriptor.TopicName);
+            
             await InternalProduce(
                 topic: payloadDescriptor.TopicName,
                 key: payloadDescriptor.PartitionKey,
-                value: await _serializer.Serialize(payloadDescriptor)
+                value: await serializer.Serialize(payloadDescriptor)
             );
         }
 

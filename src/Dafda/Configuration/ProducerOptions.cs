@@ -60,6 +60,26 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry.Register(topic, type, keySelector);
         }
 
+        public void WithDefaultPayloadSerializer(IPayloadSerializer payloadSerializer)
+        {
+            WithDefaultPayloadSerializer(() => payloadSerializer);
+        }
+
+        public void WithDefaultPayloadSerializer(Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _builder.WithDefaultPayloadSerializer(payloadSerializerFactory);
+        }
+
+        public void WithPayloadSerializer(string topic, IPayloadSerializer payloadSerializer)
+        {
+            WithPayloadSerializer(topic, () => payloadSerializer);
+        }
+
+        public void WithPayloadSerializer(string topic, Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _builder.WithPayloadSerializer(topic, payloadSerializerFactory);
+        }
+        
         private class DefaultConfigurationSource : ConfigurationSource
         {
             private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
