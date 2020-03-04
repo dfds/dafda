@@ -3,7 +3,7 @@ using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
-namespace Dafda.Tests.Producing.Kafka
+namespace Dafda.Tests.Producing
 {
     public class TestKafkaProducer
     {
