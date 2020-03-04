@@ -21,7 +21,7 @@ namespace Dafda.Outbox
 
         public async Task Dispatch(CancellationToken cancellationToken)
         {
-            using (var outboxUnitOfWork = _unitOfWorkFactory.Begin())
+            using (var outboxUnitOfWork = await _unitOfWorkFactory.Begin(cancellationToken))
             {
                 var entries = await outboxUnitOfWork.GetAllUnpublishedEntries(cancellationToken);
 

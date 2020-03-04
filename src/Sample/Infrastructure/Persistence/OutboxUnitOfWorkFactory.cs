@@ -18,11 +18,11 @@ namespace Sample.Infrastructure.Persistence
             _serviceScopeFactory = serviceScopeFactory;
         }
 
-        public IOutboxUnitOfWork Begin()
+        public async Task<IOutboxUnitOfWork> Begin(CancellationToken cancellationToken)
         {
             var serviceScope = _serviceScopeFactory.CreateScope();
             var dbContext = serviceScope.ServiceProvider.GetRequiredService<SampleDbContext>();
-            var transaction = dbContext.Database.BeginTransaction();
+            var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             return new OutboxUnitOfWork(serviceScope, dbContext, transaction);
         }

@@ -21,9 +21,9 @@ namespace Dafda.Tests.TestDoubles
             return Task.CompletedTask;
         }
 
-        public IOutboxUnitOfWork Begin()
+        public Task<IOutboxUnitOfWork> Begin(CancellationToken cancellationToken)
         {
-            return new FakeUnitOfWork(this);
+            return Task.FromResult<IOutboxUnitOfWork>(new FakeUnitOfWork(this));
         }
 
         public bool Committed { get; private set; }
