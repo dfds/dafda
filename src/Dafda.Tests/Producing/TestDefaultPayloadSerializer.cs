@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dafda.Producing;
+using Dafda.Serializing;
 using Dafda.Tests.Builders;
 using Xunit;
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Dafda.Serializing;
 
 namespace Dafda.Producing
 {

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Outbox;
 using Dafda.Producing;
+using Dafda.Serializing;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

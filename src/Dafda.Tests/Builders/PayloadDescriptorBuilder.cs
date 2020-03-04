@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Producing;
+using Dafda.Serializing;
 
 namespace Dafda.Tests.Builders
 {

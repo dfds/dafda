@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Outbox;
 using Dafda.Producing;
+using Dafda.Serializing;
 
 namespace Dafda.Tests.Builders
 {

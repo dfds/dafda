@@ -1,5 +1,6 @@
 using System;
 using Dafda.Producing;
+using Dafda.Serializing;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration

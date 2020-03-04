@@ -1,5 +1,6 @@
 using Dafda.Outbox;
 using Dafda.Producing;
+using Dafda.Serializing;
 
 namespace Dafda.Configuration
 {

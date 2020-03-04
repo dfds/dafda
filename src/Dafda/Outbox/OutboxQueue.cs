@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Producing;
+using Dafda.Serializing;
 
 namespace Dafda.Outbox
 {
