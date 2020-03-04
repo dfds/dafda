@@ -51,6 +51,54 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
+        public async Task add_single_consumer_registeres_a_single_hosted_service()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddConsumer(options =>
+            {
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId");
+            });
+            
+            var serviceProvider = services.BuildServiceProvider();
+            var consumerHostedServices = serviceProvider
+                .GetServices<IHostedService>()
+                .OfType<ConsumerHostedService>();
+
+            Assert.Single(consumerHostedServices);
+        }
+
+        [Fact]
+        public async Task add_multiple_consumers_registeres_multiple_hosted_services()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            
+            services.AddConsumer(options =>
+            {
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId 1");
+            });
+            
+            services.AddConsumer(options =>
+            {
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId 2");
+            });
+            
+            var serviceProvider = services.BuildServiceProvider();
+            var consumerHostedServices = serviceProvider
+                .GetServices<IHostedService>()
+                .OfType<ConsumerHostedService>();
+
+            Assert.Equal(2, consumerHostedServices.Count());
+        }
+
+        [Fact]
         public void throws_exception_when_registering_multiple_consumers_with_same_consumer_group_id()
         {
             var consumerGroupId = "foo";
