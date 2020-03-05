@@ -34,6 +34,10 @@ namespace Dafda.Configuration
             var configuration = builder.Build();
 
             var outboxListener = outboxProducerOptions.OutboxListener;
+            if (outboxListener == null)
+            {
+                throw new InvalidConfigurationException($"No {nameof(IOutboxListener)} was registered. Please use the {nameof(OutboxProducerOptions.WithListener)} in the {nameof(AddOutboxProducer)} configuration.");
+            }
 
             services.AddTransient<IHostedService, OutboxDispatcherHostedService>(provider =>
             {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +27,6 @@ namespace Dafda.Tests.Configuration
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
                 options.WithOutboxEntryRepository(serviceProvider => fake);
-                options.WithNotifier(new DummyNotification());
             });
             var provider = services.BuildServiceProvider();
             var outbox = provider.GetRequiredService<OutboxQueue>();
@@ -104,7 +103,7 @@ namespace Dafda.Tests.Configuration
         public async Task Can_configure_outbox_notifier()
         {
             var services = new ServiceCollection();
-            var dummyOutboxNotifier = new DummyNotification();
+            var dummyOutboxNotifier = new DummyNotifier();
 
             services.AddOutbox(options =>
             {
@@ -151,12 +150,27 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
+        public void Must_configure_listener()
+        {
+            var services = new ServiceCollection();
+
+            Assert.Throws<InvalidConfigurationException>(() =>
+            {
+                services.AddOutboxProducer(options =>
+                {
+                    // NOTE: add minimal configuration for producer; otherwise we see the same exception, but for different reasons
+                    // (maybe we need another exception here)
+                    options.WithBootstrapServers("localhost");
+                });
+            });
+        }
+
+        [Fact]
         public async Task Can_produce_outbox_message()
         {
             var spy = new KafkaProducerSpy();
             var services = new ServiceCollection();
             var fake = new FakeOutboxPersistence();
-            var dummyNotification = new DummyNotification();
 
             services.AddLogging();
             services.AddOutbox(options =>
@@ -164,14 +178,13 @@ namespace Dafda.Tests.Configuration
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
                 options.WithOutboxEntryRepository(serviceProvider => fake);
-                options.WithNotifier(dummyNotification);
             });
             services.AddOutboxProducer(options =>
             {
                 options.WithBootstrapServers("localhost");
                 options.WithKafkaProducerFactory(_ => spy);
                 options.WithUnitOfWorkFactory(serviceProvider => fake);
-                options.WithListener(dummyNotification);
+                options.WithListener(new DummyNotification());
             });
 
             var provider = services.BuildServiceProvider();
@@ -207,16 +220,19 @@ namespace Dafda.Tests.Configuration
         {
         }
 
-        private class DummyNotification : IOutboxListener, IOutboxNotifier
+        private class DummyNotification : IOutboxListener
+        {
+            public Task<bool> Wait(CancellationToken cancellationToken)
+            {
+                return Task.FromResult(false);
+            }
+        }
+
+        private class DummyNotifier : IOutboxNotifier
         {
             public Task Notify(CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
-            }
-
-            public Task<bool> Wait(CancellationToken cancellationToken)
-            {
-                return Task.FromResult(false);
             }
         }
 
