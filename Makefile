@@ -76,10 +76,10 @@ sample:
 	@cd src/sample && dotnet run --build
 
 sample-outbox:
-	@cd src/sample.outbox && dotnet run --build
+	@cd examples/Outbox && dotnet run --build
 
 sample-outbox-producer:
-	@cd src/sample.outbox.producer && dotnet run --build
+	@cd examples/OutboxProcessor && dotnet run --build
 
 .PHONY: help
 help:
