@@ -47,8 +47,6 @@ namespace Sample
                     }
                     outboxNotifier?.Notify(); // NOTE: when using postgres LISTEN/NOTIFY this should/could be part of the transaction scope above
 
-                    _stats.Produce();
-
                     _logger.LogInformation("{Stats}", _stats.ToString());
 
                     await Task.Delay(1000, stoppingToken);

@@ -30,16 +30,13 @@ namespace Sample.Infrastructure.Persistence
 
             modelBuilder.Entity<OutboxMessage>(cfg =>
             {
-                cfg.ToTable("OutboxMessage", "outbox");
+                cfg.ToTable("_outbox");
                 cfg.HasKey(x => x.MessageId);
-                cfg.Property(x => x.MessageId);
-                cfg.Property(x => x.CorrelationId);
+                cfg.Property(x => x.MessageId).HasColumnName("Id");
                 cfg.Property(x => x.Topic);
                 cfg.Property(x => x.Key);
-                cfg.Property(x => x.Type);
-                cfg.Property(x => x.Format);
-                cfg.Property(x => x.Data);
-                cfg.Property(x => x.OccurredOnUtc);
+                cfg.Property(x => x.Payload);
+                cfg.Property(x => x.OccurredUtc);
                 cfg.Property(x => x.ProcessedUtc);
             });
         }

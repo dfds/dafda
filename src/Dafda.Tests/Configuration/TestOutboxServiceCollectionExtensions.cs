@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Outbox;
 using Dafda.Producing;
-using Dafda.Serializing;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,36 +37,11 @@ namespace Dafda.Tests.Configuration
             var outboxMessage = fake.OutboxMessages.Single();
 
             Assert.Equal("foo", outboxMessage.Topic);
-            Assert.Equal("bar", outboxMessage.Type);
             Assert.Equal(messageId, outboxMessage.MessageId);
             Assert.Equal("baz", outboxMessage.Key);
-            Assert.Equal("application/json", outboxMessage.Format);
-            //Assert.Equal("null", outboxMessage.CorrelationId); // TODO -- should probably be testable
-            Assert.NotNull(outboxMessage.Data); // TODO -- do we need to test message serialization here, or could it just be a canned answer for testability?
+            Assert.NotNull(outboxMessage.Payload); // TODO -- do we need to test message serialization here, or could it just be a canned answer for testability?
             //Assert.Equal(DateTime.Now, outboxMessage.OccurredOnUtc);  // TODO -- should probably be testable
             Assert.Null(outboxMessage.ProcessedUtc);
-        }
-        
-        [Fact]
-        public async Task Can_persist_outbox_message_with_default_serializer_format()
-        {
-            var services = new ServiceCollection();
-            var fake = new FakeOutboxPersistence();
-
-            services.AddOutbox(options =>
-            {
-                options.Register<DummyMessage>("foo", "bar", x => "baz");
-                options.WithOutboxMessageRepository(serviceProvider => fake);
-            });
-
-            var provider = services.BuildServiceProvider();
-            var outbox = provider.GetRequiredService<OutboxQueue>();
-
-            await outbox.Enqueue(new[] {new DummyMessage()});
-
-            var outboxMessage = fake.OutboxMessages.Single();
-
-            Assert.Equal("application/json", outboxMessage.Format);
         }
 
         [Fact]
@@ -90,7 +64,7 @@ namespace Dafda.Tests.Configuration
 
             var outboxMessage = fake.OutboxMessages.Single();
 
-            Assert.Equal("expected payload format", outboxMessage.Format);
+            Assert.Equal("dummy", outboxMessage.Payload);
         }
 
         [Fact]
@@ -102,11 +76,12 @@ namespace Dafda.Tests.Configuration
             services.AddOutbox(options =>
             {
                 options.WithOutboxMessageRepository(serviceProvider => fake);
-                
+
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
-                options.WithPayloadSerializer("foo", new PayloadSerializerStub("dummy", "expected foo payload format"));
+                options.WithPayloadSerializer("foo", new PayloadSerializerStub("foo_dummy", "expected foo payload format"));
 
                 options.Register<AnotherDummyMessage>("bar", "bar", x => "baz");
+                options.WithPayloadSerializer("bar", new PayloadSerializerStub("bar_dummy", "expected foo payload format"));
             });
 
             var provider = services.BuildServiceProvider();
@@ -118,10 +93,10 @@ namespace Dafda.Tests.Configuration
             Assert.Equal(
                 expected: new[]
                 {
-                    "expected foo payload format",
-                    new DefaultPayloadSerializer().PayloadFormat, 
+                    "foo_dummy",
+                    "bar_dummy",
                 },
-                actual: fake.OutboxMessages.Select(x => x.Format)
+                actual: fake.OutboxMessages.Select(x => x.Payload)
             );
         }
 
@@ -186,7 +161,6 @@ namespace Dafda.Tests.Configuration
             services.AddLogging();
             services.AddOutbox(options =>
             {
-
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
                 options.WithOutboxMessageRepository(serviceProvider => fake);

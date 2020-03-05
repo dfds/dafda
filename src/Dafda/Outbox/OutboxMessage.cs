@@ -4,16 +4,13 @@ namespace Dafda.Outbox
 {
     public class OutboxMessage
     {
-        public OutboxMessage(Guid messageId, string correlationId, string topic, string key, string type, string format, string data, DateTime occurredOnUtc)
+        public OutboxMessage(Guid messageId, string topic, string key, string payload, DateTime occurredUtc)
         {
             MessageId = messageId;
-            CorrelationId = correlationId;
             Topic = topic;
             Key = key;
-            Type = type;
-            Format = format;
-            Data = data;
-            OccurredOnUtc = occurredOnUtc;
+            Payload = payload;
+            OccurredUtc = occurredUtc;
             ProcessedUtc = null;
         }
 
@@ -21,18 +18,11 @@ namespace Dafda.Outbox
         {
         }
 
-        [Obsolete]
-        public string CorrelationId { get; private set; }
-
-        [Obsolete]
-        public string Type { get; private set; }
-
         public Guid MessageId { get; private set; }
         public string Topic { get; private set; }
         public string Key { get; private set; }
-        public string Format { get; private set; }
-        public string Data { get; private set; }
-        public DateTime OccurredOnUtc { get; private set; }
+        public string Payload { get; private set; }
+        public DateTime OccurredUtc { get; private set; }
         public DateTime? ProcessedUtc { get; private set; }
 
         public void MaskAsProcessed()

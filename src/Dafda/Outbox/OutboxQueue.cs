@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Dafda.Configuration;
 using Dafda.Producing;
 using Dafda.Serializing;
 
@@ -42,19 +41,15 @@ namespace Dafda.Outbox
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, new Dictionary<string, object>());
 
             var messageId = Guid.Parse(payloadDescriptor.MessageId);
-            var correlationId = Guid.NewGuid().ToString();
 
             var payloadSerializer = _serializerRegistry.Get(payloadDescriptor.TopicName);
 
             return new OutboxMessage(
                 messageId: messageId,
-                correlationId: correlationId,
                 topic: payloadDescriptor.TopicName,
                 key: payloadDescriptor.PartitionKey,
-                type: payloadDescriptor.MessageType,
-                format: payloadSerializer.PayloadFormat,
-                data: await payloadSerializer.Serialize(payloadDescriptor),
-                occurredOnUtc: DateTime.UtcNow
+                payload: await payloadSerializer.Serialize(payloadDescriptor),
+                occurredUtc: DateTime.UtcNow
             );
         }
     }

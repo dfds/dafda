@@ -1,19 +1,13 @@
-CREATE SCHEMA IF NOT EXISTS outbox;
-
-CREATE TABLE outbox."OutboxMessage" (
-    "MessageId" uuid NOT NULL,
-    "CorrelationId" varchar(255) NOT NULL,
+CREATE TABLE _outbox (
+    "Id" uuid NOT NULL,
     "Topic" varchar(255) NOT NULL,
     "Key" varchar(255) NOT NULL,
-    "Type" varchar(255) NOT NULL,
-    "Format" varchar(255) NOT NULL,
-    "Data" text NOT NULL,
-    "OccurredOnUtc" timestamp NOT NULL,
+    "Payload" text NOT NULL,
+    "OccurredUtc" timestamp NOT NULL,
     "ProcessedUtc" timestamp NULL,
 
-    CONSTRAINT domainevent_pk PRIMARY KEY ("MessageId")
+    CONSTRAINT _outbox_pk PRIMARY KEY ("Id")
 );
 
-CREATE INDEX domainevent_processedutc_idx ON outbox."OutboxMessage" ("ProcessedUtc" NULLS FIRST);
-
-CREATE INDEX domainevent_occurredonutc_idx ON outbox."OutboxMessage" ("OccurredOnUtc" ASC);
+CREATE INDEX _outbox_processedutc_idx ON _outbox ("ProcessedUtc" NULLS FIRST);
+CREATE INDEX _outbox_occurredutc_idx ON _outbox ("OccurredUtc" ASC);

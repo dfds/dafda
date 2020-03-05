@@ -5,18 +5,9 @@ namespace Dafda.Tests.Builders
 {
     internal class OutboxMessageBuilder
     {
-        private Guid _messageId;
         private string _topic;
         private string _key;
-        private string _type;
         private string _value;
-        private DateTime _occurredOnUtc;
-
-        public OutboxMessageBuilder WithMessageId(Guid messageId)
-        {
-            _messageId = messageId;
-            return this;
-        }
 
         public OutboxMessageBuilder WithTopic(string topic)
         {
@@ -30,27 +21,15 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public OutboxMessageBuilder WithType(string type)
-        {
-            _type = type;
-            return this;
-        }
-
         public OutboxMessageBuilder WithValue(string value)
         {
             _value = value;
             return this;
         }
 
-        public OutboxMessageBuilder OccurredOnUtc(DateTime occurredOnUtc)
-        {
-            _occurredOnUtc = occurredOnUtc;
-            return this;
-        }
-
         public OutboxMessage Build()
         {
-            return new OutboxMessage(_messageId, null, _topic, _key, _type, null, _value, _occurredOnUtc);
+            return new OutboxMessage(Guid.Empty, _topic, _key, _value, DateTime.UtcNow);
         }
 
         public static implicit operator OutboxMessage(OutboxMessageBuilder builder)

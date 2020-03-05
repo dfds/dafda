@@ -35,7 +35,7 @@ namespace Dafda.Outbox
 
                         outboxMessage.MaskAsProcessed();
 
-                        _logger.LogDebug(@"Published outbox message {MessageId} ({Type})", outboxMessage.MessageId, outboxMessage.Type);
+                        _logger.LogDebug(@"Published outbox message {MessageId}", outboxMessage.MessageId);
                     }
                 }
                 catch (Exception exception)

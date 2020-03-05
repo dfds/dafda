@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -43,10 +42,14 @@ namespace Sample.Infrastructure.Persistence
 
             public async Task<ICollection<OutboxMessage>> GetAllUnpublishedMessages(CancellationToken stoppingToken)
             {
-                return await _dbContext
+                var outboxMessages = await _dbContext
                     .OutboxMessages
                     .Where(x => x.ProcessedUtc == null)
                     .ToListAsync(stoppingToken);
+
+                outboxMessages.ForEach(message => _serviceScope.ServiceProvider.GetRequiredService<Stats>().Produce());
+
+                return outboxMessages;
             }
 
             public async Task Commit(CancellationToken stoppingToken)
