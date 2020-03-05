@@ -23,19 +23,19 @@ namespace Dafda.Outbox
         {
             using (var outboxUnitOfWork = _unitOfWorkFactory.Begin())
             {
-                var outboxMessages = await outboxUnitOfWork.GetAllUnpublishedMessages(cancellationToken);
+                var entries = await outboxUnitOfWork.GetAllUnpublishedEntries(cancellationToken);
 
-                _logger.LogDebug("Unpublished outbox messages: {OutboxMessageCount}", outboxMessages.Count);
+                _logger.LogDebug("Unpublished outbox entries: {EntryCount}", entries.Count);
 
                 try
                 {
-                    foreach (var outboxMessage in outboxMessages)
+                    foreach (var entry in entries)
                     {
-                        await _producer.Produce(outboxMessage);
+                        await _producer.Produce(entry);
 
-                        outboxMessage.MaskAsProcessed();
+                        entry.MaskAsProcessed();
 
-                        _logger.LogDebug(@"Published outbox message {MessageId}", outboxMessage.MessageId);
+                        _logger.LogDebug(@"Published outbox message {MessageId}", entry.MessageId);
                     }
                 }
                 catch (Exception exception)

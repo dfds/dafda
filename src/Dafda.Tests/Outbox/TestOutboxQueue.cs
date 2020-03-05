@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Dafda.Tests.Outbox
 {
-    public class TestOutboxMessageQueue
+    public class TestOutboxQueue
     {
         [Fact]
         public async Task Fails_for_unregistered_outgoing_messages()
@@ -18,7 +18,7 @@ namespace Dafda.Tests.Outbox
         [Fact]
         public async Task Can_delegate_persistence_for_outgoing_message()
         {
-            var spy = new OutboxMessageRepositorySpy();
+            var spy = new OutboxEntryRepositorySpy();
 
             var sut = A.OutboxQueue
                 .With(
@@ -31,7 +31,7 @@ namespace Dafda.Tests.Outbox
 
             await sut.Enqueue(new[] {new Message()});
 
-            Assert.NotEmpty(spy.OutboxMessages);
+            Assert.NotEmpty(spy.OutboxEntries);
         }
 
         public class Message

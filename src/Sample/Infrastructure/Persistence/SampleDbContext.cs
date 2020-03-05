@@ -20,7 +20,7 @@ namespace Sample.Infrastructure.Persistence
         {
         }
 
-        public DbSet<OutboxMessage> OutboxMessages { get; set; }
+        public DbSet<OutboxEntry> OutboxEntries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,7 +28,7 @@ namespace Sample.Infrastructure.Persistence
 
             // add other models
 
-            modelBuilder.Entity<OutboxMessage>(cfg =>
+            modelBuilder.Entity<OutboxEntry>(cfg =>
             {
                 cfg.ToTable("_outbox");
                 cfg.HasKey(x => x.MessageId);

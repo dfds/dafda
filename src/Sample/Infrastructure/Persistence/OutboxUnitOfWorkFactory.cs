@@ -40,16 +40,16 @@ namespace Sample.Infrastructure.Persistence
                 _transaction = transaction;
             }
 
-            public async Task<ICollection<OutboxMessage>> GetAllUnpublishedMessages(CancellationToken stoppingToken)
+            public async Task<ICollection<OutboxEntry>> GetAllUnpublishedEntries(CancellationToken stoppingToken)
             {
-                var outboxMessages = await _dbContext
-                    .OutboxMessages
+                var entries = await _dbContext
+                    .OutboxEntries
                     .Where(x => x.ProcessedUtc == null)
                     .ToListAsync(stoppingToken);
 
-                outboxMessages.ForEach(message => _serviceScope.ServiceProvider.GetRequiredService<Stats>().Produce());
+                entries.ForEach(message => _serviceScope.ServiceProvider.GetRequiredService<Stats>().Produce());
 
-                return outboxMessages;
+                return entries;
             }
 
             public async Task Commit(CancellationToken stoppingToken)

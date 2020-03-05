@@ -31,12 +31,12 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry.Register(topic, type, keySelector);
         }
 
-        public void WithOutboxMessageRepository<T>() where T : class, IOutboxMessageRepository
+        public void WithOutboxEntryRepository<T>() where T : class, IOutboxEntryRepository
         {
-            _services.AddTransient<IOutboxMessageRepository, T>();
+            _services.AddTransient<IOutboxEntryRepository, T>();
         }
 
-        public void WithOutboxMessageRepository(Func<IServiceProvider, IOutboxMessageRepository> implementationFactory)
+        public void WithOutboxEntryRepository(Func<IServiceProvider, IOutboxEntryRepository> implementationFactory)
         {
             _services.AddTransient(implementationFactory);
         }

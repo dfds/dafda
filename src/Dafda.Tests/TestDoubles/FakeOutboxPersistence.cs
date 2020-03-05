@@ -6,18 +6,18 @@ using Dafda.Outbox;
 
 namespace Dafda.Tests.TestDoubles
 {
-    internal class FakeOutboxPersistence : IOutboxMessageRepository, IOutboxUnitOfWorkFactory
+    internal class FakeOutboxPersistence : IOutboxEntryRepository, IOutboxUnitOfWorkFactory
     {
-        public List<OutboxMessage> OutboxMessages { get; }
+        public List<OutboxEntry> OutboxEntries { get; }
 
-        public FakeOutboxPersistence(params OutboxMessage[] outboxMessages)
+        public FakeOutboxPersistence(params OutboxEntry[] outboxEntries)
         {
-            OutboxMessages = outboxMessages.ToList();
+            OutboxEntries = outboxEntries.ToList();
         }
 
-        public Task Add(IEnumerable<OutboxMessage> outboxMessages)
+        public Task Add(IEnumerable<OutboxEntry> outboxEntries)
         {
-            OutboxMessages.AddRange(outboxMessages);
+            OutboxEntries.AddRange(outboxEntries);
             return Task.CompletedTask;
         }
 
@@ -37,9 +37,9 @@ namespace Dafda.Tests.TestDoubles
                 _fake = fake;
             }
 
-            public Task<ICollection<OutboxMessage>> GetAllUnpublishedMessages(CancellationToken stoppingToken)
+            public Task<ICollection<OutboxEntry>> GetAllUnpublishedEntries(CancellationToken stoppingToken)
             {
-                return Task.FromResult<ICollection<OutboxMessage>>(_fake.OutboxMessages.Where(x => x.ProcessedUtc == null).ToList());
+                return Task.FromResult<ICollection<OutboxEntry>>(_fake.OutboxEntries.Where(x => x.ProcessedUtc == null).ToList());
             }
 
             public Task Commit(CancellationToken stoppingToken)

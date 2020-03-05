@@ -99,7 +99,7 @@ namespace Sample
                         options.Register<TestEvent>("test-topic", "test-event", @event => @event.AggregateId);
 
                         // include outbox persistence
-                        options.WithOutboxMessageRepository<OutboxMessageRepository>();
+                        options.WithOutboxEntryRepository<OutboxEntryRepository>();
                         options.WithNotifier(outboxNotification);
                     });
 

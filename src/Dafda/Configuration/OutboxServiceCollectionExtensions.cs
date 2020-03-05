@@ -20,7 +20,7 @@ namespace Dafda.Configuration
             services.AddTransient(provider => new OutboxQueue(
                 configuration.MessageIdGenerator,
                 outgoingMessageRegistry,
-                provider.GetRequiredService<IOutboxMessageRepository>(),
+                provider.GetRequiredService<IOutboxEntryRepository>(),
                 configuration.Notifier,
                 configuration.TopicPayloadSerializerRegistry
             ));

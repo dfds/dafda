@@ -7,7 +7,7 @@ namespace Dafda.Outbox
 {
     public interface IOutboxUnitOfWork : IDisposable
     {
-        Task<ICollection<OutboxMessage>> GetAllUnpublishedMessages(CancellationToken stoppingToken);
+        Task<ICollection<OutboxEntry>> GetAllUnpublishedEntries(CancellationToken stoppingToken);
         Task Commit(CancellationToken stoppingToken);
     }
 }

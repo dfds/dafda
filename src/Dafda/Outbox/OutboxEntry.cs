@@ -2,9 +2,9 @@ using System;
 
 namespace Dafda.Outbox
 {
-    public class OutboxMessage
+    public class OutboxEntry
     {
-        public OutboxMessage(Guid messageId, string topic, string key, string payload, DateTime occurredUtc)
+        public OutboxEntry(Guid messageId, string topic, string key, string payload, DateTime occurredUtc)
         {
             MessageId = messageId;
             Topic = topic;
@@ -14,7 +14,7 @@ namespace Dafda.Outbox
             ProcessedUtc = null;
         }
 
-        protected OutboxMessage()
+        protected OutboxEntry()
         {
         }
 

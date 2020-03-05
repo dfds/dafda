@@ -12,7 +12,7 @@ namespace Dafda.Tests.Outbox
         {
             var spy = new KafkaProducerSpy();
             var sut = A.OutboxDispatcher
-                .With(new FakeOutboxPersistence(A.OutboxMessage
+                .With(new FakeOutboxPersistence(A.OutboxEntry
                     .WithTopic("foo")
                     .WithKey("bar")
                     .WithValue("baz")

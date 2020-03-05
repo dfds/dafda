@@ -8,12 +8,12 @@ namespace Dafda.Outbox
 {
     public sealed class OutboxQueue
     {
-        private readonly IOutboxMessageRepository _repository;
+        private readonly IOutboxEntryRepository _repository;
         private readonly IOutboxNotifier _outboxNotifier;
         private readonly TopicPayloadSerializerRegistry _serializerRegistry;
         private readonly PayloadDescriptorFactory _payloadDescriptorFactory;
 
-        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxMessageRepository repository, IOutboxNotifier outboxNotifier, TopicPayloadSerializerRegistry serializerRegistry)
+        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxEntryRepository repository, IOutboxNotifier outboxNotifier, TopicPayloadSerializerRegistry serializerRegistry)
         {
             _repository = repository;
             _outboxNotifier = outboxNotifier;
@@ -23,20 +23,20 @@ namespace Dafda.Outbox
 
         public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> messages)
         {
-            var outboxMessages = new LinkedList<OutboxMessage>();
+            var entries = new LinkedList<OutboxEntry>();
 
-            foreach (var @event in messages)
+            foreach (var message in messages)
             {
-                var message = await CreateOutboxMessage(@event);
-                outboxMessages.AddLast(message);
+                var entry = await CreateOutboxEntry(message);
+                entries.AddLast(entry);
             }
 
-            await _repository.Add(outboxMessages);
+            await _repository.Add(entries);
 
             return _outboxNotifier;
         }
 
-        private async Task<OutboxMessage> CreateOutboxMessage(object message)
+        private async Task<OutboxEntry> CreateOutboxEntry(object message)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, new Dictionary<string, object>());
 
@@ -44,7 +44,7 @@ namespace Dafda.Outbox
 
             var payloadSerializer = _serializerRegistry.Get(payloadDescriptor.TopicName);
 
-            return new OutboxMessage(
+            return new OutboxEntry(
                 messageId: messageId,
                 topic: payloadDescriptor.TopicName,
                 key: payloadDescriptor.PartitionKey,

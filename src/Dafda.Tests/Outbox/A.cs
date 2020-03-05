@@ -8,6 +8,6 @@ namespace Dafda.Tests.Outbox
         public static OutgoingMessageRegistryBuilder OutgoingMessageRegistry => new OutgoingMessageRegistryBuilder();
         public static OutboxProducerBuilder OutboxProducer => new OutboxProducerBuilder();
         public static OutboxDispatcherBuilder OutboxDispatcher => new OutboxDispatcherBuilder();
-        public static OutboxMessageBuilder OutboxMessage => new OutboxMessageBuilder();
+        public static OutboxEntryBuilder OutboxEntry => new OutboxEntryBuilder();
     }
 }

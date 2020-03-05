@@ -10,7 +10,7 @@ namespace Dafda.Tests.Builders
     internal class OutboxQueueBuilder
     {
         private OutgoingMessageRegistry _outgoingMessageRegistry = new OutgoingMessageRegistry();
-        private IOutboxMessageRepository _outboxMessageRepository = new DummyOutboxMessageRepository();
+        private IOutboxEntryRepository _outboxEntryRepository = new DummyOutboxEntryRepository();
         private IPayloadSerializer _payloadSerializer = new DefaultPayloadSerializer();
 
         public OutboxQueueBuilder With(OutgoingMessageRegistry outgoingMessageRegistry)
@@ -19,9 +19,9 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public OutboxQueueBuilder With(IOutboxMessageRepository outboxMessageRepository)
+        public OutboxQueueBuilder With(IOutboxEntryRepository outboxEntryRepository)
         {
-            _outboxMessageRepository = outboxMessageRepository;
+            _outboxEntryRepository = outboxEntryRepository;
             return this;
         }
 
@@ -36,7 +36,7 @@ namespace Dafda.Tests.Builders
             return new OutboxQueue(
                 messageIdGenerator: MessageIdGenerator.Default,
                 outgoingMessageRegistry: _outgoingMessageRegistry,
-                repository: _outboxMessageRepository,
+                repository: _outboxEntryRepository,
                 outboxNotifier: new NullOutboxNotifier(),
                 serializerRegistry: new TopicPayloadSerializerRegistry(() => _payloadSerializer)
             );
@@ -47,9 +47,9 @@ namespace Dafda.Tests.Builders
             return builder.Build();
         }
 
-        private class DummyOutboxMessageRepository : IOutboxMessageRepository
+        private class DummyOutboxEntryRepository : IOutboxEntryRepository
         {
-            public Task Add(IEnumerable<OutboxMessage> outboxMessages)
+            public Task Add(IEnumerable<OutboxEntry> outboxEntries)
             {
                 return Task.CompletedTask;
             }

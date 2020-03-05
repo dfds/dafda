@@ -12,9 +12,9 @@ namespace Dafda.Producing
             _kafkaProducer = kafkaProducer;
         }
 
-        public async Task Produce(OutboxMessage message)
+        public async Task Produce(OutboxEntry entry)
         {
-            await _kafkaProducer.InternalProduce(message.Topic, message.Key, message.Payload);
+            await _kafkaProducer.InternalProduce(entry.Topic, entry.Key, entry.Payload);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Dafda.Tests.Configuration
                 options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => messageId.ToString()));
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
-                options.WithOutboxMessageRepository(serviceProvider => fake);
+                options.WithOutboxEntryRepository(serviceProvider => fake);
                 options.WithNotifier(new DummyNotification());
             });
             var provider = services.BuildServiceProvider();
@@ -34,14 +34,14 @@ namespace Dafda.Tests.Configuration
 
             await outbox.Enqueue(new[] {new DummyMessage()});
 
-            var outboxMessage = fake.OutboxMessages.Single();
+            var entry = fake.OutboxEntries.Single();
 
-            Assert.Equal("foo", outboxMessage.Topic);
-            Assert.Equal(messageId, outboxMessage.MessageId);
-            Assert.Equal("baz", outboxMessage.Key);
-            Assert.NotNull(outboxMessage.Payload); // TODO -- do we need to test message serialization here, or could it just be a canned answer for testability?
-            //Assert.Equal(DateTime.Now, outboxMessage.OccurredOnUtc);  // TODO -- should probably be testable
-            Assert.Null(outboxMessage.ProcessedUtc);
+            Assert.Equal("foo", entry.Topic);
+            Assert.Equal(messageId, entry.MessageId);
+            Assert.Equal("baz", entry.Key);
+            Assert.NotNull(entry.Payload); // TODO -- do we need to test message serialization here, or could it just be a canned answer for testability?
+            //Assert.Equal(DateTime.Now, entry.OccurredOnUtc);  // TODO -- should probably be testable
+            Assert.Null(entry.ProcessedUtc);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Dafda.Tests.Configuration
             services.AddOutbox(options =>
             {
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
-                options.WithOutboxMessageRepository(serviceProvider => fake);
+                options.WithOutboxEntryRepository(serviceProvider => fake);
                 options.WithPayloadSerializer("foo", new PayloadSerializerStub("dummy", "expected payload format"));
             });
 
@@ -62,9 +62,9 @@ namespace Dafda.Tests.Configuration
 
             await outbox.Enqueue(new[] {new DummyMessage()});
 
-            var outboxMessage = fake.OutboxMessages.Single();
+            var entry = fake.OutboxEntries.Single();
 
-            Assert.Equal("dummy", outboxMessage.Payload);
+            Assert.Equal("dummy", entry.Payload);
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace Dafda.Tests.Configuration
 
             services.AddOutbox(options =>
             {
-                options.WithOutboxMessageRepository(serviceProvider => fake);
+                options.WithOutboxEntryRepository(serviceProvider => fake);
 
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
                 options.WithPayloadSerializer("foo", new PayloadSerializerStub("foo_dummy", "expected foo payload format"));
@@ -96,7 +96,7 @@ namespace Dafda.Tests.Configuration
                     "foo_dummy",
                     "bar_dummy",
                 },
-                actual: fake.OutboxMessages.Select(x => x.Payload)
+                actual: fake.OutboxEntries.Select(x => x.Payload)
             );
         }
 
@@ -111,7 +111,7 @@ namespace Dafda.Tests.Configuration
                 options.WithNotifier(dummyOutboxNotifier);
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
-                options.WithOutboxMessageRepository(serviceProvider => new FakeOutboxPersistence());
+                options.WithOutboxEntryRepository(serviceProvider => new FakeOutboxPersistence());
             });
             var provider = services.BuildServiceProvider();
             var outbox = provider.GetRequiredService<OutboxQueue>();
@@ -163,7 +163,7 @@ namespace Dafda.Tests.Configuration
             {
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
 
-                options.WithOutboxMessageRepository(serviceProvider => fake);
+                options.WithOutboxEntryRepository(serviceProvider => fake);
                 options.WithNotifier(dummyNotification);
             });
             services.AddOutboxProducer(options =>
@@ -191,7 +191,7 @@ namespace Dafda.Tests.Configuration
                 pollingPublisher.ProcessOutbox(cts.Token);
             }
 
-            Assert.True(fake.OutboxMessages.All(x => x.ProcessedUtc.HasValue));
+            Assert.True(fake.OutboxEntries.All(x => x.ProcessedUtc.HasValue));
 
             Assert.True(fake.Committed);
 
