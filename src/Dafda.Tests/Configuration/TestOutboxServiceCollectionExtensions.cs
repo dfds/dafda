@@ -25,6 +25,7 @@ namespace Dafda.Tests.Configuration
             {
                 options.WithMessageIdGenerator(new MessageIdGeneratorStub(() => messageId.ToString()));
                 options.Register<DummyMessage>("foo", "bar", x => "baz");
+                options.WithPayloadSerializer("foo", new PayloadSerializerStub("dummy"));
 
                 options.WithOutboxEntryRepository(serviceProvider => fake);
             });
@@ -38,7 +39,7 @@ namespace Dafda.Tests.Configuration
             Assert.Equal("foo", entry.Topic);
             Assert.Equal(messageId, entry.MessageId);
             Assert.Equal("baz", entry.Key);
-            Assert.NotNull(entry.Payload); // TODO -- do we need to test message serialization here, or could it just be a canned answer for testability?
+            Assert.Equal("dummy", entry.Payload);
             //Assert.Equal(DateTime.Now, entry.OccurredOnUtc);  // TODO -- should probably be testable
             Assert.Null(entry.ProcessedUtc);
         }
