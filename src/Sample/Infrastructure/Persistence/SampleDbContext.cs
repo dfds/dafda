@@ -8,9 +8,7 @@ namespace Sample.Infrastructure.Persistence
     {
         public static void ConfigurePersistence(this IServiceCollection services, string connectionString)
         {
-            services
-                .AddEntityFrameworkNpgsql()
-                .AddDbContext<SampleDbContext>(options => options.UseNpgsql(connectionString));
+            services.AddDbContext<SampleDbContext>(options => options.UseNpgsql(connectionString));
         }
     }
 
