@@ -51,7 +51,7 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public async Task add_single_consumer_registeres_a_single_hosted_service()
+        public void add_single_consumer_registeres_a_single_hosted_service()
         {
             var services = new ServiceCollection();
             services.AddLogging();
@@ -71,7 +71,7 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public async Task add_multiple_consumers_registeres_multiple_hosted_services()
+        public void add_multiple_consumers_registeres_multiple_hosted_services()
         {
             var services = new ServiceCollection();
 
