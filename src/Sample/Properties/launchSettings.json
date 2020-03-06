@@ -2,8 +2,10 @@
   "profiles": {
     "Sample": {
       "commandName": "Project",
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5000/",
       "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development",
+        "ASPNETCORE_ENVIRONMENT": "Development",
         "DEFAULT_KAFKA_BOOTSTRAP_SERVERS": "localhost:29092",
         "SAMPLE_KAFKA_GROUP_ID": "terminal-operation-service-vehicles-consumer",
         "SAMPLE_KAFKA_ENABLE_AUTO_COMMIT": "false",
