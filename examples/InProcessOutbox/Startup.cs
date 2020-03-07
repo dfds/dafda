@@ -1,18 +1,24 @@
 ﻿using System;
 using Dafda.Configuration;
 using Dafda.Outbox;
+using InProcessOutbox.Application;
+using InProcessOutbox.Domain;
+using InProcessOutbox.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Sample.Application;
-using Sample.Infrastructure.Persistence;
 
-namespace Sample
+namespace InProcessOutbox
 {
     public class Startup
     {
+        private const string StudentTopic = "test-topic";
+        private const string StudentEnrolledMessageType = "student-enrolled";
+        private const string StudentChangedEmailMessageType = "student-changed-email";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -24,78 +30,74 @@ namespace Sample
         public void ConfigureServices(IServiceCollection services)
         {
             // configure main application
-            // services.AddHostedService<MainWorker>();
-
             services.AddSingleton<Stats>();
-
-            // configure persistence (PostgreSQL)
-            services.ConfigurePersistence(Configuration["SAMPLE_DATABASE_CONNECTION_STRING"]);
-
-            services.AddHttpContextAccessor();
-
-            services.AddTransient<Transactional>();
+            services.AddTransient<StudentApplicationService>();
+            // domain events are scoped so we can access them in TransactionalOutbox
             services.AddScoped<DomainEvents>();
-            services.AddTransient<ApplicationService>();
+            services.AddScoped<IDomainEvents>(provider => provider.GetRequiredService<DomainEvents>());
+
+            // configure persistence (Postgres)
+            var connectionString = Configuration["SAMPLE_DATABASE_CONNECTION_STRING"];
+            services.AddDbContext<SampleDbContext>(options => options.UseNpgsql(connectionString));
+            services.AddTransient<IStudentRepository, RelationalStudentRepository>();
+            services.AddTransient<TransactionalOutbox>();
 
             // configure messaging: consumer
             services.AddConsumer(options =>
             {
-                // configuration settings
+                // kafka consumer settings
                 options.WithConfigurationSource(Configuration);
                 options.WithEnvironmentStyle("DEFAULT_KAFKA");
                 options.WithEnvironmentStyle("SAMPLE_KAFKA");
                 options.WithGroupId("foo");
 
                 // register message handlers
-                options.RegisterMessageHandler<TestEvent, TestHandler>("test-topic", "test-event");
+                options.RegisterMessageHandler<StudentEnrolled, StudentEnrolledHandler>(StudentTopic, StudentEnrolledMessageType);
+                options.RegisterMessageHandler<StudentChangedEmail, StudentChangedEmailHandler>(StudentTopic, StudentChangedEmailMessageType);
             });
 
-            // configure ANOTHER messaging: consumer
-            services.AddConsumer(options =>
-            {
-                // configuration settings
-                options.WithConfigurationSource(Configuration);
-                options.WithEnvironmentStyle("DEFAULT_KAFKA");
-                options.WithEnvironmentStyle("SAMPLE_KAFKA");
-                options.WithGroupId("bar");
-
-                // register message handlers
-                options.RegisterMessageHandler<TestEvent, AnotherTestHandler>("test-topic", "test-event");
-            });
-
+            // register the outbox in-process notification mechanism
             var outboxNotification = new OutboxNotification(TimeSpan.FromSeconds(5));
-
             services.AddSingleton(provider => outboxNotification); // register to dispose
 
-            // configure messaging: producer
+            // configure the outbox pattern using Dafda
             services.AddOutbox(options =>
             {
-                // register outgoing messages (includes outbox messages)
-                options.Register<TestEvent>("test-topic", "test-event", @event => @event.AggregateId);
+                // register outgoing (through the outbox) messages
+                options.Register<StudentEnrolled>(StudentTopic, StudentEnrolledMessageType, @event => @event.StudentId);
+                options.Register<StudentChangedEmail>(StudentTopic, StudentChangedEmailMessageType, @event => @event.StudentId);
 
                 // include outbox persistence
                 options.WithOutboxEntryRepository<OutboxEntryRepository>();
+
+                // add notifier (for immediate dispatch)
                 options.WithNotifier(outboxNotification);
             });
 
+            // configure the outbox producer
             services.AddOutboxProducer(options =>
             {
-                // configuration settings
+                // kafka producer settings
                 options.WithConfigurationSource(Configuration);
                 options.WithEnvironmentStyle("DEFAULT_KAFKA");
                 options.WithEnvironmentStyle("SAMPLE_KAFKA");
 
-                // include outbox (polling publisher)
+                // include outbox unit of work (so we can read/update the outbox table)
                 options.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
+
+                // add listener (for immediate dispatch)
                 options.WithListener(outboxNotification);
             });
 
+            // configure web api
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            #region configure web api application
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -104,6 +106,8 @@ namespace Sample
             app.UseRouting();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+            #endregion
         }
     }
 }

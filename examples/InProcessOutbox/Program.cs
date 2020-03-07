@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Hosting;
 using Serilog;
 using Serilog.Events;
 
-namespace Sample
+namespace InProcessOutbox
 {
     public static class Program
     {
+        private const string ApplicationName = "InProcessOutbox";
+
         public static int Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -15,19 +17,19 @@ namespace Sample
                 .MinimumLevel.Override("Dafda", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
+                .WriteTo.Console(outputTemplate: $"{ApplicationName.ToUpper()} [{{Timestamp:HH:mm:ss}} {{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}")
                 .CreateLogger();
 
             try
             {
-                Log.Information("Starting Sample application");
+                Log.Information($"Starting {ApplicationName} application");
 
                 CreateWebHostBuilder(args).Build().Run();
                 return 0;
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Sample application terminated unexpectedly");
+                Log.Fatal(ex, $"{ApplicationName} application terminated unexpectedly");
                 return 1;
             }
             finally

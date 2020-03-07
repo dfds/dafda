@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace Sample
+namespace InProcessOutbox
 {
     public class Stats
     {

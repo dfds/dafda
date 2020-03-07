@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dafda.Outbox;
 
-namespace Sample.Infrastructure.Persistence
+namespace InProcessOutbox.Infrastructure.Persistence
 {
     public class OutboxEntryRepository : IOutboxEntryRepository
     {

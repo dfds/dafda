@@ -2,6 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
+        <AssemblyName>InProcessOutbox</AssemblyName>
+        <RootNamespace>InProcessOutbox</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Dafda\Dafda.csproj" />
+      <ProjectReference Include="..\..\src\Dafda\Dafda.csproj" />
     </ItemGroup>
 
 </Project>

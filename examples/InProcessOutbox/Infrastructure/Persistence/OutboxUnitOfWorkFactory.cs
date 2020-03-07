@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Sample.Infrastructure.Persistence
+namespace InProcessOutbox.Infrastructure.Persistence
 {
     public class OutboxUnitOfWorkFactory : IOutboxUnitOfWorkFactory
     {
