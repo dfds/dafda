@@ -12,14 +12,14 @@ namespace InProcessOutbox.Infrastructure.Persistence
         {
         }
 
-        public DbSet<StudentEntity> Students { get; set; }
+        public DbSet<Student> Students { get; set; }
         public DbSet<OutboxEntry> OutboxEntries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<StudentEntity>(cfg =>
+            modelBuilder.Entity<Student>(cfg =>
             {
                 cfg.ToTable("student");
                 cfg.HasKey(x => x.Id);

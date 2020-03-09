@@ -13,14 +13,14 @@ namespace InProcessOutbox.Infrastructure.Persistence
             _dbContext = dbContext;
         }
 
-        public ValueTask<StudentEntity> FindById(Guid studentId)
+        public ValueTask<Student> FindById(Guid studentId)
         {
             return _dbContext.Students.FindAsync(studentId);
         }
 
-        public async Task Save(StudentEntity studentEntity)
+        public async Task Save(Student student)
         {
-            await _dbContext.Students.AddAsync(studentEntity);
+            await _dbContext.Students.AddAsync(student);
         }
     }
 }

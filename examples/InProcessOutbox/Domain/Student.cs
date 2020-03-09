@@ -1,10 +1,10 @@
 using System;
 
-namespace Outbox.Domain
+namespace InProcessOutbox.Domain
 {
-    public class StudentEntity
+    public class Student
     {
-        public StudentEntity(string name, string email, string address)
+        public Student(string name, string email, string address)
         {
             Id = Guid.NewGuid();
             Name = name;

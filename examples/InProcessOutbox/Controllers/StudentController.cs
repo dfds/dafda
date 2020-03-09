@@ -49,7 +49,7 @@ namespace InProcessOutbox.Controllers
             return Ok(studentDto);
         }
 
-        public static StudentDto MapStudentToDto(StudentEntity student)
+        public static StudentDto MapStudentToDto(Student student)
         {
             return new StudentDto
             {

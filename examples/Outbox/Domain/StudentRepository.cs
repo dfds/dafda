@@ -5,7 +5,7 @@ namespace Outbox.Domain
 {
     public interface IStudentRepository
     {
-        ValueTask<StudentEntity> FindById(Guid studentId);
-        Task Save(StudentEntity studentEntity);
+        ValueTask<Student> FindById(Guid studentId);
+        Task Save(Student student);
     }
 }

@@ -18,7 +18,7 @@ namespace Outbox.Application
             _domainEvents = domainEvents;
         }
 
-        public async Task<StudentEntity> StudentEntity(Guid studentId)
+        public async Task<Student> StudentEntity(Guid studentId)
         {
             _logger.LogInformation("Fetching Student details for StudentId: {StudentId}", studentId);
 
@@ -31,11 +31,11 @@ namespace Outbox.Application
             return student;
         }
 
-        public async Task<StudentEntity> EnrollStudent(string name, string email, string address)
+        public async Task<Student> EnrollStudent(string name, string email, string address)
         {
             _logger.LogInformation("Enroll Student {}", name);
 
-            var studentEntity = new StudentEntity(name, email, address);
+            var studentEntity = new Student(name, email, address);
 
             await _studentRepository.Save(studentEntity);
 
@@ -50,7 +50,7 @@ namespace Outbox.Application
             return studentEntity;
         }
 
-        public async Task<StudentEntity> ChangeStudentEmail(Guid studentId, string newStudentEmail)
+        public async Task<Student> ChangeStudentEmail(Guid studentId, string newStudentEmail)
         {
             _logger.LogInformation("Update Email to {NewEmail} for StudentId: {StudentId}", newStudentEmail, studentId);
 
