@@ -1,0 +1,16 @@
+﻿{
+  "profiles": {
+    "Academia": {
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5000/",
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DEFAULT_KAFKA_BOOTSTRAP_SERVERS": "localhost:29092",
+        "ACADEMIA_KAFKA_GROUP_ID": "academia-default-consumer",
+        "ACADEMIA_KAFKA_ENABLE_AUTO_COMMIT": "false",
+        "ACADEMIA_CONNECTION_STRING": "User ID=postgres;Password=p;Host=localhost;Database=db"
+      }
+    }
+  }
+}

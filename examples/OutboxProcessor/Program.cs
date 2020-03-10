@@ -55,8 +55,9 @@ namespace OutboxProcessor
 
                     // configure persistence (Postgres)
                     var connectionString = configuration["SAMPLE_OUTBOX_PROCESSOR_CONNECTION_STRING"];
+                    var channel = configuration["SAMPLE_OUTBOX_PROCESSOR_CHANNEL_NAME"];
 
-                    var outboxNotification = new PostgresListener(connectionString, "dafda_outbox", TimeSpan.FromSeconds(30));
+                    var outboxNotification = new PostgresListener(connectionString, channel, TimeSpan.FromSeconds(30));
 
                     services.AddSingleton(provider => outboxNotification); // register to dispose
 

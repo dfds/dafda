@@ -5,6 +5,7 @@
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
         "DEFAULT_KAFKA_BOOTSTRAP_SERVERS": "localhost:29092",
+        "SAMPLE_OUTBOX_PROCESSOR_CHANNEL_NAME": "dafda_outbox",
         "SAMPLE_OUTBOX_PROCESSOR_CONNECTION_STRING": "User ID=postgres;Password=p;Host=localhost;Database=db"
       }
     }
