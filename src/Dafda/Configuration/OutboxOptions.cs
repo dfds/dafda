@@ -49,6 +49,11 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry.Register(topic, type, keySelector);
         }
 
+        public ProducerTopicRegistration For(string topic)
+        {
+            return new ProducerTopicRegistration(_outgoingMessageRegistry, topic);
+        }
+
         /// <summary>
         /// The custom implementation of <see cref="IOutboxEntryRepository"/> is used
         /// to load unpublished outbox entries (<see cref="OutboxEntry"/>) to be
@@ -142,4 +147,5 @@ namespace Dafda.Configuration
             }
         }
     }
+
 }

@@ -112,6 +112,11 @@ namespace Dafda.Configuration
             _outgoingMessageRegistry.Register(topic, type, keySelector);
         }
 
+        public ProducerTopicRegistration For(string topic)
+        {
+            return new ProducerTopicRegistration(_outgoingMessageRegistry, topic);
+        }
+
         /// <summary>
         /// Override the <see cref="DefaultPayloadSerializer"/> with a custom implementation
         /// </summary>
@@ -155,7 +160,7 @@ namespace Dafda.Configuration
         {
             _builder.WithPayloadSerializer(topic, payloadSerializerFactory);
         }
-
+        
         private class DefaultConfigurationSource : ConfigurationSource
         {
             private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
