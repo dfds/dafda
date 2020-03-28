@@ -52,7 +52,14 @@ version: ## set the package version base on user input
 
 .PHONY: release
 release: ## tag a release with latest version
-	@git tag $$(sed -n -E 's,[[:blank:]]+<Version>(.+)</Version>,\1,p' $(PROJECT))
+	@case $$(uname) in \
+		'Darwin') \
+			git tag $$(sed -n -E 's,[[:blank:]]+<Version>(.+)</Version>,\1,p' $(PROJECT) | tr -d '\r') \
+			;; \
+		*) \
+			git tag $$(sed -n -E 's,[[:blank:]]+<Version>(.+)</Version>,\1,p' $(PROJECT)) \
+			;; \
+	esac
 	@echo
 	@echo "----------------------------------------------"
 	@echo "- !! CAUTION !!"
