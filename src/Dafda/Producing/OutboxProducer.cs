@@ -3,6 +3,9 @@ using Dafda.Outbox;
 
 namespace Dafda.Producing
 {
+    /// <summary>
+    /// A specific producer for the Dafda outbox
+    /// </summary>
     public sealed class OutboxProducer
     {
         private readonly KafkaProducer _kafkaProducer;
@@ -12,6 +15,10 @@ namespace Dafda.Producing
             _kafkaProducer = kafkaProducer;
         }
 
+        /// <summary>
+        /// Produce the <see cref="OutboxEntry"/> on Kafka using the data contained
+        /// </summary>
+        /// <param name="entry">The outbox message</param>
         public async Task Produce(OutboxEntry entry)
         {
             await _kafkaProducer.InternalProduce(entry.Topic, entry.Key, entry.Payload);

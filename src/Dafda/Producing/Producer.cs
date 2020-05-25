@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Dafda.Producing
 {
+    /// <summary>
+    /// Produce messages on Kafka
+    /// </summary>
     public sealed class Producer
     {
         private readonly KafkaProducer _kafkaProducer;
@@ -16,11 +19,20 @@ namespace Dafda.Producing
 
         internal string Name { get; set; } = "__Default Producer__";
         
+        /// <summary>
+        /// Produce a <paramref name="message"/> on Kafka
+        /// </summary>
+        /// <param name="message">The message</param>
         public async Task Produce(object message)
         {
             await Produce(message, new Dictionary<string, object>());
         }
 
+        /// <summary>
+        /// Produce a <paramref name="message"/> on Kafka including <paramref name="headers"/>
+        /// </summary>
+        /// <param name="message">The message</param>
+        /// <param name="headers">The message headers</param>
         public async Task Produce(object message, Dictionary<string, object> headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);

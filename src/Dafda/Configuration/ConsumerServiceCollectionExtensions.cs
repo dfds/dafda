@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
+    /// <summary></summary>
     public static class ConsumerServiceCollectionExtensions
     {
         private class ConsumerGroupIdRepository
@@ -23,6 +24,12 @@ namespace Dafda.Configuration
             public bool Contains(string id) => _ids.Contains(id);
         }
 
+        /// <summary>
+        /// Add a Kafka consumer. The consumer will run in an <see cref="IHostedService"/>.
+        /// It is possible to configure multi consumers.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> used in <c>Startup</c>.</param>
+        /// <param name="options">Use this action to override Dafda and underlying Kafka configuration.</param>
         public static void AddConsumer(this IServiceCollection services, Action<ConsumerOptions> options = null)
         {
             var configurationBuilder = new ConsumerConfigurationBuilder();

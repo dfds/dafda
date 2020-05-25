@@ -7,8 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
+    /// <summary></summary>
     public static class OutboxServiceCollectionExtensions
     {
+        /// <summary>
+        /// Enable the Dafda outbox collector implementation, configurable using the <paramref name="options"/>
+        /// </summary>
+        /// <param name="services">The service collection</param>
+        /// <param name="options">Configure the <see cref="OutboxOptions"/></param>
         public static void AddOutbox(this IServiceCollection services, Action<OutboxOptions> options)
         {
             var outgoingMessageRegistry = new OutgoingMessageRegistry();
@@ -26,6 +32,11 @@ namespace Dafda.Configuration
             ));
         }
 
+        /// <summary>
+        /// Enable the Dafda outbox producer implementation, configurable using the <paramref name="options"/>
+        /// </summary>
+        /// <param name="services">The service collection</param>
+        /// <param name="options">Configure the <see cref="OutboxProducerOptions"/></param>
         public static void AddOutboxProducer(this IServiceCollection services, Action<OutboxProducerOptions> options)
         {
             var builder = new ProducerConfigurationBuilder();

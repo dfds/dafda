@@ -4,10 +4,16 @@ using System.Threading.Tasks;
 
 namespace Dafda.Serializing
 {
+    /// <summary>
+    /// The default <see cref="T:System.Text.Json"/> payload serializer.
+    /// </summary>
     public class DefaultPayloadSerializer : IPayloadSerializer
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
+        /// <summary>
+        /// Initialize an instance of the class
+        /// </summary>
         public DefaultPayloadSerializer()
         {
             _jsonSerializerOptions = new JsonSerializerOptions
@@ -18,8 +24,10 @@ namespace Dafda.Serializing
             };
         }
 
+        /// <inheritdoc />
         public string PayloadFormat { get; } = "application/json";
 
+        /// <inheritdoc />
         public Task<string> Serialize(PayloadDescriptor payloadDescriptor)
         {
             var result = JsonSerializer.Serialize(
