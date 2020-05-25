@@ -41,7 +41,7 @@ namespace Dafda.Outbox
         {
             if (_disposed)
             {
-                return Task.FromResult<bool>(false);
+                return Task.FromResult(false);
             }
 
             return _semaphore.WaitAsync(_delay, cancellationToken);

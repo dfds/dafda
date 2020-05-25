@@ -165,7 +165,7 @@ namespace Dafda.Configuration
 
                 sb.AppendLine(s);
 
-                foreach (string[] row in rows)
+                foreach (var row in rows)
                 {
                     for (var i = 0; i < fMaxWidth.Length; i++)
                     {

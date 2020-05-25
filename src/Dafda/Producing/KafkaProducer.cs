@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using Dafda.Configuration;
 using Dafda.Serializing;
 using Microsoft.Extensions.Logging;
 
