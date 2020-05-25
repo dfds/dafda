@@ -2,7 +2,7 @@
 
 ## Defaults
 
-Dafda relies on the default of [`Confluent.Kafka`](https://github.com/confluentinc/confluent-kafka-dotnet), which in turn relies on the default from [`librdkafka`](https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md).
+Dafda relies on the defaults of [`confluent-kafka-dotnet`](https://github.com/confluentinc/confluent-kafka-dotnet) nuget package, which in turn relies on the defaults from [`librdkafka`](https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md).
 
 ## Basic
 
@@ -23,10 +23,10 @@ services.AddConsumer(options =>
 
 Consider the following environment variables:
 
-| Name                            | Value                                    |
-|---------------------------------|------------------------------------------|
-| DEFAULT_KAFKA_BOOTSTRAP_SERVERS | default.kafka.confluent.net:9092         |
-| SAMPLE_KAFKA_GROUP_ID           | sample-group-id                          |
+| Name                            | Value                            |
+| ------------------------------- | -------------------------------- |
+| DEFAULT_KAFKA_BOOTSTRAP_SERVERS | default.kafka.confluent.net:9092 |
+| SAMPLE_KAFKA_GROUP_ID           | sample-group-id                  |
 
 The following:
 
@@ -54,4 +54,4 @@ public class Startup
 }
 ```
 
-will take all environment variables starting with either `DEFAULT_KAFKA_` or `SAMPLE_KAFKA_` and put them into the configuration used by Consumer.
+will take all environment variables starting with `DEFAULT_KAFKA_` or `SAMPLE_KAFKA_`, and match the rest of the environment key against valid Kafka configurations (see [Consumer Configuration](/consumer/#configuration) or [Producer Configuration](/producer/#configuration)), and put them into the configuration used by Consumer.

@@ -1,5 +1,13 @@
 # Producer
 
+## Quick Start
+
+1. Setup producer configuration
+2. Create a message class
+3. Produce messages
+
+### Setup producer configuration
+
 Add Kafka producer configuration and outgoing messages:
 
 ```csharp
@@ -14,7 +22,7 @@ public class Startup
         services.AddProducer(options =>
         {
             // configuration settings
-            options.WithBootstrapServers("http://localhost:9092");
+            options.WithBootstrapServers("localhost:9092");
 
             // register outgoing messages (includes outbox messages)
             options.Register<Test>("test-topic", "test-event", @event => @event.AggregateId);
@@ -22,6 +30,8 @@ public class Startup
     }
 }
 ```
+
+### Create a message class
 
 Create a POCO representation of the Kafka message:
 
@@ -32,7 +42,9 @@ public class Test
 }
 ```
 
-Take a dependency on  `IProducer` and call the `Produce` method:
+### Produce messages
+
+Take a dependency on `IProducer` and call the `Produce` method:
 
 ```csharp
 public class Service
@@ -52,3 +64,13 @@ public class Service
     }
 }
 ```
+
+## Configuration
+
+| Key | Required |
+|-|-|
+| bootstrap.servers | true |
+| group.id | true |
+| enable.auto.commit | false |
+
+[Producer Configurations](https://docs.confluent.io/current/installation/configuration/producer-configs.html)

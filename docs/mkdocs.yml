@@ -5,8 +5,8 @@ site_description: Dafda documentation
 #site_url: 'https://squidfunk.github.io/mkdocs-material/'
 
 # Repository
-#repo_name: 'squidfunk/mkdocs-material'
-#repo_url: 'https://github.com/squidfunk/mkdocs-material'
+repo_name: "dfds/dafda"
+repo_url: "https://github.com/dfds/dafda"
 
 # docs_dir: lala
 
@@ -22,35 +22,34 @@ theme:
     tabs: true
 
 markdown_extensions:
-- admonition
-- codehilite:
-    guess_lang: false
-    linenums: false
-- footnotes
-- toc:
-    permalink: true
-- pymdownx.caret
-- pymdownx.critic
-- pymdownx.details
-- pymdownx.inlinehilite
-- pymdownx.magiclink
-- pymdownx.mark
-- pymdownx.smartsymbols
-- pymdownx.superfences
-- pymdownx.tasklist:
-    custom_checkbox: true
+  - admonition
+  - codehilite:
+      guess_lang: false
+      linenums: false
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 extra_css:
-  - 'stylesheets/critic.css'
+  - "stylesheets/critic.css"
 
 pages:
-- Introduction: index.md
-- Documentation:
-  - Installation: installation.md
-  - Configuration: configuration.md
-  - Consumer: consumer.md
-  - Producer: producer.md
-  - Outbox: outbox.md
-- Contributions: contributions.md
-- Examples: examples.md
-
+  - Introduction: index.md
+  - Documentation:
+      - Installation: installation.md
+      - Configuration: configuration.md
+      - Consumer: consumer.md
+      - Producer: producer.md
+      - Outbox: outbox.md
+  - Contributions: contributions.md
+  - Examples: examples.md

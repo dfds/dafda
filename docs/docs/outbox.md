@@ -1,5 +1,23 @@
 # Outbox
 
+{== Outbox? Who? What? ==} {>> Should we describe it? <<}
+
+
+## Quick Start
+
+The quick start example uses [EF Core](https://docs.microsoft.com/en-us/ef/core/) and Postgres to persist domain models and outbox messages.
+
+1. Add outbox producer configuration
+2. Setup persistence
+    1. Configure EF Core
+    2. Configure DbContext
+    3. Prepare Outbox schema
+    4. Implement the Outbox repository
+    5. Implement Unit of Work
+3. Use the Outbox
+
+### Add outbox producer configuration
+
 Add Kafka producer configuration and outgoing messages:
 
 ```csharp
@@ -11,7 +29,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         // configure messaging: producer
-        services.AddProducer(options =>
+        services.AddOutbox(options =>
         {
             // configuration settings
             options.WithBootstrapServers("http://localhost:9092");
@@ -20,13 +38,30 @@ public class Startup
             options.Register<Test>("test-topic", "test-event", @event => @event.AggregateId);
 
             // include outbox (polling publisher)
-            options.AddOutbox(outbox =>
-            {
-                outbox.WithOutboxMessageRepository<OutboxMessageRepository>();
-                outbox.WithOutboxPublisher(op => { op.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>(); });
-            });
+            options.WithOutboxMessageRepository<OutboxMessageRepository>();
+            options.WithUnitOfWorkFactory<OutboxUnitOfWorkFactory>();
         });
 
+        ...
+    }
+}
+```
+
+### Setup persistence
+
+#### Configure EF Core
+
+To enable persistence, configure EF Core:
+
+```csharp
+public class Startup
+{
+    ...
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        ...
         // configure DbContext
         services
             .AddEntityFrameworkNpgsql()
@@ -36,7 +71,9 @@ public class Startup
 }
 ```
 
-To enable persistence add a `DbContext` and configure the `OutboxMessage` model:
+#### Configure DbContext
+
+Add a `DbContext` and configure the `OutboxMessage` model:
 
 ```csharp
     public class SampleDbContext : DbContext
@@ -70,7 +107,9 @@ To enable persistence add a `DbContext` and configure the `OutboxMessage` model:
         }
 ```
 
-and run the following `Postgresql`:
+#### Prepare Outbox schema
+
+Run the following `Postgresql`:
 
 ```sql
 CREATE SCHEMA IF NOT EXISTS outbox;
@@ -95,7 +134,9 @@ CREATE INDEX domainevent_occurredonutc_idx ON outbox."OutboxMessage" ("OccurredO
 
 ```
 
-and implement the `IOutboxMessageRepository`:
+#### Implement the Outbox repository
+
+Implement the `IOutboxMessageRepository`:
 
 ```csharp
 public class OutboxMessageRepository : IOutboxMessageRepository
@@ -113,6 +154,8 @@ public class OutboxMessageRepository : IOutboxMessageRepository
     }
 }
 ```
+
+#### Implement Unit of Work
 
 To use the polling publisher implement the `IOutboxUnitOfWorkFactory` interface:
 
@@ -173,7 +216,9 @@ public class OutboxUnitOfWorkFactory : IOutboxUnitOfWorkFactory
 }
 ```
 
-Take a dependency on  `IOutbox` and call the `Enqueue` method:
+### Use the Outbox
+
+Take a dependency on `Outbox` and call the `Enqueue` method:
 
 ```csharp
 public class Service
@@ -188,9 +233,11 @@ public class Service
     public async Task Handle(TestCommand command)
     {
         ...
-        await _outbox.Enqueue(new[] {new Test {AggregateId = "aggregate-id"}});
+        IOutboxNotifier notifier = await _outbox.Enqueue(new[] {new Test {AggregateId = "aggregate-id"}});
         ...
     }
 }
 ```
+
+On the returned `IOutboxNotifier` call `Notify` ... {>>more info on notification here<<}
 
