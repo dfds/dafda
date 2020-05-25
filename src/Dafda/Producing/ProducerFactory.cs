@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Producing
 {
-    public sealed class ProducerFactory : IDisposable
+    internal sealed class ProducerFactory : IDisposable
     {
         private readonly Dictionary<string, ProducerBuilder> _producerBuilders = new Dictionary<string, ProducerBuilder>();
 

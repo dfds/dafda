@@ -9,9 +9,8 @@ namespace Dafda.Producing
     /// </summary>
     public sealed class ProducerFactoryException : Exception
     {
-        public ProducerFactoryException(string message) : base(message)
+        internal ProducerFactoryException(string message) : base(message)
         {
-            
         }
     }
 }
