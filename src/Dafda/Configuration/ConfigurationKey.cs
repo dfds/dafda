@@ -36,8 +36,8 @@ namespace Dafda.Configuration
         private ConfigurationKey(string key, ConfigurationKeyGroup group = ConfigurationKeyGroup.Any)
         {
             _key = key;
-            _isConsumer = group.HasFlag(ConfigurationKeyGroup.ConsumerOnly);
-            _isProducer = group.HasFlag(ConfigurationKeyGroup.ProducerOnly);
+            _isConsumer = group == ConfigurationKeyGroup.Any || group == ConfigurationKeyGroup.ConsumerOnly;
+            _isProducer = group == ConfigurationKeyGroup.Any || group == ConfigurationKeyGroup.ProducerOnly;
         }
 
         public static implicit operator string(ConfigurationKey configurationKey)
@@ -64,13 +64,11 @@ namespace Dafda.Configuration
                 .ToArray();
         }
 
-        [Flags]
         private enum ConfigurationKeyGroup
         {
-            None = 0b00,
-            ConsumerOnly = 0b01,
-            ProducerOnly = 0b10,
-            Any = 0b11
+            Any,
+            ConsumerOnly,
+            ProducerOnly
         }
     }
 }
