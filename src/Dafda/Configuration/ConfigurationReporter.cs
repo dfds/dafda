@@ -5,14 +5,8 @@ using System.Text;
 
 namespace Dafda.Configuration
 {
-    /// <summary>
-    /// Base class for reporting configuration values
-    /// </summary>
-    public abstract class ConfigurationReporter
+    internal abstract class ConfigurationReporter
     {
-        /// <summary>
-        /// A null ConfigurationReporter, which does nothing 
-        /// </summary>
         public static readonly ConfigurationReporter Null = new NullConfigurationReporter();
 
         #region Null Object
@@ -39,41 +33,14 @@ namespace Dafda.Configuration
 
         #endregion
 
-        /// <summary>
-        /// Create a default ConfigurationReporter, which renders configuration values as a string
-        /// </summary>
-        /// <returns>The configuration values report</returns>
         public static ConfigurationReporter CreateDefault() => new DefaultConfigurationReporter();
 
-        /// <summary>
-        /// Add an indication of a missing required configuration key.
-        /// </summary>
-        /// <param name="key">The configuration key</param>
-        /// <param name="source">The configuration source</param>
-        /// <param name="attemptedKeys">The attempted keys</param>
         public abstract void AddMissing(string key, string source, params string[] attemptedKeys);
 
-        /// <summary>
-        /// Add an indication of a configuration <paramref name="key"/> added from the
-        /// configuration <paramref name="source"/> 
-        /// </summary>
-        /// <param name="key">The configuration key</param>
-        /// <param name="source">The configuration source</param>
-        /// <param name="value"></param>
-        /// <param name="acceptedKey"></param>
         public abstract void AddValue(string key, string source, string value, string acceptedKey);
 
-        /// <summary>
-        /// Add an indication of a manually added key 
-        /// </summary>
-        /// <param name="key">The configuration key</param>
-        /// <param name="value"></param>
         public abstract void AddManual(string key, string value);
 
-        /// <summary>
-        /// Render the configuration value report
-        /// </summary>
-        /// <returns>The configuration values report</returns>
         public abstract string Report();
 
         private class DefaultConfigurationReporter : ConfigurationReporter
