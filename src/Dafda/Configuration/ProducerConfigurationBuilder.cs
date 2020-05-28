@@ -34,10 +34,6 @@ namespace Dafda.Configuration
         private Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
         private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => new DefaultPayloadSerializer());
 
-        internal ProducerConfigurationBuilder()
-        {
-        }
-
         public ProducerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
             _configurationSource = configurationSource;
@@ -90,22 +86,10 @@ namespace Dafda.Configuration
             _kafkaProducerFactory = inlineFactory;
             return this;
         }
-        
-        public ProducerConfigurationBuilder WithDefaultPayloadSerializer(IPayloadSerializer payloadSerializer)
-        {
-            WithDefaultPayloadSerializer(() => payloadSerializer);
-            return this;
-        }
 
         public ProducerConfigurationBuilder WithDefaultPayloadSerializer(Func<IPayloadSerializer> payloadSerializerFactory)
         {
             _topicPayloadSerializerRegistry.SetDefaultPayloadSerializer(payloadSerializerFactory);
-            return this;
-        }
-
-        public ProducerConfigurationBuilder WithPayloadSerializer(string topic, IPayloadSerializer payloadSerializer)
-        {
-            WithPayloadSerializer(topic, () => payloadSerializer);
             return this;
         }
 

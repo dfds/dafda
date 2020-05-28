@@ -137,7 +137,6 @@ namespace Dafda.Configuration
             {
                 if (!configurations.TryGetValue(key, out var value) || string.IsNullOrEmpty(value))
                 {
-                    //var message = $"Expected key '{key}' not supplied in '{GetSourceName()}' (attempted keys: '{string.Join("', '", GetAttemptedKeys(key))}')";
                     var message = "Invalid configuration:" + System.Environment.NewLine + _configurationReporter.Report();
                     throw new InvalidConfigurationException(message);
                 }

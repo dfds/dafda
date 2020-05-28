@@ -94,15 +94,6 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
-        /// Override the default Dafda implementation of <see cref="MessageIdGenerator"/>.
-        /// </summary>
-        /// <param name="messageIdGenerator">A custom implementation of <see cref="MessageIdGenerator"/>.</param>
-        public void WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
-        {
-            _builder.WithMessageIdGenerator(messageIdGenerator);
-        }
-
-        /// <summary>
         /// Override the default Dafda implementation of <see cref="IOutboxUnitOfWorkFactory"/>.
         /// </summary>
         /// <typeparam name="T">A custom implementation of <see cref="IOutboxUnitOfWorkFactory"/>.</typeparam>

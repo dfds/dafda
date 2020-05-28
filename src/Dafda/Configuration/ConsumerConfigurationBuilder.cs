@@ -37,10 +37,6 @@ namespace Dafda.Configuration
         private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
         private IIncomingMessageFactory _incomingMessageFactory = new JsonIncomingMessageFactory();
 
-        internal ConsumerConfigurationBuilder()
-        {
-        }
-
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
             _configurationSource = configurationSource;
