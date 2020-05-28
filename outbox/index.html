@@ -458,7 +458,7 @@
 <h2 id="dafda-outbox-implementation">Dafda Outbox Implementation<a class="headerlink" href="#dafda-outbox-implementation" title="Permanent link">&para;</a></h2>
 <p>Dafda offers a <em>framework</em> for implementing a custom Outbox, using whatever technology is required, as longs as a few key interfaces are implemented and configured. Whether dispatching of outbox message are handled in-process or out-of-band is entirely up to the Dafda client.</p>
 <p>Below is a diagram over the moving parts:</p>
-<p><img alt="Outbox Pattern" src="/imgs/outbox-pattern.png" /></p>
+<p><img alt="Outbox Pattern" src="../imgs/outbox-pattern.png" /></p>
 <p>The <em>Service</em>, e.g. an ASP.NET application, receives a command request that writes data to the domain model (the <em>"Aggregate"</em>) in the relational database. Supplying a custom implementation of the <code>IOutboxEntryRepository</code> interface, outbox messages should be persisted as part of the same <em>transaction</em> as the domain model. The <em>Outbox processor</em> will (either by notifications or timeouts) process the "unpublished" outbox messages, and produce those on the <em>"Aggregate"</em> Kafka topic.</p>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
 <p>For a comprehensive example using ASP.NET Core, EF Core, and Postgres to persist outbox message, including an out-of-band outbox processor, take a look at the <a href="https://github.com/dfds/dafda/blob/master/examples/Academia/OutOfBandOutboxMessaging.cs">OutOfBandOutboxMessaging</a> for the required configuration, and <a href="https://github.com/dfds/dafda/blob/master/db/migrations/outbox_ddl.sql">outbox_ddl.sql</a> for the Postgresql schema.</p>
