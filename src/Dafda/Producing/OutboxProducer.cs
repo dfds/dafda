@@ -6,7 +6,7 @@ namespace Dafda.Producing
     /// <summary>
     /// A specific producer for the Dafda outbox
     /// </summary>
-    public sealed class OutboxProducer
+    internal sealed class OutboxProducer
     {
         private readonly KafkaProducer _kafkaProducer;
 
