@@ -38,7 +38,7 @@
     
     
       
-        <title>Outbox - Dafda</title>
+        <title>Messages - Dafda</title>
       
     
     
@@ -106,7 +106,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#outbox" tabindex="1" class="md-skip">
+      <a href="#messages" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -131,7 +131,7 @@
               Dafda
             </span>
             <span class="md-header-nav__topic">
-              Outbox
+              Messages
             </span>
           
         </div>
@@ -307,11 +307,70 @@
       
       
 
+  
 
-  <li class="md-nav__item">
-    <a href="../messages/" title="Messages" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Messages
+      </label>
+    
+    <a href="./" title="Messages" class="md-nav__link md-nav__link--active">
       Messages
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#partition-keys" title="Partition Keys" class="md-nav__link">
+    Partition Keys
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-envelope" title="Message Envelope" class="md-nav__link">
+    Message Envelope
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-id" title="Message Id" class="md-nav__link">
+    Message Id
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-headers" title="Message Headers" class="md-nav__link">
+    Message Headers
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
     
@@ -343,56 +402,11 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Outbox
-      </label>
-    
-    <a href="./" title="Outbox" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../outbox/" title="Outbox" class="md-nav__link">
       Outbox
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#dafda-outbox-implementation" title="Dafda Outbox Implementation" class="md-nav__link">
-    Dafda Outbox Implementation
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example" title="Example" class="md-nav__link">
-    Example
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
     
@@ -417,15 +431,29 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dafda-outbox-implementation" title="Dafda Outbox Implementation" class="md-nav__link">
-    Dafda Outbox Implementation
+  <a href="#partition-keys" title="Partition Keys" class="md-nav__link">
+    Partition Keys
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#example" title="Example" class="md-nav__link">
-    Example
+  <a href="#message-envelope" title="Message Envelope" class="md-nav__link">
+    Message Envelope
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-id" title="Message Id" class="md-nav__link">
+    Message Id
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-headers" title="Message Headers" class="md-nav__link">
+    Message Headers
   </a>
   
 </li>
@@ -446,22 +474,92 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/dfds/dafda/edit/master/docs/outbox.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/dfds/dafda/edit/master/docs/messages.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="outbox">Outbox<a class="headerlink" href="#outbox" title="Permanent link">&para;</a></h1>
-<p>This documentation will not dive into the pros/cons of the Outbox pattern, but merely offer Dafda's take on it.</p>
-<div class="admonition info">
-<p class="admonition-title">The Outbox Pattern</p>
-<p>For more information, see e.g. <a href="https://microservices.io/patterns/data/transactional-outbox.html">https://microservices.io/patterns/data/transactional-outbox.html</a></p>
-</div>
-<h2 id="dafda-outbox-implementation">Dafda Outbox Implementation<a class="headerlink" href="#dafda-outbox-implementation" title="Permanent link">&para;</a></h2>
-<p>Dafda offers a <em>framework</em> for implementing a custom Outbox, using whatever technology is required, as longs as a few key interfaces are implemented and configured. Whether dispatching of outbox message are handled in-process or out-of-band is entirely up to the Dafda client.</p>
-<p>Below is a diagram over the moving parts:</p>
-<p><img alt="Outbox Pattern" src="/imgs/outbox-pattern.png" /></p>
-<p>The <em>Service</em>, e.g. an ASP.NET application, receives a command request that writes data to the domain model (the <em>"Aggregate"</em>) in the relational database. Supplying a custom implementation of the <code>IOutboxEntryRepository</code> interface, outbox messages should be persisted as part of the same <em>transaction</em> as the domain model. The <em>Outbox processor</em> will (either by notifications or timeouts) process the "unpublished" outbox messages, and produce those on the <em>"Aggregate"</em> Kafka topic.</p>
-<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<p>For a comprehensive example using ASP.NET Core, EF Core, and Postgres to persist outbox message, including an out-of-band outbox processor, take a look at the <a href="https://github.com/dfds/dafda/blob/master/examples/Academia/OutOfBandOutboxMessaging.cs">OutOfBandOutboxMessaging</a> for the required configuration, and <a href="https://github.com/dfds/dafda/blob/master/db/migrations/outbox_ddl.sql">outbox_ddl.sql</a> for the Postgresql schema.</p>
+                <h1 id="messages">Messages<a class="headerlink" href="#messages" title="Permanent link">&para;</a></h1>
+<p>At their lowest, messages on Kafka are represented by bytes. However, the current version of Dafda <strong>only supports <code>string</code> representations</strong>.</p>
+<p>In order to send message on Kafka the following is "required":</p>
+<table>
+<thead>
+<tr>
+<th>Data/info</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Topic</td>
+<td>The name of the Kafka topic</td>
+</tr>
+<tr>
+<td>Partition Key</td>
+<td>A unique key that Kafka uses to guarantee ordering, amongst other</td>
+</tr>
+<tr>
+<td>Message</td>
+<td>The actual message to be transported</td>
+</tr>
+</tbody>
+</table>
+<p>Dafda adds a layer on top using a <a href="#message-envelope">Message Envelope</a>.</p>
+<h2 id="partition-keys">Partition Keys<a class="headerlink" href="#partition-keys" title="Permanent link">&para;</a></h2>
+<p>Like the message body format, the partition keys are also represented as <code>string</code>.</p>
+<h2 id="message-envelope">Message Envelope<a class="headerlink" href="#message-envelope" title="Permanent link">&para;</a></h2>
+<p>Messages are by default wrapped in a message envelope, which makes the consuming and producing of makes straight forward.</p>
+<p>Given the following C# snippet:</p>
+<div class="codehilite"><pre><span></span><span class="kt">var</span> <span class="n">someMessage</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SomeMessage</span>
+<span class="p">{</span>
+    <span class="n">SomeId</span> <span class="p">=</span> <span class="n">Guid</span><span class="p">.</span><span class="n">CreateNew</span><span class="p">(),</span>
+    <span class="n">SomeData</span> <span class="p">=</span> <span class="s">&quot;This is very important data&quot;</span>
+<span class="p">}</span>
+
+<span class="n">producer</span><span class="p">.</span><span class="n">Produce</span><span class="p">(</span><span class="n">someMessage</span><span class="p">);</span>
+</pre></div>
+
+<p>Dafda's default (out-of-the-box) implementation comes with a message envelope that is serialized/deserialized from JSON, like:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;messageId&quot;</span><span class="p">:</span> <span class="s2">&quot;100bee5a-82af-4003-82a2-fa6e543de24f&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;some-message&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;someId&quot;</span><span class="p">:</span> <span class="s2">&quot;538b7db6-54c0-4115-ab6d-583d9714a289&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;someData&quot;</span><span class="p">:</span> <span class="s2">&quot;This is very important data&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<h2 id="message-id">Message Id<a class="headerlink" href="#message-id" title="Permanent link">&para;</a></h2>
+<p>The message id is by default a <code>GUID</code> generated by Dafda, but can be overriden in the <a href="/producer/#message-id-generator">Producer Configuration</a>.</p>
+<h2 id="message-headers">Message Headers<a class="headerlink" href="#message-headers" title="Permanent link">&para;</a></h2>
+<p>Currently message headers are embedded in the message envelope, and not using the available Kafka message header, which is more in tune with the <a href="https://github.com/cloudevents/spec">CloudEvents specification</a>. Any message header added will, using the default serializer, be at the same level as the <code>messageId</code>, <code>type</code> and <code>data</code> properties as in the listing above.</p>
+<p>Thus the following C# snippet:</p>
+<div class="codehilite"><pre><span></span><span class="kt">var</span> <span class="n">headers</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span>
+<span class="p">{</span>
+<span class="na">    [&quot;some-header&quot;]</span> <span class="p">=</span> <span class="s">&quot;some-value&quot;</span><span class="p">,</span>
+<span class="na">    [&quot;another-header&quot;]</span> <span class="p">=</span> <span class="s">&quot;another-value&quot;</span>
+<span class="p">};</span>
+
+<span class="kt">var</span> <span class="n">someMessage</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SomeMessage</span>
+<span class="p">{</span>
+    <span class="n">SomeId</span> <span class="p">=</span> <span class="n">Guid</span><span class="p">.</span><span class="n">CreateNew</span><span class="p">(),</span>
+    <span class="n">SomeData</span> <span class="p">=</span> <span class="s">&quot;This is very important data&quot;</span>
+<span class="p">}</span>
+
+<span class="n">producer</span><span class="p">.</span><span class="n">Produce</span><span class="p">(</span><span class="n">someMessage</span><span class="p">,</span> <span class="n">headers</span><span class="p">);</span>
+</pre></div>
+
+<p>Will yield the following JSON:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;messageId&quot;</span><span class="p">:</span> <span class="s2">&quot;100bee5a-82af-4003-82a2-fa6e543de24f&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;some-message&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;some-header&quot;</span><span class="p">:</span> <span class="s2">&quot;some-value&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;another-header&quot;</span><span class="p">:</span> <span class="s2">&quot;another-value&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;someId&quot;</span><span class="p">:</span> <span class="s2">&quot;538b7db6-54c0-4115-ab6d-583d9714a289&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;someData&quot;</span><span class="p">:</span> <span class="s2">&quot;This is very important data&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
                 
                   
                 
@@ -482,7 +580,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../producer/" title="Producer" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../configuration/" title="Configuration" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -491,11 +589,25 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Producer
+                Configuration
               </span>
             </div>
           </a>
         
+        
+          <a href="../consumer/" title="Consumer" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Consumer
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
         
       </nav>
     </div>
