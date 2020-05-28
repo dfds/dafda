@@ -1,6 +1,8 @@
 # Installation
 
-The library is available on [nuget.org](https://www.nuget.org/packages/dafda/) and can be installed in several ways:
+The library is available on [nuget.org](https://www.nuget.org/packages/dafda/) and can be installed in several ways.
+
+#### Package Manager Console
 
 Go to package manager console and run the following:
 
@@ -8,7 +10,9 @@ Go to package manager console and run the following:
 install-package dafda
 ```
 
-Or...
+Or:
+
+#### Commandline
 
 In a terminal/console window navigate to the project folder and run the following `dotnet cli` command:
 
@@ -16,4 +20,4 @@ In a terminal/console window navigate to the project folder and run the followin
 dotnet add package dafda
 ```
 
-Or...whatever you prefer.
+Or... Whatever you prefer.

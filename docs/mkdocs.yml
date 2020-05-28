@@ -8,8 +8,6 @@ site_description: Dafda documentation
 repo_name: "dfds/dafda"
 repo_url: "https://github.com/dfds/dafda"
 
-# docs_dir: lala
-
 sidebar: false
 
 theme:
@@ -44,12 +42,10 @@ extra_css:
   - "stylesheets/critic.css"
 
 pages:
-  - Introduction: index.md
-  - Documentation:
-      - Installation: installation.md
-      - Configuration: configuration.md
-      - Consumer: consumer.md
-      - Producer: producer.md
-      - Outbox: outbox.md
-  - Contributions: contributions.md
-  - Examples: examples.md
+  - index.md
+  - installation.md
+  - configuration.md
+  - messages.md
+  - consumer.md
+  - producer.md
+  - outbox.md

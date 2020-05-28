@@ -35,7 +35,8 @@ public class Startup
 ```
 
 !!! note "Multiple consumers"
-    It is possible to add multiple consumers (with different configuration) using the `AddConsumer()` extension method.
+    It is possible to add multiple consumers (with different configuration) using the `AddConsumer()` extension method, which
+    might be helpful when consuming from different topic with a different `auto.offset.reset`.
 
 ### Create a message class
 
@@ -47,6 +48,12 @@ public class Test
     public string AggregateId { get; set; }
 }
 ```
+
+!!! warning "Private/public properties"
+    Due to the nature of `System.Text.Json` having `private` setters will result in properties being skipped by the default deserializer.
+
+!!! warning "Constructors"
+    Please use an `public` parameterless constructor to be on the safe side of `System.Text.Json`.
 
 ### Create a message handler
 
@@ -77,7 +84,7 @@ public class TestHandler : IMessageHandler<Test>
     * Message Identifier
     * Correlation Identifier
     * Message Type
-    * User-defined key/value pairs
+    * Message Headers
 
 ## Dependency Injection
 
@@ -91,10 +98,54 @@ Types registered in the `IServiceCollection` are available as constructor argume
 
 ## Configuration
 
-| Key | Required |
-|-|-|
-| bootstrap.servers | true |
-| group.id | true |
-| enable.auto.commit | false |
+!!! info "Kafka Consumer Settings ([Confluent Docs](https://docs.confluent.io/current/installation/configuration/consumer-configs.html))"
 
-[Consumer Configurations](https://docs.confluent.io/current/installation/configuration/consumer-configs.html)
+### Consumer Options
+
+Information about some of basic options are available in the general [Configuration](/configuration) section.
+
+#### Message Handler Registration
+
+Adding message handlers during service configuration:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    // configure messaging: producer
+    services.AddConsumer(options =>
+    {
+        // register outgoing messages (includes outbox messages)
+        options.RegisterMessageHandler<Test, TestHandler>("test-topic", "test-event");
+
+    });
+}
+```
+
+Will ensure that all messages with the type[^1] `test-event` on the Kafka topic named `test-topic` will be deserialized as an instance of the POCO `Test` and handed to a [transiently](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1#service-lifetimes) resolved instance of `TestHandler`. This is all handled by the .NET Core dependency injection, and Dafda clients need only concern themselves with creating simple messages and matching message handlers.
+
+#### Message Deserialization
+
+In order to gain controler over the deserialization of the message handled by Dafda use `WithIncomingMessageFactory`, like:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    // configure messaging: producer
+    services.AddConsumer(options =>
+    {
+        // register outgoing messages (includes outbox messages)
+        options.WithIncomingMessageFactory(new XmlMessageSerializer());
+
+    });
+}
+```
+
+To override the default JSON deserializer, and supply a custom implementation of the `IIncomingMessageFactory` interface.
+    
+#### Unit of Work Factory
+
+It is possible to override the default Unit of Work behavior for each consumed message, using configuration options and custom implementations of `IHandlerUnitOfWorkFactory` and `IHandlerUnitOfWork`. However, the default implementation adheres to the [scoped service lifetime](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1#service-lifetimes) of .NET Core's dependency injection, allowing it to work in tandem with the scopes of, e.g., EF Core.
+
+!!! example "For more information see [ServiceProviderUnitOfWorkFactory.cs](https://github.com/dfds/dafda/blob/master/src/Dafda/Consuming/ServiceProviderUnitOfWorkFactory.cs)"
+
+[^1]: The message type is part of the [Message Envelope](/messages/#message-envelope)
