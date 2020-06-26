@@ -142,8 +142,7 @@ namespace Dafda.Configuration
                 configuration: configurations,
                 messageHandlerRegistry: _messageHandlerRegistry,
                 unitOfWorkFactory: _unitOfWorkFactory,
-                consumerScopeFactory: _consumerScopeFactory,
-                resetOffset: _readFromBeginning 
+                consumerScopeFactory: _consumerScopeFactory
             );
         }
     }

@@ -101,20 +101,6 @@ namespace Dafda.Tests.Configuration
             Assert.Equal(expected, configuration.EnableAutoCommit);
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void returns_expected_resetConsumerOffset(bool expected)
-        {
-            var configuration = new ConsumerConfigurationBuilder()
-              .WithGroupId("foo")
-              .WithBootstrapServers("bar")
-              .ReadFromBeginning(expected)
-              .Build();
-
-            Assert.Equal(expected, configuration.ReadFromBeginning);
-        }
-
         public class DummyMessage
         {
         }
