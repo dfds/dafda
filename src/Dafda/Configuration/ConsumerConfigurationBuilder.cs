@@ -133,7 +133,8 @@ namespace Dafda.Configuration
                     loggerFactory: loggerFactory,
                     configuration: configurations,
                     topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
-                    incomingMessageFactory: _incomingMessageFactory
+                    incomingMessageFactory: _incomingMessageFactory,
+                    readFromBeginning: _resetOffset
                 );
             }
 
