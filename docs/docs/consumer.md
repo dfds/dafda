@@ -149,3 +149,19 @@ It is possible to override the default Unit of Work behavior for each consumed m
 !!! example "For more information see [ServiceProviderUnitOfWorkFactory.cs](https://github.com/dfds/dafda/blob/master/src/Dafda/Consuming/ServiceProviderUnitOfWorkFactory.cs)"
 
 [^1]: The message type is part of the [Message Envelope](/messages/#message-envelope)
+
+#### Unit of Work Factory
+
+When a consumer starts  Dafda continues consuming from the last committed offset on each topic, if a committed offset exists. 
+To read all topics from the beginning of all partitions, use `ReadFromBeginning`: 
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    // configure messaging: producer
+    services.AddConsumer(options =>
+    {
+        options.ReadFromBeginning();
+    });
+}
+```
