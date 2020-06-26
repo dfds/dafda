@@ -24,7 +24,7 @@ namespace Dafda.Configuration
         /// </summary>
         public void ReadFromBeginningOfTopics()
         {
-            _builder.ReadFromBeginning(true);
+            _builder.ReadFromBeginning();
         }
 
         /// <summary>

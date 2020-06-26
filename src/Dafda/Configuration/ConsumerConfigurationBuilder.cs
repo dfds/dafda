@@ -96,9 +96,9 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ConsumerConfigurationBuilder ReadFromBeginning(bool readFromBeginning)
+        public ConsumerConfigurationBuilder ReadFromBeginning()
         {
-            _readFromBeginning = readFromBeginning;
+            _readFromBeginning = true;
             return this;
         }
 
