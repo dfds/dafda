@@ -112,7 +112,7 @@ namespace Dafda.Tests.Configuration
               .ReadFromBeginning(expected)
               .Build();
 
-            Assert.Equal(expected, configuration.ResetOffset);
+            Assert.Equal(expected, configuration.ReadFromBeginning);
         }
 
         public class DummyMessage

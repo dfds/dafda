@@ -14,7 +14,7 @@ namespace Dafda.Configuration
             MessageHandlerRegistry = messageHandlerRegistry;
             UnitOfWorkFactory = unitOfWorkFactory;
             ConsumerScopeFactory = consumerScopeFactory;
-            ResetOffset = resetOffset;
+            ReadFromBeginning = resetOffset;
         }
 
         public IDictionary<string, string> KafkaConfiguration { get; }
@@ -39,6 +39,6 @@ namespace Dafda.Configuration
             }
         }
 
-        public bool ResetOffset { get; }
+        public bool ReadFromBeginning { get; }
     }
 }
