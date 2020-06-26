@@ -8,12 +8,13 @@ namespace Dafda.Configuration
     internal class ConsumerConfiguration
     {
         public ConsumerConfiguration(IDictionary<string, string> configuration, MessageHandlerRegistry messageHandlerRegistry, 
-            IHandlerUnitOfWorkFactory unitOfWorkFactory, Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
+            IHandlerUnitOfWorkFactory unitOfWorkFactory, Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory, bool resetOffset)
         {
             KafkaConfiguration = configuration;
             MessageHandlerRegistry = messageHandlerRegistry;
             UnitOfWorkFactory = unitOfWorkFactory;
             ConsumerScopeFactory = consumerScopeFactory;
+            ResetOffset = resetOffset;
         }
 
         public IDictionary<string, string> KafkaConfiguration { get; }
@@ -37,5 +38,7 @@ namespace Dafda.Configuration
                 return bool.Parse(value);
             }
         }
+
+        public bool ResetOffset { get; }
     }
 }

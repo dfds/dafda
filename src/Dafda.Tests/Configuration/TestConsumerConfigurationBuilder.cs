@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
@@ -98,6 +99,20 @@ namespace Dafda.Tests.Configuration
                 .Build();
 
             Assert.Equal(expected, configuration.EnableAutoCommit);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void returns_expected_resetConsumerOffset(bool expected)
+        {
+            var configuration = new ConsumerConfigurationBuilder()
+              .WithGroupId("foo")
+              .WithBootstrapServers("bar")
+              .WithResetConsumerOffset(expected)
+              .Build();
+
+            Assert.Equal(expected, configuration.ResetOffset);
         }
 
         public class DummyMessage
