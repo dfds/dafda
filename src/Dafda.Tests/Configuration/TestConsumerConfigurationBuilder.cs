@@ -109,7 +109,7 @@ namespace Dafda.Tests.Configuration
             var configuration = new ConsumerConfigurationBuilder()
               .WithGroupId("foo")
               .WithBootstrapServers("bar")
-              .WithResetConsumerOffset(expected)
+              .ReadFromBeginning(expected)
               .Build();
 
             Assert.Equal(expected, configuration.ResetOffset);

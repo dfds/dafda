@@ -36,7 +36,7 @@ namespace Dafda.Configuration
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
         private IIncomingMessageFactory _incomingMessageFactory = new JsonIncomingMessageFactory();
-        private bool _resetOffset;
+        private bool _readFromBeginning;
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -96,9 +96,9 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ConsumerConfigurationBuilder WithResetConsumerOffset(bool resetOffset)
+        public ConsumerConfigurationBuilder ReadFromBeginning(bool readFromBeginning)
         {
-            _resetOffset = resetOffset;
+            _readFromBeginning = readFromBeginning;
             return this;
         }
 
@@ -134,7 +134,7 @@ namespace Dafda.Configuration
                     configuration: configurations,
                     topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
                     incomingMessageFactory: _incomingMessageFactory,
-                    readFromBeginning: _resetOffset
+                    readFromBeginning: _readFromBeginning
                 );
             }
 
@@ -143,7 +143,7 @@ namespace Dafda.Configuration
                 messageHandlerRegistry: _messageHandlerRegistry,
                 unitOfWorkFactory: _unitOfWorkFactory,
                 consumerScopeFactory: _consumerScopeFactory,
-                resetOffset: _resetOffset 
+                resetOffset: _readFromBeginning 
             );
         }
     }

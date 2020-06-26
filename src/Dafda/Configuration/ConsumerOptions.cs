@@ -24,7 +24,7 @@ namespace Dafda.Configuration
         /// </summary>
         public void ReadFromBeginningOfTopics()
         {
-            _builder.WithResetConsumerOffset(true);
+            _builder.ReadFromBeginning(true);
         }
 
         /// <summary>
