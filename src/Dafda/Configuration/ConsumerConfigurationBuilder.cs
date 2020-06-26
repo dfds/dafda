@@ -36,6 +36,7 @@ namespace Dafda.Configuration
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
         private IIncomingMessageFactory _incomingMessageFactory = new JsonIncomingMessageFactory();
+        private bool _readFromBeginning;
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -95,6 +96,13 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder ReadFromBeginning()
+        {
+            _readFromBeginning = true;
+            return this;
+        }
+
+
         public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessage : class, new()
             where TMessageHandler : IMessageHandler<TMessage>
@@ -125,7 +133,8 @@ namespace Dafda.Configuration
                     loggerFactory: loggerFactory,
                     configuration: configurations,
                     topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
-                    incomingMessageFactory: _incomingMessageFactory
+                    incomingMessageFactory: _incomingMessageFactory,
+                    readFromBeginning: _readFromBeginning
                 );
             }
 

@@ -20,6 +20,14 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
+        /// Sets the partion offset for all subscribed topics to the beginning
+        /// </summary>
+        public void ReadFromBeginningOfTopics()
+        {
+            _builder.ReadFromBeginning();
+        }
+
+        /// <summary>
         /// Specify a custom implementation of the <see cref="ConfigurationSource"/> to use. 
         /// </summary>
         /// <param name="configurationSource">The <see cref="ConfigurationSource"/> to use.</param>
