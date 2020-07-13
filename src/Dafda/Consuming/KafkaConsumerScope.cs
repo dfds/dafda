@@ -22,10 +22,10 @@ namespace Dafda.Consuming
         {
             var innerResult = _innerKafkaConsumer.Consume(cancellationToken);
 
-            _logger.LogDebug("Received message {Key}: {RawMessage}", innerResult.Key, innerResult.Value);
+            _logger.LogDebug("Received message {Key}: {RawMessage}", innerResult.Message?.Key, innerResult.Message?.Value);
 
             var result = new MessageResult(
-                message: _incomingMessageFactory.Create(innerResult.Value),
+                message: _incomingMessageFactory.Create(innerResult.Message.Value),
                 onCommit: () =>
                 {
                     _innerKafkaConsumer.Commit(innerResult);
