@@ -9,11 +9,11 @@ namespace Dafda.Consuming
     internal class ConsumerHostedService : BackgroundService
     {
         private readonly ILogger<ConsumerHostedService> _logger;
-        private readonly IApplicationLifetime _applicationLifetime;
+        private readonly IHostApplicationLifetime _applicationLifetime;
         private readonly Consumer _consumer;
         private readonly string _groupId;
 
-        public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IApplicationLifetime applicationLifetime, Consumer consumer, string groupId)
+        public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IHostApplicationLifetime applicationLifetime, Consumer consumer, string groupId)
         {
             _logger = logger;
             _applicationLifetime = applicationLifetime;

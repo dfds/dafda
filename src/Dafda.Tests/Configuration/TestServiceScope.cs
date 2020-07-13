@@ -27,7 +27,7 @@ namespace Dafda.Tests.Configuration
 
             var services = new ServiceCollection();
             services.AddTransient<Repository>();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
 
@@ -74,7 +74,7 @@ namespace Dafda.Tests.Configuration
 
             var services = new ServiceCollection();
             services.AddTransient<Repository>();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
 
@@ -121,7 +121,7 @@ namespace Dafda.Tests.Configuration
 
             var services = new ServiceCollection();
             services.AddTransient<Repository>();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
 
@@ -168,7 +168,7 @@ namespace Dafda.Tests.Configuration
 
             var services = new ServiceCollection();
             services.AddTransient<Repository>();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
             services.AddTransient<DummyMessageHandler>();
             services.AddLogging();
 

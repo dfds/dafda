@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Dafda.Tests.TestDoubles
 {
-    public class DummyApplicationLifetime : IApplicationLifetime
+    public class DummyApplicationLifetime : IHostApplicationLifetime
     {
         public void StopApplication()
         {

@@ -27,7 +27,7 @@ namespace Dafda.Tests.Configuration
 
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
@@ -55,7 +55,7 @@ namespace Dafda.Tests.Configuration
         {
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
@@ -76,7 +76,7 @@ namespace Dafda.Tests.Configuration
             var services = new ServiceCollection();
 
             services.AddLogging();
-            services.AddSingleton<IApplicationLifetime, DummyApplicationLifetime>();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
             
             services.AddConsumer(options =>
             {
