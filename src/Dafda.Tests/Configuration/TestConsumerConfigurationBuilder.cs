@@ -43,6 +43,7 @@ namespace Dafda.Tests.Configuration
                 .WithConfigurationSource(new ConfigurationSourceStub(
                     (key: "DEFAULT_KAFKA_GROUP_ID", value: "default_foo"),
                     (key: "SAMPLE_KAFKA_ENABLE_AUTO_COMMIT", value: "true"),
+                    (key: "SAMPLE_KAFKA_ALLOW_AUTO_CREATE_TOPICS", value: "false"),
                     (key: ConfigurationKey.GroupId, value: "foo"),
                     (key: ConfigurationKey.BootstrapServers, value: "bar"),
                     (key: "dummy", value: "ignored")
@@ -56,6 +57,7 @@ namespace Dafda.Tests.Configuration
             AssertKeyValue(configuration, ConfigurationKey.GroupId, "baz");
             AssertKeyValue(configuration, ConfigurationKey.BootstrapServers, "bar");
             AssertKeyValue(configuration, ConfigurationKey.EnableAutoCommit, "true");
+            AssertKeyValue(configuration, ConfigurationKey.AllowAutoCreateTopics, "false");
             AssertKeyValue(configuration, "dummy", null);
         }
 

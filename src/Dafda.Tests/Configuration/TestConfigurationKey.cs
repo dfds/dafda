@@ -34,6 +34,7 @@ namespace Dafda.Tests.Configuration
             {
                 ConfigurationKey.GroupId,
                 ConfigurationKey.EnableAutoCommit,
+                ConfigurationKey.AllowAutoCreateTopics,
                 ConfigurationKey.BootstrapServers,
                 ConfigurationKey.BrokerVersionFallback,
                 ConfigurationKey.ApiVersionFallbackMs,

@@ -8,6 +8,7 @@ namespace Dafda.Configuration
     {
         public static readonly ConfigurationKey GroupId = new ConfigurationKey("group.id", ConfigurationKeyGroup.ConsumerOnly);
         public static readonly ConfigurationKey EnableAutoCommit = new ConfigurationKey("enable.auto.commit", ConfigurationKeyGroup.ConsumerOnly);
+        public static readonly ConfigurationKey AllowAutoCreateTopics = new ConfigurationKey("allow.auto.create.topics", ConfigurationKeyGroup.ConsumerOnly);
         public static readonly ConfigurationKey BootstrapServers = new ConfigurationKey("bootstrap.servers");
         public static readonly ConfigurationKey BrokerVersionFallback = new ConfigurationKey("broker.version.fallback");
         public static readonly ConfigurationKey ApiVersionFallbackMs = new ConfigurationKey("api.version.fallback.ms");
