@@ -7,7 +7,7 @@
     <Description>A small client for Kafka</Description>
     <RepositoryUrl>https://github.com/dfds/dafda</RepositoryUrl>
     <PackageProjectUrl>https://github.com/dfds/dafda</PackageProjectUrl>
-    <Version>0.9.3</Version>
+    <Version>0.9.4</Version>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
