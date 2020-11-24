@@ -4,7 +4,7 @@
 
 ## Documentation and Examples
 
-See [dfds.github.io/dafda](https://dfds.github.io/dafda/) for more the documentaion, or check the [Examples](https://github.com/dfds/dafda/tree/master/examples) folder in the repository.
+See [dfds.github.io/dafda](https://dfds.github.io/dafda/) for more the documentation, or check the [Examples](https://github.com/dfds/dafda/tree/master/examples) folder in the repository.
 
 ## Building and Releasing
 
