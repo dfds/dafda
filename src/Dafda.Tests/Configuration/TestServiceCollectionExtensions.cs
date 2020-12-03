@@ -74,6 +74,24 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
+        public void resolves_a_typed_producer_for_an_abstract_service()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddTransient<MessageSenderOne.AnotherDependency>();
+            services.AddProducerFor<IMessageSenderOne, MessageSenderOne>(options =>
+            {
+                options.WithBootstrapServers("dummy");
+            });
+            var provider = services.BuildServiceProvider();
+            var messageSender = provider.GetRequiredService<IMessageSenderOne>();
+
+            Assert.NotNull(messageSender);
+            Assert.NotNull(messageSender.Producer);
+            Assert.Equal(ProducerFactory.GetKeyNameOf<MessageSenderOne>(), messageSender.Producer.Name);
+        }
+
+        [Fact]
         public void registers_multiple_typed_producer()
         {
             var services = new ServiceCollection();
@@ -142,7 +160,12 @@ namespace Dafda.Tests.Configuration
             public Producer Producer { get; private set; }
         }
 
-        private class MessageSenderOne
+        private interface IMessageSenderOne
+        {
+            public Producer Producer { get; }
+        }
+
+        private class MessageSenderOne : IMessageSenderOne
         {
             public MessageSenderOne(Producer producer, AnotherDependency anotherDependency)
             {
