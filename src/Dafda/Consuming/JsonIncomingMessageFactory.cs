@@ -21,7 +21,7 @@ namespace Dafda.Consuming
                 .RootElement
                 .EnumerateObject()
                 .Where(property => property.Name != MessageEnvelopeProperties.Data)
-                .ToDictionary(x => x.Name, x => x.Value.GetString());
+                .ToDictionary(x => x.Name, x => x.Value.ToString());
 
             return new TransportLevelMessage(new Metadata(metadataProperties), type => JsonSerializer.Deserialize(jsonData, type, JsonSerializerOptions));
         }
