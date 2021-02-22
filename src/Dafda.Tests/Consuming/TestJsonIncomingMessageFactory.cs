@@ -18,6 +18,18 @@ namespace Dafda.Tests.Consuming
             Assert.Equal("message-id", message.Metadata.MessageId);
             Assert.Equal("vehicle_position_changed", message.Metadata.Type);
         }
+        
+        private const string MessageJsonWithNonStringMetadata = "{\"messageId\":12345, \"type\":\"vehicle_position_changed\",\"data\":{\"aggregateId\":\"aggregate-id\",\"vehicleId\":\"vehicle-id\",\"timeStamp\":\"2019-09-16T07:59:01Z\",\"position\":{\"latitude\":1,\"longitude\":2}}}";
+
+        [Fact]
+        public void Can_read_message_headers_non_string()
+        {
+            var sut = new JsonIncomingMessageFactory();
+
+            var message = sut.Create(MessageJsonWithNonStringMetadata);
+            
+            Assert.Equal("12345", message.Metadata.MessageId);
+        }
 
         [Fact]
         public void Can_decode_data_body()
