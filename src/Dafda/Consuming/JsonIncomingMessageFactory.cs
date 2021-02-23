@@ -1,11 +1,17 @@
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Dafda.Consuming
 {
     internal class JsonIncomingMessageFactory : IIncomingMessageFactory
     {
-        private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+        };
 
         public TransportLevelMessage Create(string rawMessage)
         {
