@@ -30,6 +30,19 @@ namespace Dafda.Tests.Consuming
             
             Assert.Equal("12345", message.Metadata.MessageId);
         }
+        
+        private const string MessageJsonWithNonCamelCaseFields = "{\"MessageId\":12345, \"tYPe\":\"vehicle_position_changed\",\"data\":{\"aggregateId\":\"aggregate-id\",\"vehicleId\":\"vehicle-id\",\"timeStamp\":\"2019-09-16T07:59:01Z\",\"position\":{\"latitude\":1,\"longitude\":2}}}";
+
+        [Fact]
+        public void Can_read_message_headers_non_string()
+        {
+            var sut = new JsonIncomingMessageFactory();
+
+            var message = sut.Create(MessageJsonWithNonCamelCaseFields);
+
+            Assert.Equal("message-id", message.Metadata.MessageId);
+            Assert.Equal("vehicle_position_changed", message.Metadata.Type);
+        }
 
         [Fact]
         public void Can_decode_data_body()
