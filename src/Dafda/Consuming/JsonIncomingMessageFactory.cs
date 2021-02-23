@@ -5,10 +5,7 @@ namespace Dafda.Consuming
 {
     internal class JsonIncomingMessageFactory : IIncomingMessageFactory
     {
-        private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
         public TransportLevelMessage Create(string rawMessage)
         {
