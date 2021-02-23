@@ -1,4 +1,4 @@
-name: .NET
+name: PR build/test
 
 on:
   pull_request:
