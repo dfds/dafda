@@ -121,34 +121,6 @@ namespace Dafda.Tests.Configuration
             Assert.Same(dummyOutboxNotifier, outboxNotifier);
         }
 
-        [Fact]
-        public async Task Producer_can_wait_for_notification()
-        {
-            var services = new ServiceCollection();
-            var spy = new OutboxListenerSpy();
-
-            services.AddLogging();
-            services.AddOutboxProducer(options =>
-            {
-                options.WithBootstrapServers("localhost");
-                options.WithKafkaProducerFactory(_ => new KafkaProducerSpy());
-                options.WithListener(spy);
-                options.WithUnitOfWorkFactory(serviceProvider => new FakeOutboxPersistence());
-            });
-            var provider = services.BuildServiceProvider();
-
-            var pollingPublisher = provider
-                .GetServices<IHostedService>()
-                .OfType<OutboxDispatcherHostedService>()
-                .First();
-
-            using (var cts = new CancellationTokenSource(10))
-            {
-                await pollingPublisher.ProcessOutbox(cts.Token);
-            }
-
-            Assert.True(spy.Waited);
-        }
 
         [Fact]
         public void Must_configure_listener()
@@ -164,53 +136,6 @@ namespace Dafda.Tests.Configuration
                     options.WithBootstrapServers("localhost");
                 });
             });
-        }
-
-        [Fact]
-        public async Task Can_produce_outbox_message()
-        {
-            var spy = new KafkaProducerSpy();
-            var services = new ServiceCollection();
-            var fake = new FakeOutboxPersistence();
-
-            services.AddLogging();
-            services.AddOutbox(options =>
-            {
-                options.Register<DummyMessage>("foo", "bar", x => "baz");
-
-                options.WithOutboxEntryRepository(serviceProvider => fake);
-            });
-            services.AddOutboxProducer(options =>
-            {
-                options.WithBootstrapServers("localhost");
-                options.WithKafkaProducerFactory(_ => spy);
-                options.WithUnitOfWorkFactory(serviceProvider => fake);
-                options.WithListener(new DummyNotification());
-            });
-
-            var provider = services.BuildServiceProvider();
-            var outbox = provider.GetRequiredService<OutboxQueue>();
-
-            await outbox.Enqueue(new[] {new DummyMessage()});
-
-            var pollingPublisher = provider
-                .GetServices<IHostedService>()
-                .OfType<OutboxDispatcherHostedService>()
-                .First();
-
-            using (var cts = new CancellationTokenSource())
-            {
-                cts.CancelAfter(10);
-
-                await pollingPublisher.ProcessOutbox(cts.Token);
-            }
-
-            Assert.True(fake.OutboxEntries.All(x => x.ProcessedUtc.HasValue));
-
-            Assert.True(fake.Committed);
-
-            Assert.Equal("foo", spy.Topic);
-            Assert.Equal("baz", spy.Key);
         }
 
         public class DummyMessage
