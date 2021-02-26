@@ -151,6 +151,13 @@ namespace Dafda.Configuration
             _services.AddTransient<TMessageHandler>();
         }
 
+        /// <summary>
+        /// Register a strategy for handling messages that are not explicitly configured with handlers
+        /// </summary>
+        public void WithUnconfiguredMessageHandlingStrategy<T>()
+            where T: class, IUnconfiguredMessageHandlingStrategy =>
+            _services.AddTransient<IUnconfiguredMessageHandlingStrategy, T>();
+
         private class DefaultConfigurationSource : ConfigurationSource
         {
             private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;

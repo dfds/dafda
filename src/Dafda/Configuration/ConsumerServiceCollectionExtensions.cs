@@ -35,6 +35,7 @@ namespace Dafda.Configuration
             var configurationBuilder = new ConsumerConfigurationBuilder();
             var consumerOptions = new ConsumerOptions(configurationBuilder, services);
             consumerOptions.WithUnitOfWorkFactory<ServiceProviderUnitOfWorkFactory>();
+            consumerOptions.WithUnconfiguredMessageHandlingStrategy<RequireExplicitHandlers>();
             options?.Invoke(consumerOptions);
             var configuration = configurationBuilder.Build();
 
@@ -64,10 +65,11 @@ namespace Dafda.Configuration
                 logger: provider.GetRequiredService<ILogger<ConsumerHostedService>>(),
                 applicationLifetime: provider.GetRequiredService<IHostApplicationLifetime>(),
                 consumer: new Consumer(
-                    messageHandlerRegistry: configuration.MessageHandlerRegistry,
-                    unitOfWorkFactory: provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
-                    consumerScopeFactory: configuration.ConsumerScopeFactory(provider.GetRequiredService<ILoggerFactory>()),
-                    isAutoCommitEnabled: configuration.EnableAutoCommit
+                    configuration.MessageHandlerRegistry,
+                    provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
+                    configuration.ConsumerScopeFactory(provider.GetRequiredService<ILoggerFactory>()),
+                    provider.GetRequiredService<IUnconfiguredMessageHandlingStrategy>(),
+                    configuration.EnableAutoCommit
                 ),
                 configuration.GroupId
             );

@@ -2,9 +2,20 @@ using System;
 
 namespace Dafda.Consuming
 {
-    internal sealed class MessageRegistration
+    /// <summary>
+    /// A configuration type for linking a topic and message type to a message handler
+    /// </summary>
+    public sealed class MessageRegistration
     {
-        public MessageRegistration(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType)
+        /// <summary>
+        /// Create a message registration with the given properties,
+        /// will throw if the handler doesn't match the message
+        /// </summary>
+        public MessageRegistration(
+            Type handlerInstanceType,
+            Type messageInstanceType,
+            string topic,
+            string messageType)
         {
             EnsureProperHandlerType(handlerInstanceType, messageInstanceType);
 
@@ -28,9 +39,13 @@ namespace Dafda.Consuming
             throw new MessageRegistrationException($"Error! Message handler type \"{handlerInstanceType.FullName}\" does not implement expected interface \"{expectedInterface}\". It's expected when registered together with a message instance type of \"{messageInstanceType.FullName}\".");
         }
 
+        /// <summary>The type of the message handler</summary>
         public Type HandlerInstanceType { get; }
+        /// <summary>The type of the message</summary>
         public Type MessageInstanceType { get; }
+        /// <summary>The name of the kafka topic</summary>
         public string Topic { get; }
+        /// <summary>The name of the message type as sent over kafka</summary>
         public string MessageType { get; }
     }
 }

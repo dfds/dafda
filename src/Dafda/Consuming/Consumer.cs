@@ -10,10 +10,21 @@ namespace Dafda.Consuming
         private readonly IConsumerScopeFactory _consumerScopeFactory;
         private readonly bool _isAutoCommitEnabled;
 
-        public Consumer(MessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory unitOfWorkFactory, IConsumerScopeFactory consumerScopeFactory, bool isAutoCommitEnabled = false)
+        public Consumer(
+            MessageHandlerRegistry messageHandlerRegistry,
+            IHandlerUnitOfWorkFactory unitOfWorkFactory,
+            IConsumerScopeFactory consumerScopeFactory,
+            IUnconfiguredMessageHandlingStrategy fallbackHandler,
+            bool isAutoCommitEnabled = false)
         {
-            _localMessageDispatcher = new LocalMessageDispatcher(messageHandlerRegistry, unitOfWorkFactory);
-            _consumerScopeFactory = consumerScopeFactory ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
+            _localMessageDispatcher =
+                new LocalMessageDispatcher(
+                    messageHandlerRegistry,
+                    unitOfWorkFactory,
+                    fallbackHandler);
+            _consumerScopeFactory =
+                consumerScopeFactory
+                ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
             _isAutoCommitEnabled = isAutoCommitEnabled;
         }
 
