@@ -63,7 +63,7 @@ namespace Dafda.Tests.Producing
             var sut = new DefaultPayloadSerializer();
 
             var messageDataStub = "foo-message-data";
-            var headerEntryStub = KeyValuePair.Create<string, object>("foo", "bar");
+            var headerEntryStub = KeyValuePair.Create("foo", "bar");
 
             var payloadStub = new PayloadDescriptorBuilder()
                 .WithMessageData(messageDataStub)

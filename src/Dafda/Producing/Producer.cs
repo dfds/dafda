@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using Dafda.Consuming;
 
 namespace Dafda.Producing
 {
@@ -29,14 +31,27 @@ namespace Dafda.Producing
         }
 
         /// <summary>
+        /// Produce a <paramref name="message"/> on Kafka
+        /// </summary>
+        /// <param name="message">The message</param>
+        /// <param name="headers">The message headers</param>
+        public async Task Produce(object message, Metadata headers)
+        {
+            var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);
+            await _kafkaProducer.Produce(payloadDescriptor);
+        }
+
+
+
+        /// <summary>
         /// Produce a <paramref name="message"/> on Kafka including <paramref name="headers"/>
         /// </summary>
         /// <param name="message">The message</param>
         /// <param name="headers">The message headers</param>
         public async Task Produce(object message, Dictionary<string, object> headers)
         {
-            var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);
-            await _kafkaProducer.Produce(payloadDescriptor);
+            var dict = headers.ToDictionary( pair => pair.Key, pair => pair.Value.ToString());
+            await Produce(message, new Metadata( dict ));
         }
     }
 }

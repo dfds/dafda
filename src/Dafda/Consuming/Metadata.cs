@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dafda.Consuming
 {
@@ -75,6 +76,15 @@ namespace Dafda.Consuming
                 return value;
             }
             private set => _metadata[key] = value;
+        }
+
+        /// <summary>
+        /// Creates an enumerable of headers
+        /// </summary>
+        /// <returns>Headers</returns>
+        public IEnumerable<KeyValuePair<string, string>> AsEnumerable()
+        {
+            return _metadata.AsEnumerable();
         }
     }
 }

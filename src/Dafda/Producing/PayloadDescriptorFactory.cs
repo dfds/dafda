@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Dafda.Consuming;
 using Dafda.Serializing;
 
 namespace Dafda.Producing
@@ -15,7 +16,7 @@ namespace Dafda.Producing
             _messageIdGenerator = messageIdGenerator;
         }
 
-        public PayloadDescriptor Create(object message, Dictionary<string, object> headers)
+        public PayloadDescriptor Create(object message, Metadata headers)
         {
             var registration = _outgoingMessageRegistry.GetRegistration(message);
             if (registration == null)
@@ -29,8 +30,14 @@ namespace Dafda.Producing
                 partitionKey: registration.KeySelector(message),
                 messageType: registration.Type,
                 messageData: message,
-                messageHeaders: headers
+                messageHeaders: headers.AsEnumerable()
             );
+        }
+
+
+        public PayloadDescriptor Create(object message, Dictionary<string, string> headers)
+        {
+            return Create(message, new Metadata(headers));
         }
     }
 }
