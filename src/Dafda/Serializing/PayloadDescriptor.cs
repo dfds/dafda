@@ -18,7 +18,7 @@ namespace Dafda.Serializing
         /// <param name="messageType">The message type</param>
         /// <param name="messageData">The message</param>
         /// <param name="messageHeaders">A list of headers</param>
-        public PayloadDescriptor(string messageId, string topicName, string partitionKey, string messageType, object messageData, IEnumerable<KeyValuePair<string, object>> messageHeaders)
+        public PayloadDescriptor(string messageId, string topicName, string partitionKey, string messageType, object messageData, IEnumerable<KeyValuePair<string, string>> messageHeaders)
         {
             MessageId = messageId;
             TopicName = topicName;
@@ -51,7 +51,7 @@ namespace Dafda.Serializing
         /// <summary>
         /// The list of headers
         /// </summary>
-        public IEnumerable<KeyValuePair<string, object>> MessageHeaders { get; private set; }
+        public IEnumerable<KeyValuePair<string, string>> MessageHeaders { get; private set; }
 
         /// <summary>
         /// The message

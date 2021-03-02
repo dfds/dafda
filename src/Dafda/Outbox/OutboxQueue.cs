@@ -53,7 +53,7 @@ namespace Dafda.Outbox
 
         private async Task<OutboxEntry> CreateOutboxEntry(object message)
         {
-            var payloadDescriptor = _payloadDescriptorFactory.Create(message, new Dictionary<string, object>());
+            var payloadDescriptor = _payloadDescriptorFactory.Create(message, new Dictionary<string, string>());
 
             var messageId = Guid.Parse(payloadDescriptor.MessageId);
 

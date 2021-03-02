@@ -12,7 +12,7 @@ namespace Dafda.Tests.Builders
         private string _partitionKey;
         private string _messageType;
         private object _messageData;
-        private IEnumerable<KeyValuePair<string, object>> _messageHeaders;
+        private IEnumerable<KeyValuePair<string, string>> _messageHeaders;
 
         public PayloadDescriptorBuilder()
         {
@@ -21,7 +21,7 @@ namespace Dafda.Tests.Builders
             _partitionKey = "dummy-partition-key";
             _messageType = "dummy-message-type";
             _messageData = "dummy-message-data";
-            _messageHeaders = Enumerable.Empty<KeyValuePair<string, object>>();
+            _messageHeaders = Enumerable.Empty<KeyValuePair<string, string>>();
         }
 
         public PayloadDescriptorBuilder WithMessageId(string messageId)
@@ -54,7 +54,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public PayloadDescriptorBuilder WithMessageHeaders(params KeyValuePair<string, object>[] messageHeaders)
+        public PayloadDescriptorBuilder WithMessageHeaders(params KeyValuePair<string, string>[] messageHeaders)
         {
             _messageHeaders = messageHeaders;
             return this;
