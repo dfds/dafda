@@ -34,7 +34,7 @@ namespace Dafda.Consuming
         public string MessageId
         {
             get => this[MessageEnvelopeProperties.MessageId];
-            internal set => this[MessageEnvelopeProperties.MessageId] = value;
+            init => this[MessageEnvelopeProperties.MessageId] = value;
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Dafda.Consuming
         public string Type
         {
             get => this[MessageEnvelopeProperties.Type];
-            internal set => this[MessageEnvelopeProperties.Type] = value;
+            init => this[MessageEnvelopeProperties.Type] = value;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Dafda.Consuming
         public string CorrelationId
         {
             get => this[MessageEnvelopeProperties.CorrelationId];
-            internal set => this[MessageEnvelopeProperties.CorrelationId] = value;
+            init => this[MessageEnvelopeProperties.CorrelationId] = value;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Dafda.Consuming
         public string CausationId
         {
             get => this[MessageEnvelopeProperties.CausationId];
-            internal set => this[MessageEnvelopeProperties.CausationId] = value;
+            init => this[MessageEnvelopeProperties.CausationId] = value;
         }
 
         /// <summary>
@@ -88,3 +88,4 @@ namespace Dafda.Consuming
         }
     }
 }
+
