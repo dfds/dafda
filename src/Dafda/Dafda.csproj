@@ -9,7 +9,6 @@
     <PackageProjectUrl>https://github.com/dfds/dafda</PackageProjectUrl>
     <Version>0.9.9</Version>
     <LangVersion>latest</LangVersion>
-    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
