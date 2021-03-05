@@ -33,7 +33,10 @@ namespace Dafda.Tests.Builders
 
         public LocalMessageDispatcher Build()
         {
-            return new LocalMessageDispatcher(_messageHandlerRegistry, _handlerUnitOfWorkFactory);
+            return new LocalMessageDispatcher(
+                _messageHandlerRegistry,
+                _handlerUnitOfWorkFactory,
+                new RequireExplicitHandlers());
         }
     }
 }

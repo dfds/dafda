@@ -52,14 +52,12 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public Consumer Build()
-        {
-            return new Consumer(
-                messageHandlerRegistry: _registry,
-                unitOfWorkFactory: _unitOfWorkFactory,
-                consumerScopeFactory: _consumerScopeFactory(NullLoggerFactory.Instance),
-                isAutoCommitEnabled: _enableAutoCommit
-            );
-        }
+        public Consumer Build() =>
+            new Consumer(
+                _registry,
+                _unitOfWorkFactory,
+                _consumerScopeFactory(NullLoggerFactory.Instance),
+                new RequireExplicitHandlers(),
+                _enableAutoCommit);
     }
 }
