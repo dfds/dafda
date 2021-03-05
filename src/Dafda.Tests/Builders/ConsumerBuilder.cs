@@ -11,16 +11,20 @@ namespace Dafda.Tests.Builders
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
         private MessageHandlerRegistry _registry;
+        private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
 
         private bool _enableAutoCommit;
 
         public ConsumerBuilder()
         {
             _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
-
-            var messageStub = new MessageResultBuilder().Build();
-            _consumerScopeFactory = _ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageStub));
+            _consumerScopeFactory =
+                _ =>
+                    new ConsumerScopeFactoryStub(
+                        new ConsumerScopeStub(
+                            new MessageResultBuilder().Build()));
             _registry = new MessageHandlerRegistry();
+            _unconfiguredMessageStrategy = new RequireExplicitHandlers();
         }
 
         public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
@@ -34,7 +38,8 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ConsumerBuilder WithConsumerScopeFactory(Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
+        public ConsumerBuilder WithConsumerScopeFactory(
+            Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;
@@ -52,12 +57,19 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public ConsumerBuilder WithUnconfiguredMessageStrategy(
+            IUnconfiguredMessageHandlingStrategy strategy)
+        {
+            _unconfiguredMessageStrategy = strategy;
+            return this;
+        }
+
         public Consumer Build() =>
             new Consumer(
                 _registry,
                 _unitOfWorkFactory,
                 _consumerScopeFactory(NullLoggerFactory.Instance),
-                new RequireExplicitHandlers(),
+                _unconfiguredMessageStrategy,
                 _enableAutoCommit);
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -26,7 +27,7 @@ namespace Dafda.Tests.Consuming
 
             var registry = new MessageHandlerRegistry();
             registry.Register(messageRegistrationStub);
-            
+
             var sut = new ConsumerBuilder()
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
                 .WithMessageHandlerRegistry(registry)
@@ -38,11 +39,26 @@ namespace Dafda.Tests.Consuming
         }
 
         [Fact]
-        public async Task throws_expected_exception_when_consuming_a_message_without_a_handler_as_been_registered_for_it()
+        public async Task throws_when_consuming_an_unknown_message_when_explicit_handlers_are_required()
         {
             var sut = new ConsumerBuilder().Build();
 
-            await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.ConsumeSingle(CancellationToken.None));
+            await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(
+                () => sut.ConsumeSingle(CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task does_not_throw_when_consuming_an_unknown_message_with_no_op_strategy()
+        {
+            var sut =
+                new ConsumerBuilder()
+                    .WithUnitOfWork(
+                        new UnitOfWorkStub(
+                            new NoOpHandler(new Mock<ILogger<NoOpHandler>>().Object)))
+                    .WithUnconfiguredMessageStrategy(new UseNoOpHandler())
+                    .Build();
+
+            await sut.ConsumeSingle(CancellationToken.None);
         }
 
         [Fact]
@@ -132,7 +148,7 @@ namespace Dafda.Tests.Consuming
             var consumerScopeFactoryStub = new ConsumerScopeFactoryStub(new ConsumerScopeStub(resultSpy));
             var registry = new MessageHandlerRegistry();
             registry.Register(messageRegistrationStub);
-            
+
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(_ => consumerScopeFactoryStub)
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
@@ -161,7 +177,7 @@ namespace Dafda.Tests.Consuming
 
             var registry = new MessageHandlerRegistry();
             registry.Register(messageRegistrationStub);
-            
+
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(_ => spy)
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
@@ -190,7 +206,7 @@ namespace Dafda.Tests.Consuming
 
             var registry = new MessageHandlerRegistry();
             registry.Register(messageRegistrationStub);
-            
+
             var consumer = new ConsumerBuilder()
                 .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(spy))
                 .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
@@ -233,10 +249,10 @@ namespace Dafda.Tests.Consuming
                 );
 
                 var spy = new ConsumerScopeFactorySpy(subscriberScopeStub);
-                    
+
                 var registry = new MessageHandlerRegistry();
                 registry.Register(messageRegistrationStub);
-                
+
                 var consumer = new ConsumerBuilder()
                     .WithConsumerScopeFactory(_ => spy)
                     .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
