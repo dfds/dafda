@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -161,5 +162,33 @@ namespace Dafda.Tests.Producing
 
             Assert.Equal(expectedValue, spy.Value);
         }
+
+        [Fact]
+        public async Task produces_message_with_using_metadata()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var expectedKey = "foo-partition-key";
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            await sut.Produce( 
+                message: new Message { Id = expectedKey },
+                headers: new Metadata
+                {
+                    CausationId = "my-causation",
+                    CorrelationId = "my-correlation"
+                }
+            );
+
+            Assert.Equal(expectedKey, spy.Key);
+        }
+
     }
 }
