@@ -41,11 +41,5 @@ namespace Dafda.Producing
                 messageHeaders: metadata.AsEnumerable()
             );
         }
-
-
-        public PayloadDescriptor Create(object message, Dictionary<string, string> headers)
-        {
-            return Create(message, new Metadata(headers));
-        }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dafda.Consuming;
 using Dafda.Producing;
 using Dafda.Serializing;
 
@@ -53,7 +54,7 @@ namespace Dafda.Outbox
 
         private async Task<OutboxEntry> CreateOutboxEntry(object message)
         {
-            var payloadDescriptor = _payloadDescriptorFactory.Create(message, new Dictionary<string, string>());
+            var payloadDescriptor = _payloadDescriptorFactory.Create(message, new Metadata());
 
             var messageId = Guid.Parse(payloadDescriptor.MessageId);
 
