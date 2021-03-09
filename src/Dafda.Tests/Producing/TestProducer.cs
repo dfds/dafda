@@ -131,7 +131,7 @@ namespace Dafda.Tests.Producing
                 }
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""data"":{""id"":""dummyId""}}";
+            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""causationId"":""1"",""correlationId"":""1"",""data"":{""id"":""dummyId""}}";
 
             Assert.Equal(expectedValue, spy.Value);
         }
@@ -158,7 +158,7 @@ namespace Dafda.Tests.Producing
                 }
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""foo-key"":""foo-value"",""data"":{""id"":""dummyId""}}";
+            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""foo-key"":""foo-value"",""causationId"":""1"",""correlationId"":""1"",""data"":{""id"":""dummyId""}}";
 
             Assert.Equal(expectedValue, spy.Value);
         }

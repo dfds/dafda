@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dafda.Consuming;
 using Dafda.Serializing;
 
@@ -24,13 +25,20 @@ namespace Dafda.Producing
                 throw new InvalidOperationException($"No outgoing message registered for '{message.GetType().Name}'");
             }
 
+            var messageId = string.IsNullOrEmpty(headers.MessageId) ? _messageIdGenerator.NextMessageId() : headers.MessageId;
+            var metadata = new Metadata( headers.AsEnumerable().ToDictionary( k => k.Key, v => v.Value ) )
+            {
+                CausationId = string.IsNullOrEmpty(headers.CausationId) ? messageId : headers.CausationId,
+                CorrelationId = string.IsNullOrEmpty(headers.CorrelationId) ? messageId : headers.CorrelationId,
+            };
+
             return new PayloadDescriptor(
-                messageId: _messageIdGenerator.NextMessageId(),
+                messageId: messageId,
                 topicName: registration.Topic,
                 partitionKey: registration.KeySelector(message),
                 messageType: registration.Type,
                 messageData: message,
-                messageHeaders: headers.AsEnumerable()
+                messageHeaders: metadata.AsEnumerable()
             );
         }
 

@@ -49,7 +49,7 @@ namespace Dafda.Consuming
                 }
                 
                 // TODO -- verify that the handler is in fact an implementation of IMessageHandler<registration.MessageInstanceType> to provider sane error messages.
-
+                
                 await ExecuteHandler((dynamic) messageInstance, (dynamic) handler, context);
             });
         }

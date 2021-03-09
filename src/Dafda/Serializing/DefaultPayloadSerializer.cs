@@ -46,9 +46,17 @@ namespace Dafda.Serializing
 
             string MakeKeyFrom(string key) => _jsonSerializerOptions.DictionaryKeyPolicy.ConvertName(key);
 
-            var envelope = new Dictionary<string, object>();
-            envelope.Add(MakeKeyFrom("MessageId"), descriptor.MessageId);
-            envelope.Add(MakeKeyFrom("Type"), descriptor.MessageType);
+            var envelope = new Dictionary<string, object>
+            {
+                {
+                    MakeKeyFrom("MessageId"), 
+                    descriptor.MessageId
+                },
+                {
+                    MakeKeyFrom("Type"), 
+                    descriptor.MessageType
+                }
+            };
 
             foreach (var (key, value) in descriptor.MessageHeaders)
             {

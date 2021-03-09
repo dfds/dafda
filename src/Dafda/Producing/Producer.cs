@@ -41,8 +41,6 @@ namespace Dafda.Producing
             await _kafkaProducer.Produce(payloadDescriptor);
         }
 
-
-
         /// <summary>
         /// Produce a <paramref name="message"/> on Kafka including <paramref name="headers"/>
         /// </summary>
