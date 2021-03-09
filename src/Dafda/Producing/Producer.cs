@@ -27,7 +27,7 @@ namespace Dafda.Producing
         /// <param name="message">The message</param>
         public async Task Produce(object message)
         {
-            await Produce(message, new Dictionary<string, object>());
+            await Produce(message, new Metadata());
         }
 
         /// <summary>
@@ -70,13 +70,7 @@ namespace Dafda.Producing
         /// <param name="headers">The message headers</param>
         public async Task Produce(object message, MessageHandlerContext context, Dictionary<string, string> headers)
         {
-            var metadata = new Metadata(headers)
-            {
-                CorrelationId = context.CorrelationId,
-                CausationId = context.MessageId
-            };
-
-            var payloadDescriptor = _payloadDescriptorFactory.Create(message, metadata);
+            var payloadDescriptor = _payloadDescriptorFactory.Create(message, context, headers);
             await _kafkaProducer.Produce(payloadDescriptor);
         }
     }

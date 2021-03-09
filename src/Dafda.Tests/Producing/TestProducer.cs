@@ -205,7 +205,7 @@ namespace Dafda.Tests.Producing
                 .Build();
 
             await sut.Produce(
-                message: new Message { Id = "foo-partition-key" },
+                message: new Message { Id = "0" },
                 context: new MessageHandlerContext( new Metadata
                 {
                     CausationId = "my-causation",
@@ -213,7 +213,7 @@ namespace Dafda.Tests.Producing
                 })
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""correlationId"":""my-correlation"",""causationId"":""1"",""d}";
+            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""correlationId"":""my-correlation"",""causationId"":""1"",""data"":{""id"":""0""}}";
 
             Assert.Equal(expectedValue, spy.Value);
         }

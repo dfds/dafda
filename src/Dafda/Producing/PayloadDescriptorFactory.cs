@@ -41,5 +41,15 @@ namespace Dafda.Producing
                 messageHeaders: metadata.AsEnumerable()
             );
         }
+
+        public PayloadDescriptor Create(object message, MessageHandlerContext context, Dictionary<string, string> headers)
+        {
+            var metadata = new Metadata(headers)
+            {
+                CorrelationId = context.CorrelationId,
+                CausationId = context.MessageId
+            };
+            return Create(message, metadata);
+        }
     }
 }
