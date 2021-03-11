@@ -27,10 +27,8 @@ namespace Dafda.Serializing
             PartitionKey = partitionKey;
             MessageType = messageType;
             MessageData = messageData;
-            MessageHeaders = messageHeaders
-                .Where(k => !string.Equals(k.Key, "messageId", StringComparison.InvariantCultureIgnoreCase))
-                .Where(k => !string.Equals(k.Key, "type", StringComparison.InvariantCultureIgnoreCase));
-    }
+            MessageHeaders = messageHeaders;
+        }
 
         /// <summary>
         /// The name of the topic
