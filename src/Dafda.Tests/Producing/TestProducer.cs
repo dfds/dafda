@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
@@ -131,7 +132,17 @@ namespace Dafda.Tests.Producing
                 }
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""causationId"":""1"",""correlationId"":""1"",""data"":{""id"":""dummyId""}}";
+            var json = JsonDocument.Parse( @"{
+                                            ""messageId"":""1"",
+                                            ""type"":""bar"",
+                                            ""causationId"":""1"",
+                                            ""correlationId"":""1"",
+                                            ""data"":{
+                                                ""id"":""dummyId""
+                                                }
+                                            }" );
+
+            var expectedValue = JsonSerializer.Serialize(json);
 
             Assert.Equal(expectedValue, spy.Value);
         }
@@ -158,7 +169,18 @@ namespace Dafda.Tests.Producing
                 }
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""foo-key"":""foo-value"",""causationId"":""1"",""correlationId"":""1"",""data"":{""id"":""dummyId""}}";
+            var json = JsonDocument.Parse(@"{
+                                            ""messageId"":""1"",
+                                            ""type"":""bar"",
+                                            ""foo-key"":""foo-value"",
+                                            ""causationId"":""1"",
+                                            ""correlationId"":""1"",
+                                            ""data"":{
+                                                ""id"":""dummyId""
+                                                }
+                                            }");
+
+            var expectedValue = JsonSerializer.Serialize(json);
 
             Assert.Equal(expectedValue, spy.Value);
         }
@@ -213,10 +235,20 @@ namespace Dafda.Tests.Producing
                 })
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""correlationId"":""my-correlation"",""causationId"":""1"",""data"":{""id"":""0""}}";
+
+            var json = JsonDocument.Parse(@"{
+                                            ""messageId"":""1"",
+                                            ""type"":""bar"",
+                                            ""correlationId"":""my-correlation"",
+                                            ""causationId"":""1"",
+                                            ""data"":{
+                                                ""id"":""0""
+                                                }
+                                            }");
+
+            var expectedValue = JsonSerializer.Serialize(json);
 
             Assert.Equal(expectedValue, spy.Value);
         }
-
     }
 }
