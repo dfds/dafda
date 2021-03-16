@@ -123,6 +123,29 @@ public void ConfigureServices(IServiceCollection services)
 
 Will ensure that all messages with the type[^1] `test-event` on the Kafka topic named `test-topic` will be deserialized as an instance of the POCO `Test` and handed to a [transiently](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1#service-lifetimes) resolved instance of `TestHandler`. This is all handled by the .NET Core dependency injection, and Dafda clients need only concern themselves with creating simple messages and matching message handlers.
 
+#### Unconfigured Messages
+
+By default, a consumer will throw a `MissingMessageHandlerRegistrationException` if it receives a message where the type has not been configured with a handler. This can be overridden by providing a different `IUnconfiguredMessageHandlingStrategy`:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    // configure messaging: producer
+    services.AddConsumer(options =>
+    {
+        // register outgoing messages (includes outbox messages)
+        options.RegisterMessageHandler<Test, TestHandler>("test-topic", "test-event");
+
+        // log, but perform no other action for other messages
+        options.WithUnconfiguredMessageHandlingStrategy<UseNoOpHandler>();
+    });
+}
+```
+
+`UseNoOpHandler` is built in, and uses an `ILogger` to log an information message about having received the message and then considers it processed.
+
+
+
 #### Message Deserialization
 
 In order to gain controler over the deserialization of the message handled by Dafda use `WithIncomingMessageFactory`, like:

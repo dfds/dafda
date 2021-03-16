@@ -7,26 +7,27 @@ namespace Dafda.Consuming
     {
         private readonly MessageHandlerRegistry _messageHandlerRegistry;
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
+        private readonly IUnconfiguredMessageHandlingStrategy _fallbackHandler;
 
-        public LocalMessageDispatcher(MessageHandlerRegistry messageHandlerRegistry, IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory)
+        public LocalMessageDispatcher(
+            MessageHandlerRegistry messageHandlerRegistry,
+            IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory,
+            IUnconfiguredMessageHandlingStrategy fallbackHandler)
         {
-            _messageHandlerRegistry = messageHandlerRegistry ?? throw new ArgumentNullException(nameof(messageHandlerRegistry));
-            _unitOfWorkFactory = handlerUnitOfWorkFactory ?? throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
+            _messageHandlerRegistry =
+                messageHandlerRegistry
+                ?? throw new ArgumentNullException(nameof(messageHandlerRegistry));
+            _unitOfWorkFactory =
+                handlerUnitOfWorkFactory
+                ?? throw new ArgumentNullException(nameof(handlerUnitOfWorkFactory));
+            _fallbackHandler =
+                fallbackHandler
+                ?? throw new ArgumentNullException(nameof(fallbackHandler));
         }
 
-        private MessageRegistration GetMessageRegistrationFor(TransportLevelMessage message)
-        {
-            var messageId = message.Metadata.MessageId;
-            var messageType = message.Metadata.Type;
-            var registration = _messageHandlerRegistry.GetRegistrationFor(messageType);
-
-            if (registration == null)
-            {
-                throw new MissingMessageHandlerRegistrationException($"Error! A handler has not been registered for messages of type \"{messageType}\". Message with id \"{messageId}\" was not handled.");
-            }
-
-            return registration;
-        }
+        private MessageRegistration GetMessageRegistrationFor(TransportLevelMessage message) =>
+            _messageHandlerRegistry.GetRegistrationFor(message.Metadata.Type)
+            ?? _fallbackHandler.GetFallback(message.Metadata.Type);
 
         public async Task Dispatch(TransportLevelMessage message)
         {
