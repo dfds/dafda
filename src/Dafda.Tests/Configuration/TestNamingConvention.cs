@@ -18,7 +18,7 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_use_custom_naming()
         {
-            var sut = NamingConvention.UseCustom(s => s.ToUpper());
+            var sut = NamingConvention.UseCustom(s => s.ToUpperInvariant());
 
             var result = sut.GetKey("group.id");
 
