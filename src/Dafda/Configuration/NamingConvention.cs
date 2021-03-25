@@ -28,7 +28,7 @@ namespace Dafda.Configuration
 
             actualKey = Regex.Replace(actualKey, "[-. \t]+", "_");
 
-            actualKey = actualKey.ToUpper();
+            actualKey = actualKey.ToUpperInvariant();
 
             return actualKey;
         }
