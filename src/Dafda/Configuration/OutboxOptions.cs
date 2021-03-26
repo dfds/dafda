@@ -75,7 +75,7 @@ namespace Dafda.Configuration
 
         /// <summary>
         /// The <paramref name="notifier"/> is returned after a successful call
-        /// to <see cref="OutboxQueue.Enqueue"/>, which in turn enables the client
+        /// to <see cref="o:OutboxQueue.Enqueue"/>, which in turn enables the client
         /// to call the <see cref="IOutboxNotifier.Notify"/> to send notifications
         /// about new outbox message to the Dafda outbox dispatcher
         /// </summary>
