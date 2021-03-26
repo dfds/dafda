@@ -53,7 +53,7 @@ version: ## set the package version base on user input
 .PHONY: release
 release: ## tag a release with latest version
 	@case $$(uname) in \
-		'Darwin') \
+		'Darwin'|'Linux') \
 			git tag $$(sed -n -E 's,[[:blank:]]+<Version>(.+)</Version>,\1,p' $(PROJECT) | tr -d '\r') \
 			;; \
 		*) \
