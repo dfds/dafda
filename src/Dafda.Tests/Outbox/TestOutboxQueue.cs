@@ -1,5 +1,7 @@
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Dafda.Consuming;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -29,9 +31,54 @@ namespace Dafda.Tests.Outbox
                 .With(spy)
                 .Build();
 
-            await sut.Enqueue(new[] {new Message()});
+            await sut.Enqueue(new[] { new Message() });
 
             Assert.NotEmpty(spy.OutboxEntries);
+        }
+
+        [Fact]
+        public async Task Can_forward_headers()
+        {
+            var spy = new OutboxEntryRepositorySpy();
+
+            var sut = A.OutboxQueue
+                .With(
+                    A.OutgoingMessageRegistry
+                        .Register<Message>("foo", "bar", @event => "baz")
+                        .Build()
+                )
+                .With(spy)
+                .Build();
+
+            var metadata = new Metadata()
+            {
+                MessageId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                CausationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                CorrelationId = "183388b5-a8e9-4cb4-b553-6699632461c7"
+            };
+
+            await sut.Enqueue(new[] { new Message() }, metadata);
+
+            var json = JsonDocument.Parse(@"{
+                                            ""messageId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
+                                            ""type"":""bar"",
+                                            ""causationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
+                                            ""correlationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
+                                            ""data"":{}
+                                            }");
+
+            var expectedObject = new MetadataEnvelope<Message>
+            {
+                MessageId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                Type = "bar",
+                CausationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                CorrelationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                Data = new Message()
+            };
+
+            var expectedValue = expectedObject.SerializeAsJson();
+
+            Assert.Equal(expectedValue, spy.OutboxEntries[0].Payload );
         }
 
         public class Message

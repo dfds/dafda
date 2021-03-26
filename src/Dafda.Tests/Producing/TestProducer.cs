@@ -235,7 +235,6 @@ namespace Dafda.Tests.Producing
                 })
             );
 
-
             var json = JsonDocument.Parse(@"{
                                             ""messageId"":""1"",
                                             ""type"":""bar"",
