@@ -412,6 +412,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#unconfigured-messages" title="Unconfigured Messages" class="md-nav__link">
+    Unconfigured Messages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#message-deserialization" title="Message Deserialization" class="md-nav__link">
     Message Deserialization
   </a>
@@ -420,6 +427,13 @@
         
           <li class="md-nav__item">
   <a href="#unit-of-work-factory" title="Unit of Work Factory" class="md-nav__link">
+    Unit of Work Factory
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-of-work-factory_1" title="Unit of Work Factory" class="md-nav__link">
     Unit of Work Factory
   </a>
   
@@ -555,6 +569,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#unconfigured-messages" title="Unconfigured Messages" class="md-nav__link">
+    Unconfigured Messages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#message-deserialization" title="Message Deserialization" class="md-nav__link">
     Message Deserialization
   </a>
@@ -563,6 +584,13 @@
         
           <li class="md-nav__item">
   <a href="#unit-of-work-factory" title="Unit of Work Factory" class="md-nav__link">
+    Unit of Work Factory
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-of-work-factory_1" title="Unit of Work Factory" class="md-nav__link">
     Unit of Work Factory
   </a>
   
@@ -711,6 +739,23 @@ might be helpful when consuming from different topic with a different <code>auto
 </pre></div>
 
 <p>Will ensure that all messages with the type<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> <code>test-event</code> on the Kafka topic named <code>test-topic</code> will be deserialized as an instance of the POCO <code>Test</code> and handed to a <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1#service-lifetimes">transiently</a> resolved instance of <code>TestHandler</code>. This is all handled by the .NET Core dependency injection, and Dafda clients need only concern themselves with creating simple messages and matching message handlers.</p>
+<h4 id="unconfigured-messages">Unconfigured Messages<a class="headerlink" href="#unconfigured-messages" title="Permanent link">&para;</a></h4>
+<p>By default, a consumer will throw a <code>MissingMessageHandlerRegistrationException</code> if it receives a message where the type has not been configured with a handler. This can be overridden by providing a different <code>IUnconfiguredMessageHandlingStrategy</code>:</p>
+<div class="codehilite"><pre><span></span><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// configure messaging: producer</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddConsumer</span><span class="p">(</span><span class="n">options</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="c1">// register outgoing messages (includes outbox messages)</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">RegisterMessageHandler</span><span class="p">&lt;</span><span class="n">Test</span><span class="p">,</span> <span class="n">TestHandler</span><span class="p">&gt;(</span><span class="s">&quot;test-topic&quot;</span><span class="p">,</span> <span class="s">&quot;test-event&quot;</span><span class="p">);</span>
+
+        <span class="c1">// log, but perform no other action for other messages</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">WithUnconfiguredMessageHandlingStrategy</span><span class="p">&lt;</span><span class="n">UseNoOpHandler</span><span class="p">&gt;();</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+<p><code>UseNoOpHandler</code> is built in, and uses an <code>ILogger</code> to log an information message about having received the message and then considers it processed.</p>
 <h4 id="message-deserialization">Message Deserialization<a class="headerlink" href="#message-deserialization" title="Permanent link">&para;</a></h4>
 <p>In order to gain controler over the deserialization of the message handled by Dafda use <code>WithIncomingMessageFactory</code>, like:</p>
 <div class="codehilite"><pre><span></span><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
@@ -731,6 +776,19 @@ might be helpful when consuming from different topic with a different <code>auto
 <div class="admonition example">
 <p class="admonition-title">For more information see <a href="https://github.com/dfds/dafda/blob/master/src/Dafda/Consuming/ServiceProviderUnitOfWorkFactory.cs">ServiceProviderUnitOfWorkFactory.cs</a></p>
 </div>
+<h4 id="unit-of-work-factory_1">Unit of Work Factory<a class="headerlink" href="#unit-of-work-factory_1" title="Permanent link">&para;</a></h4>
+<p>When a consumer starts  Dafda continues consuming from the last committed offset on each topic, if a committed offset exists. 
+To read all topics from the beginning of all partitions, use <code>ReadFromBeginning</code>: </p>
+<div class="codehilite"><pre><span></span><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// configure messaging: producer</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddConsumer</span><span class="p">(</span><span class="n">options</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">ReadFromBeginning</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
 <div class="footnote">
 <hr />
 <ol>
