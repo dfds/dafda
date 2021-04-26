@@ -1,9 +1,7 @@
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Tests.Helpers;
-using Dafda.Tests.Producing;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 

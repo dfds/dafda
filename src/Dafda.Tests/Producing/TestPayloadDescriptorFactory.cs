@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Producing;
 using Dafda.Tests.TestDoubles;

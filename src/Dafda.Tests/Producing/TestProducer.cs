@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Tests.Helpers;
@@ -168,20 +167,18 @@ namespace Dafda.Tests.Producing
                 }
             );
 
-            var json = JsonDocument.Parse(@"{
-                                            ""messageId"":""1"",
-                                            ""type"":""bar"",
-                                            ""foo-key"":""foo-value"",
-                                            ""causationId"":""1"",
-                                            ""correlationId"":""1"",
-                                            ""data"":{
-                                                ""id"":""dummyId""
-                                                }
-                                            }");
+            var expected = @"{
+                                ""messageId"":""1"",
+                                ""type"":""bar"",
+                                ""foo-key"":""foo-value"",
+                                ""causationId"":""1"",
+                                ""correlationId"":""1"",
+                                ""data"":{
+                                    ""id"":""dummyId""
+                                    }
+                                }";
 
-            var expectedValue = JsonSerializer.Serialize(json);
-
-            Assert.Equal(expectedValue, spy.Value);
+            AssertJson.Equal(expected, spy.Value);
         }
 
         [Fact]

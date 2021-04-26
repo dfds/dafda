@@ -1,5 +1,4 @@
-﻿using Dafda.Tests.Producing;
-using Xunit;
+﻿using Xunit;
 
 namespace Dafda.Tests.Helpers
 {

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Dafda.Configuration;
 using Dafda.Producing;
 using Dafda.Serializing;
 using Microsoft.Extensions.Logging.Abstractions;
