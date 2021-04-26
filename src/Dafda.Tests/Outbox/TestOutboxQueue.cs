@@ -2,6 +2,8 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Tests.Helpers;
+using Dafda.Tests.Producing;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -59,26 +61,17 @@ namespace Dafda.Tests.Outbox
 
             await sut.Enqueue(new[] { new Message() }, metadata);
 
-            var json = JsonDocument.Parse(@"{
-                                            ""messageId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
-                                            ""type"":""bar"",
-                                            ""causationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
-                                            ""correlationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
-                                            ""data"":{}
-                                            }");
+            var expected = @"{
+                            ""messageId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
+                            ""type"":""bar"",
+                            ""causationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
+                            ""correlationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
+                            ""data"":{
+                                }
+                            }";
 
-            var expectedObject = new MetadataEnvelope<Message>
-            {
-                MessageId = "183388b5-a8e9-4cb4-b553-6699632461c7",
-                Type = "bar",
-                CausationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
-                CorrelationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
-                Data = new Message()
-            };
 
-            var expectedValue = expectedObject.SerializeAsJson();
-
-            Assert.Equal(expectedValue, spy.OutboxEntries[0].Payload );
+            AssertJson.Equal(expected, spy.OutboxEntries[0].Payload );
         }
 
         public class Message

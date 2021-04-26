@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -235,19 +236,19 @@ namespace Dafda.Tests.Producing
                 })
             );
 
-            var json = JsonDocument.Parse(@"{
-                                            ""messageId"":""1"",
-                                            ""type"":""bar"",
-                                            ""correlationId"":""my-correlation"",
-                                            ""causationId"":""1"",
-                                            ""data"":{
-                                                ""id"":""0""
-                                                }
-                                            }");
+ 
+            var expected = @"
+                            {
+                            ""messageId"":""1"",
+                            ""type"":""bar"",
+                            ""correlationId"":""my-correlation"",
+                            ""causationId"":""1"",
+                            ""data"":{
+                                ""id"":""0""
+                                }
+                            }";
 
-            var expectedValue = JsonSerializer.Serialize(json);
-
-            Assert.Equal(expectedValue, spy.Value);
+            AssertJson.Equal(expected, spy.Value);
         }
     }
 }

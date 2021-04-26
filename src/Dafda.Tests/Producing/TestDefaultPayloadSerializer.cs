@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dafda.Producing;
 using Dafda.Serializing;
 using Dafda.Tests.Builders;
+using Dafda.Tests.Helpers;
 using Xunit;
 
 namespace Dafda.Tests.Producing
@@ -80,33 +80,6 @@ namespace Dafda.Tests.Producing
                             }}",
                 actual: await sut.Serialize(payloadStub)
             );
-        }
-
-        #region private helper classes
-
-        private static class AssertJson
-        {
-            public static void Equal(string expected, string actual)
-            {
-                static string TrimJson(string x) =>
-                    x.Replace("\n", "")
-                        .Replace("\r", "")
-                        .Replace("\t", "")
-                        .RegExReplace(@"([{,}])\s+", "$1")
-                        .RegExReplace(@"\s+([{,}])", "$1");
-
-                Assert.Equal(TrimJson(expected), TrimJson(actual));
-            }
-        }
-
-        #endregion
-    }
-
-    public static class RegExStringExtensions
-    {
-        public static string RegExReplace(this string text, string pattern, string replacement)
-        {
-            return Regex.Replace(text, pattern, replacement);
         }
     }
 }
