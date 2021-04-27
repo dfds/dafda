@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -46,11 +48,23 @@ namespace Dafda.Serializing
 
             string MakeKeyFrom(string key) => _jsonSerializerOptions.DictionaryKeyPolicy.ConvertName(key);
 
-            var envelope = new Dictionary<string, object>();
-            envelope.Add(MakeKeyFrom("MessageId"), descriptor.MessageId);
-            envelope.Add(MakeKeyFrom("Type"), descriptor.MessageType);
+            var envelope = new Dictionary<string, object>
+            {
+                {
+                    MakeKeyFrom("MessageId"),
+                    descriptor.MessageId
+                },
+                {
+                    MakeKeyFrom("Type"),
+                    descriptor.MessageType
+                }
+            };
 
-            foreach (var (key, value) in descriptor.MessageHeaders)
+            var messageHeaders = descriptor.MessageHeaders
+                .Where(k => !string.Equals(k.Key, "messageId", StringComparison.InvariantCultureIgnoreCase))
+                .Where(k => !string.Equals(k.Key, "type", StringComparison.InvariantCultureIgnoreCase));
+
+            foreach (var (key, value) in messageHeaders)
             {
                 envelope.Add(MakeKeyFrom(key), value);
             }

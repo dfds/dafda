@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -131,9 +132,17 @@ namespace Dafda.Tests.Producing
                 }
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""data"":{""id"":""dummyId""}}";
+            var expected = @"{
+                                ""messageId"":""1"",
+                                ""type"":""bar"",
+                                ""causationId"":""1"",
+                                ""correlationId"":""1"",
+                                ""data"":{
+                                    ""id"":""dummyId""
+                                    }
+                                }";
 
-            Assert.Equal(expectedValue, spy.Value);
+            AssertJson.Equal(expected, spy.Value);
         }
 
         [Fact]
@@ -158,13 +167,22 @@ namespace Dafda.Tests.Producing
                 }
             );
 
-            var expectedValue = @"{""messageId"":""1"",""type"":""bar"",""foo-key"":""foo-value"",""data"":{""id"":""dummyId""}}";
+            var expected = @"{
+                                ""messageId"":""1"",
+                                ""type"":""bar"",
+                                ""foo-key"":""foo-value"",
+                                ""causationId"":""1"",
+                                ""correlationId"":""1"",
+                                ""data"":{
+                                    ""id"":""dummyId""
+                                    }
+                                }";
 
-            Assert.Equal(expectedValue, spy.Value);
+            AssertJson.Equal(expected, spy.Value);
         }
 
         [Fact]
-        public async Task produces_message_with_using_metadata()
+        public async Task produces_message_using_metadata()
         {
             var spy = new KafkaProducerSpy();
 
@@ -190,5 +208,42 @@ namespace Dafda.Tests.Producing
             Assert.Equal(expectedKey, spy.Key);
         }
 
+        [Fact]
+        public async Task produces_message_using_message_handler_context()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(new MessageIdGeneratorStub(() => "1"))
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            await sut.Produce(
+                message: new Message { Id = "0" },
+                context: new MessageHandlerContext( new Metadata
+                {
+                    CausationId = "my-causation",
+                    CorrelationId = "my-correlation"
+                })
+            );
+
+ 
+            var expected = @"
+                            {
+                            ""messageId"":""1"",
+                            ""type"":""bar"",
+                            ""correlationId"":""my-correlation"",
+                            ""causationId"":""1"",
+                            ""data"":{
+                                ""id"":""0""
+                                }
+                            }";
+
+            AssertJson.Equal(expected, spy.Value);
+        }
     }
 }

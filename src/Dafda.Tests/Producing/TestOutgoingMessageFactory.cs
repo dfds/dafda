@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Text.Json;
+using System.Threading.Tasks;
+using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
@@ -27,7 +29,17 @@ namespace Dafda.Tests.Producing
 
             await sut.Produce(new DummyMessage(dummyAggregateId));
 
-            Assert.Equal($@"{{""messageId"":""{dummyMessageId}"",""type"":""{DummyType}"",""data"":{{""aggregateId"":""{dummyAggregateId}""}}}}", spy.Value);
+            var expected = $@"{{
+                                ""messageId"":""{dummyMessageId}"",
+                                ""type"":""{DummyType}"",
+                                ""causationId"":""foo_id"",
+                                ""correlationId"":""foo_id"",
+                                ""data"":{{
+                                    ""aggregateId"":""{dummyAggregateId}""
+                                    }}
+                                }}";
+
+            AssertJson.Equal(expected, spy.Value);
         }
 
         private class DummyMessage

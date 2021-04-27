@@ -15,7 +15,10 @@ namespace Dafda.Consuming
     {
         private readonly IDictionary<string, string> _metadata;
 
-        internal Metadata() : this(new Dictionary<string, string>())
+        /// <summary>
+        /// Initialize an instance of Metadata
+        /// </summary>
+        public Metadata() : this(new Dictionary<string, string>())
         {
         }
 
@@ -34,7 +37,7 @@ namespace Dafda.Consuming
         public string MessageId
         {
             get => this[MessageEnvelopeProperties.MessageId];
-            init => this[MessageEnvelopeProperties.MessageId] = value;
+            internal init => this[MessageEnvelopeProperties.MessageId] = value;
         }
 
         /// <summary>
@@ -43,7 +46,7 @@ namespace Dafda.Consuming
         public string Type
         {
             get => this[MessageEnvelopeProperties.Type];
-            init => this[MessageEnvelopeProperties.Type] = value;
+            internal init => this[MessageEnvelopeProperties.Type] = value;
         }
 
         /// <summary>

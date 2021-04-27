@@ -27,7 +27,7 @@ namespace Dafda.Producing
         /// <param name="message">The message</param>
         public async Task Produce(object message)
         {
-            await Produce(message, new Dictionary<string, object>());
+            await Produce(message, new Metadata());
         }
 
         /// <summary>
@@ -41,8 +41,6 @@ namespace Dafda.Producing
             await _kafkaProducer.Produce(payloadDescriptor);
         }
 
-
-
         /// <summary>
         /// Produce a <paramref name="message"/> on Kafka including <paramref name="headers"/>
         /// </summary>
@@ -52,6 +50,28 @@ namespace Dafda.Producing
         {
             var dict = headers.ToDictionary( pair => pair.Key, pair => pair.Value.ToString());
             await Produce(message, new Metadata( dict ));
+        }
+
+        /// <summary>
+        /// Produce a <paramref name="message"/> on Kafka
+        /// </summary>
+        /// <param name="message">The message</param>
+        /// <param name="context">Context from the consumer</param>
+        public async Task Produce(object message, MessageHandlerContext context)
+        {
+            await Produce(message, context, new Dictionary<string, string>());
+        }
+
+        /// <summary>
+        /// Produce a <paramref name="message"/> on Kafka
+        /// </summary>
+        /// <param name="message">The message</param>
+        /// <param name="context">Context from the consumer</param>
+        /// <param name="headers">The message headers</param>
+        public async Task Produce(object message, MessageHandlerContext context, Dictionary<string, string> headers)
+        {
+            var payloadDescriptor = _payloadDescriptorFactory.Create(message, context, headers);
+            await _kafkaProducer.Produce(payloadDescriptor);
         }
     }
 }
