@@ -28,7 +28,7 @@ namespace Dafda.Consuming
         private static string EnsureValidTopicName(string topicName)
         {
             // Passing a null topic, will cause Confluent to throw an AccessViolationException, which cannot be caught by the service, resulting in a hard crash without logs.
-            if (string.IsNullOrWhiteSpace(topicName))
+            if (topicName == null)
             {
                 throw new ArgumentException(nameof(topicName), "Topic must have a value");
             }
