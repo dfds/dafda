@@ -49,6 +49,15 @@ namespace Dafda.Tests.Consuming
         }
 
         [Fact]
+        public void throws_for_null_topic()
+        {
+            Assert.Throws<ArgumentException>(() => 
+                new MessageRegistrationBuilder()
+                .WithTopic(null)
+                .Build());
+        }
+
+        [Fact]
         public void returns_expected_message_type()
         {
             var expectedMessageType = "foo";
