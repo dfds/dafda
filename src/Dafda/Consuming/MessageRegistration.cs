@@ -21,8 +21,19 @@ namespace Dafda.Consuming
 
             HandlerInstanceType = handlerInstanceType;
             MessageInstanceType = messageInstanceType;
-            Topic = topic;
             MessageType = messageType;
+            Topic = EnsureValidTopicName(topic);
+        }
+
+        private static string EnsureValidTopicName(string topicName)
+        {
+            // Passing a null topic, will cause Confluent to throw an AccessViolationException, which cannot be caught by the service, resulting in a hard crash without logs.
+            if (topicName == null)
+            {
+                throw new ArgumentException(nameof(topicName), "Topic must have a value");
+            }
+
+            return topicName;
         }
 
         private static void EnsureProperHandlerType(Type handlerInstanceType, Type messageInstanceType)
