@@ -7,7 +7,7 @@ namespace Dafda.Consuming
     /// will allow Dafda to redirect consumed messages to the concrete message handler implementation. 
     /// </summary>
     /// <typeparam name="T">The message type</typeparam>
-    public interface IMessageHandler<T> where T : class, new()
+    public interface IMessageHandler<T>
     {
         /// <summary>
         /// Consumed message of <typeparamref name="T"/> are passed to the concrete
