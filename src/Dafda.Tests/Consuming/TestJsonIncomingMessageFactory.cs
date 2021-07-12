@@ -63,18 +63,7 @@ namespace Dafda.Tests.Consuming
             Assert.Equal(2, data.Position.Longitude);
         }
 
-        public class VehiclePositionChanged
-        {
-            public string AggregateId { get; set; }
-            public string VehicleId { get; set; }
-            public DateTime TimeStamp { get; set; }
-            public Position Position { get; set; }
-        }
-
-        public class Position
-        {
-            public double Latitude { get; set; }
-            public double Longitude { get; set; }
-        }
+        public record VehiclePositionChanged(string AggregateId, string VehicleId, DateTime TimeStamp, Position Position);
+        public record Position(double Latitude, double Longitude);
     }
 }
