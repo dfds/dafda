@@ -144,7 +144,6 @@ namespace Dafda.Configuration
         /// <param name="topic">The name of the topic in Kafka.</param>
         /// <param name="messageType">The messageType as specified in the Dafda envelope in the Kafka message.</param>
         public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
-            where TMessage : class, new()
             where TMessageHandler : class, IMessageHandler<TMessage>
         {
             _builder.RegisterMessageHandler<TMessage, TMessageHandler>(topic, messageType);
