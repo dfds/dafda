@@ -105,7 +105,6 @@ namespace Dafda.Configuration
 
 
         public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
-            where TMessage : class, new()
             where TMessageHandler : IMessageHandler<TMessage>
         {
             _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);

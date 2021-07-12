@@ -43,7 +43,7 @@ version: ## set the package version base on user input
 	@echo "Set the version of $(PACKAGE)"
 	@echo "  Current version:   $$(sed -n -E 's,[[:blank:]]+<Version>(.+)</Version>,\1,p' $(PROJECT))"
 	@read -p "  Enter new version: " version \
-		&& sed -b -E "s,<Version>(.+)</Version>,<Version>$${version}</Version>," $(PROJECT) > $(PROJECT).new \
+		&& sed -E "s,<Version>(.+)</Version>,<Version>$${version}</Version>," $(PROJECT) > $(PROJECT).new \
 		&& mv $(PROJECT).new $(PROJECT) \
 		&& git add $(PROJECT) \
 		&& git commit -m "update version to $${version}" 1>/dev/null
