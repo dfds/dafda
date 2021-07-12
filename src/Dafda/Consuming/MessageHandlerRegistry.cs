@@ -10,7 +10,6 @@ namespace Dafda.Consuming
 
         public void Register<TMessage, THandler>(string topic, string messageType) 
             where THandler : IMessageHandler<TMessage> 
-            where TMessage : class, new()
         {
             Register(
                 handlerInstanceType: typeof(THandler),
