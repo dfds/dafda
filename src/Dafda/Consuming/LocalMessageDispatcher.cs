@@ -55,7 +55,10 @@ namespace Dafda.Consuming
             });
         }
 
-        private static Task ExecuteHandler<TMessage>(TMessage message, IMessageHandler<TMessage> handler, MessageHandlerContext context) where TMessage : class, new()
+        private static Task ExecuteHandler<TMessage>(
+            TMessage message,
+            IMessageHandler<TMessage> handler,
+            MessageHandlerContext context)
         {
             return handler.Handle(message, context);
         }
