@@ -135,6 +135,14 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
+        /// A shorthand to set an incoming message factory that will ignore messages that do not contain the field "data" on root level
+        /// </summary>
+        public void WithIgnoringNoDataFieldMessageFactory()
+        {
+            _builder.WithIncomingMessageFactory(new IgnoreNonStandardMessagesMessageFactory());
+        }
+
+        /// <summary>
         /// Register a message handler for <paramref name="messageType"/> on <paramref name="topic"/>. The
         /// specified <typeparamref name="TMessageHandler"/> must implements <see cref="IMessageHandler{T}"/>
         /// closing on the <typeparamref name="TMessage"/> type.
