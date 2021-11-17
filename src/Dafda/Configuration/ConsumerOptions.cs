@@ -135,11 +135,11 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
-        /// A shorthand to set an incoming message factory that will ignore messages that do not contain the field "data" on root level
+        /// A shorthand to set an incoming message factory that will process messages that do not contain the field "data" on root level instead of throwing an exception and crashing the application
         /// </summary>
-        public void WithIgnoringNoDataFieldMessageFactory()
+        public void WithProcessingMessagesWithoutDataField()
         {
-            _builder.WithIncomingMessageFactory(new IgnoreNonStandardMessagesMessageFactory());
+            _builder.WithIncomingMessageFactory(new ProcessMessagesWithoutDataFieldMessageFactory());
         }
 
         /// <summary>

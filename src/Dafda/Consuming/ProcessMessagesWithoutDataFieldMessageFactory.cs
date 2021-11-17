@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Dafda.Consuming
 {
-    internal class IgnoreNonStandardMessagesMessageFactory : IIncomingMessageFactory
+    internal class ProcessMessagesWithoutDataFieldMessageFactory : IIncomingMessageFactory
     {
         private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions()
         {
