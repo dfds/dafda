@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Dafda.Tests.Builders;
+using System.Text.Json;
 using Xunit;
 
 namespace Dafda.Tests.Consuming
@@ -69,7 +71,7 @@ namespace Dafda.Tests.Consuming
         public void Malformed_message_throws_exception()
         {
             var sut = new JsonIncomingMessageFactoryBuilder().Build();
-            Assert.ThrowsAny<Exception>(() => sut.Create(MalformedMessage));
+            Assert.Throws<KeyNotFoundException>(() => sut.Create(MalformedMessage));
         }
 
         private const string InvalidMessage = "{This is not json at all}";
@@ -78,7 +80,7 @@ namespace Dafda.Tests.Consuming
         public void InvalidMessage_message_throws_exception()
         {
             var sut = new JsonIncomingMessageFactoryBuilder().Build();
-            Assert.ThrowsAny<Exception>(() => sut.Create(InvalidMessage));
+            Assert.ThrowsAny<JsonException>(() => sut.Create(InvalidMessage));
         }
 
         public record VehiclePositionChanged(string AggregateId, string VehicleId, DateTime TimeStamp, Position Position);
