@@ -1,5 +1,5 @@
 using System;
-using Dafda.Consuming;
+using Dafda.Tests.Builders;
 using Xunit;
 
 namespace Dafda.Tests.Consuming
@@ -11,7 +11,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void Can_access_message_headers()
         {
-            var sut = new JsonIncomingMessageFactory();
+            var sut = new JsonIncomingMessageFactoryBuilder().Build();
 
             var message = sut.Create(MessageJson);
 
@@ -24,7 +24,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void Can_read_message_headers_non_string()
         {
-            var sut = new JsonIncomingMessageFactory();
+            var sut = new JsonIncomingMessageFactoryBuilder().Build();
 
             var message = sut.Create(MessageJsonWithNonStringMetadata);
             
@@ -34,8 +34,8 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void Can_decode_data_body()
         {
-            var sut = new JsonIncomingMessageFactory();
-            
+            var sut = new JsonIncomingMessageFactoryBuilder().Build();
+
             var message = sut.Create(MessageJson);
             var data = (VehiclePositionChanged) message.ReadDataAs(typeof(VehiclePositionChanged));
 
@@ -51,7 +51,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void Can_read_message_with_non_camel_case_data_fields()
         {
-            var sut = new JsonIncomingMessageFactory();
+            var sut = new JsonIncomingMessageFactoryBuilder().Build();
 
             var message = sut.Create(MessageJsonWithNonCamelCaseFields);
             var data = (VehiclePositionChanged)message.ReadDataAs(typeof(VehiclePositionChanged));
@@ -68,7 +68,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void Malformed_message_throws_exception()
         {
-            var sut = new JsonIncomingMessageFactory();
+            var sut = new JsonIncomingMessageFactoryBuilder().Build();
             Assert.ThrowsAny<Exception>(() => sut.Create(MalformedMessage));
         }
 
@@ -77,7 +77,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void InvalidMessage_message_throws_exception()
         {
-            var sut = new JsonIncomingMessageFactory();
+            var sut = new JsonIncomingMessageFactoryBuilder().Build();
             Assert.ThrowsAny<Exception>(() => sut.Create(InvalidMessage));
         }
 
