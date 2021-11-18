@@ -63,6 +63,24 @@ namespace Dafda.Tests.Consuming
             Assert.Equal(2, data.Position.Longitude);
         }
 
+        private const string MalformedMessage = "{\"aliceCooper\":\"Your cruel device, your blood like ice\"}";
+
+        [Fact]
+        public void Malformed_message_throws_exception()
+        {
+            var sut = new JsonIncomingMessageFactory();
+            Assert.ThrowsAny<Exception>(() => sut.Create(MalformedMessage));
+        }
+
+        private const string InvalidMessage = "{This is not json at all}";
+
+        [Fact]
+        public void InvalidMessage_message_throws_exception()
+        {
+            var sut = new JsonIncomingMessageFactory();
+            Assert.ThrowsAny<Exception>(() => sut.Create(InvalidMessage));
+        }
+
         public record VehiclePositionChanged(string AggregateId, string VehicleId, DateTime TimeStamp, Position Position);
         public record Position(double Latitude, double Longitude);
     }
