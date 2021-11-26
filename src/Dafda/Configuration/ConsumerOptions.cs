@@ -136,8 +136,12 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
-        /// Filter to be applied on the consumption of each event.
+        /// Applies a filter that must be evaluated when consumer events.
+        /// If the filter evaluated returns false, the event will not be sent to the registered EventHandler class.
+        /// If the filter evaluated returns true, the event will be sent to the registered EventHandler.
+        /// In either case, the commit logic will continue and the index will be updated.
         /// </summary>
+        /// <param name="messageFilter">Overridable message filter exposing CanAcceptMessage evaluation.></param>
         public void WithMessageFilter(MessageFilter messageFilter)
         {
             _builder.WithMessageFilter(messageFilter);
