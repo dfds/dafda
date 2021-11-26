@@ -118,12 +118,6 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ConsumerConfigurationBuilder Ignoring(string topic, string messageType)
-        {
-            _messageHandlerRegistry.Register<object, NoOpHandler>(topic, messageType);
-            return this;
-        }
-
         public ConsumerConfigurationBuilder WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
         {
             _incomingMessageFactory = incomingMessageFactory;
