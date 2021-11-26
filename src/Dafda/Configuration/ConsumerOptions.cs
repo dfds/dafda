@@ -1,5 +1,6 @@
 using System;
 using Dafda.Consuming;
+using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -132,6 +133,14 @@ namespace Dafda.Configuration
         public void WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
         {
             _builder.WithIncomingMessageFactory(incomingMessageFactory);
+        }
+
+        /// <summary>
+        /// Filter to be applied on the consumption of each event.
+        /// </summary>
+        public void WithMessageFilter(MessageFilter messageFilter)
+        {
+            _builder.WithMessageFilter(messageFilter);
         }
 
         /// <summary>

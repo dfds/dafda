@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Dafda.Consuming;
+using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
@@ -8,12 +9,13 @@ namespace Dafda.Configuration
     internal class ConsumerConfiguration
     {
         public ConsumerConfiguration(IDictionary<string, string> configuration, MessageHandlerRegistry messageHandlerRegistry, 
-            IHandlerUnitOfWorkFactory unitOfWorkFactory, Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
+            IHandlerUnitOfWorkFactory unitOfWorkFactory, Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory, MessageFilter messageFilter)
         {
             KafkaConfiguration = configuration;
             MessageHandlerRegistry = messageHandlerRegistry;
             UnitOfWorkFactory = unitOfWorkFactory;
             ConsumerScopeFactory = consumerScopeFactory;
+            MessageFilter = messageFilter;
         }
 
         public IDictionary<string, string> KafkaConfiguration { get; }
@@ -22,6 +24,8 @@ namespace Dafda.Configuration
         public Func<ILoggerFactory, IConsumerScopeFactory> ConsumerScopeFactory { get; }
 
         public string GroupId => KafkaConfiguration[ConfigurationKey.GroupId];
+
+        public MessageFilter MessageFilter { get; }
 
         public bool EnableAutoCommit
         {

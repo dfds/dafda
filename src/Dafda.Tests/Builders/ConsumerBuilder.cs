@@ -1,5 +1,6 @@
 ﻿using System;
 using Dafda.Consuming;
+using Dafda.Consuming.MessageFilters;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,6 +15,7 @@ namespace Dafda.Tests.Builders
         private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
 
         private bool _enableAutoCommit;
+        private MessageFilter _messageFilter = MessageFilter.Default;
 
         public ConsumerBuilder()
         {
@@ -57,6 +59,11 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public void WithMessageFilter(MessageFilter messageFilter)
+        {
+            _messageFilter = messageFilter;
+        }
+
         public ConsumerBuilder WithUnconfiguredMessageStrategy(
             IUnconfiguredMessageHandlingStrategy strategy)
         {
@@ -70,6 +77,7 @@ namespace Dafda.Tests.Builders
                 _unitOfWorkFactory,
                 _consumerScopeFactory(NullLoggerFactory.Instance),
                 _unconfiguredMessageStrategy,
+                _messageFilter,
                 _enableAutoCommit);
     }
 }
