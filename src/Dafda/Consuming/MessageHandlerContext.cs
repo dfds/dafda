@@ -10,7 +10,7 @@ namespace Dafda.Consuming
         /// <summary>
         /// An empty MessageHandlerContext
         /// </summary>
-        [Obsolete("This field is obsolete. Clients should not create new contexts but reuse the context from the handler.")]
+        [Obsolete("This field will be removed in a later version. Clients should not create new contexts but reuse the context from the handler.")]
         public static readonly MessageHandlerContext Empty = new MessageHandlerContext();
 
         private readonly Metadata _metadata;
@@ -18,7 +18,7 @@ namespace Dafda.Consuming
         /// <summary>
         /// Initialize an instance of the MessageHandlerContext
         /// </summary>
-        [Obsolete("Clients should not create new contexts but reuse the context from the handler.")]
+        [Obsolete("This field will be removed in a later version. Clients should not create new contexts but reuse the context from the handler.")]
         public MessageHandlerContext() : this(new Metadata())
         {
         }
