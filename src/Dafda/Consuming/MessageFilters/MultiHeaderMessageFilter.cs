@@ -50,7 +50,7 @@ namespace Dafda.Consuming.MessageFilters
 
         private bool EvaluateKeyValuePair(Dictionary<string, string> headers, KeyValuePair<string, string> header)
         {
-            var targetHeader = headers.FirstOrDefault(x => x.Key.Equals(header.Key, StringComparison.CurrentCultureIgnoreCase));
+            var targetHeader = headers.FirstOrDefault(x => x.Key.Equals(header.Key, StringComparison.InvariantCultureIgnoreCase));
 
             if (targetHeader.Equals(default(KeyValuePair<string, string>)))
             {

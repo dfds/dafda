@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 namespace Dafda.Consuming
 {
     /// <summary>
-    /// Resulting Message contaning Transport Level Message
+    /// Object that contains message when consumed from Kafka.
+    /// To be used for message handling prior to dispatching to the handlers.
     /// </summary>
     public class MessageResult
     {
@@ -21,7 +22,7 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
-        /// Transmitted message
+        /// Transmitted message consumed from Kafka
         /// </summary>
         public TransportLevelMessage Message { get; }
 

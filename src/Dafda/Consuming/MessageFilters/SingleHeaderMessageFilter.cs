@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using Dafda.Configuration;
 
 namespace Dafda.Consuming.MessageFilters
@@ -30,14 +31,11 @@ namespace Dafda.Consuming.MessageFilters
         /// <inheritdoc />
         public override bool CanAcceptMessage(MessageResult result)
         {
-            if (result?.Message != null)
-            {
-               var header = result.Message.Metadata.AsEnumerable()?.FirstOrDefault(i => string.Equals(i.Key, _referenceHeaderName, StringComparison.InvariantCultureIgnoreCase));
+            var header = result?.Message.Metadata.AsEnumerable()?.FirstOrDefault(i => string.Equals(i.Key, _referenceHeaderName, StringComparison.InvariantCultureIgnoreCase));
 
-               if (header != null && header.HasValue && header.Value.Value != null && string.Equals(header.Value.Value, _requiredHeaderValue, StringComparison.InvariantCultureIgnoreCase))
-               {
-                   return true;
-               }
+            if (header.HasValue && header.Equals(default(KeyValuePair<string, string>)) && string.Equals(header.Value.Value, _requiredHeaderValue, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
             }
 
             return false;

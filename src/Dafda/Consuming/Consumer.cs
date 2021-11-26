@@ -55,9 +55,7 @@ namespace Dafda.Consuming
         {
             var messageResult = await consumerScope.GetNext(cancellationToken);
 
-            var acceptMessage = _messageFilter.CanAcceptMessage(messageResult);
-
-            if(acceptMessage)
+            if(_messageFilter.CanAcceptMessage(messageResult))
             {
                 await _localMessageDispatcher.Dispatch(messageResult.Message);
             }
