@@ -136,7 +136,7 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
-        /// Applies a filter that must be evaluated when consumer events.
+        /// Applies a filter that must be evaluated when consuming events.
         /// If the filter evaluated returns false, the event will not be sent to the registered EventHandler class.
         /// If the filter evaluated returns true, the event will be sent to the registered EventHandler.
         /// In either case, the commit logic will continue and the index will be updated.
