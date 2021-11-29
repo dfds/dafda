@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Dafda.Consuming.MessageFilters;
 
 namespace Dafda.Consuming
 {
@@ -8,6 +9,7 @@ namespace Dafda.Consuming
     {
         private readonly LocalMessageDispatcher _localMessageDispatcher;
         private readonly IConsumerScopeFactory _consumerScopeFactory;
+        private readonly MessageFilter _messageFilter;
         private readonly bool _isAutoCommitEnabled;
 
         public Consumer(
@@ -15,6 +17,7 @@ namespace Dafda.Consuming
             IHandlerUnitOfWorkFactory unitOfWorkFactory,
             IConsumerScopeFactory consumerScopeFactory,
             IUnconfiguredMessageHandlingStrategy fallbackHandler,
+            MessageFilter messageFilter,
             bool isAutoCommitEnabled = false)
         {
             _localMessageDispatcher =
@@ -25,6 +28,7 @@ namespace Dafda.Consuming
             _consumerScopeFactory =
                 consumerScopeFactory
                 ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
+            _messageFilter = messageFilter;
             _isAutoCommitEnabled = isAutoCommitEnabled;
         }
 
@@ -50,7 +54,11 @@ namespace Dafda.Consuming
         private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
         {
             var messageResult = await consumerScope.GetNext(cancellationToken);
-            await _localMessageDispatcher.Dispatch(messageResult.Message);
+
+            if(_messageFilter.CanAcceptMessage(messageResult))
+            {
+                await _localMessageDispatcher.Dispatch(messageResult.Message);
+            }
 
             if (!_isAutoCommitEnabled)
             {

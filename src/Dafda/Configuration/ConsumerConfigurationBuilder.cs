@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Consuming;
+using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
@@ -38,6 +39,8 @@ namespace Dafda.Configuration
         private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
         private IIncomingMessageFactory _incomingMessageFactory = new JsonIncomingMessageFactory();
         private bool _readFromBeginning;
+
+        private MessageFilter _messageFilter = MessageFilter.Default;
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -103,6 +106,10 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public void WithMessageFilter(MessageFilter messageFilter)
+        {
+            _messageFilter = messageFilter;
+        }
 
         public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessageHandler : IMessageHandler<TMessage>
@@ -148,7 +155,8 @@ namespace Dafda.Configuration
                 configuration: configurations,
                 messageHandlerRegistry: _messageHandlerRegistry,
                 unitOfWorkFactory: _unitOfWorkFactory,
-                consumerScopeFactory: _consumerScopeFactory
+                consumerScopeFactory: _consumerScopeFactory,
+                messageFilter: _messageFilter
             );
         }
     }

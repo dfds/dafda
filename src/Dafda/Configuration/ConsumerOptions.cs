@@ -1,5 +1,6 @@
 using System;
 using Dafda.Consuming;
+using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -132,6 +133,18 @@ namespace Dafda.Configuration
         public void WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
         {
             _builder.WithIncomingMessageFactory(incomingMessageFactory);
+        }
+
+        /// <summary>
+        /// Applies a filter that must be evaluated when consuming events.
+        /// If the filter evaluated returns false, the event will not be sent to the registered EventHandler class.
+        /// If the filter evaluated returns true, the event will be sent to the registered EventHandler.
+        /// In either case, the commit logic will continue and the index will be updated.
+        /// </summary>
+        /// <param name="messageFilter">Overridable message filter exposing CanAcceptMessage evaluation.></param>
+        public void WithMessageFilter(MessageFilter messageFilter)
+        {
+            _builder.WithMessageFilter(messageFilter);
         }
 
         /// <summary>

@@ -69,6 +69,7 @@ namespace Dafda.Configuration
                     provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
                     configuration.ConsumerScopeFactory(provider.GetRequiredService<ILoggerFactory>()),
                     provider.GetRequiredService<IUnconfiguredMessageHandlingStrategy>(),
+                    configuration.MessageFilter,
                     configuration.EnableAutoCommit
                 ),
                 configuration.GroupId
