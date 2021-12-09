@@ -136,6 +136,17 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
+        /// If the <see cref="IIncomingMessageFactory"/> throws an exception during message deserialization, 
+        /// Dafda will create a <see cref="TransportLevelPoisonMessage"/> 
+        /// that can be handled by the consumer instead of throwing an exception.
+        /// Note, if you wish to overwrite the default <see cref="IIncomingMessageFactory"/> you should do so before enabling poison message handling
+        /// </summary>
+        public void WithPoisonMessageHandling()
+        {
+            _builder.WithPoisonMessageHandling();
+        }
+
+        /// <summary>
         /// Applies a filter that must be evaluated when consuming events.
         /// If the filter evaluated returns false, the event will not be sent to the registered EventHandler class.
         /// If the filter evaluated returns true, the event will be sent to the registered EventHandler.

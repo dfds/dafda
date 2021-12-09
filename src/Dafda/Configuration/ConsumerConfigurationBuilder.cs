@@ -124,6 +124,12 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder WithPoisonMessageHandling()
+        {
+            _incomingMessageFactory = new PoisonAwareIncomingMessageFactory(_incomingMessageFactory);
+            return this;
+        }
+
         internal ConsumerConfiguration Build()
         {
             var configurations = new ConfigurationBuilder()
