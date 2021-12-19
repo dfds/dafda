@@ -2,7 +2,6 @@ using System;
 using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -121,7 +120,7 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        internal void WithConsumerScopeFactory(Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
+        internal void WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory)
         {
             _builder.WithConsumerScopeFactory(consumerScopeFactory);
         }
@@ -130,7 +129,7 @@ namespace Dafda.Configuration
         /// Override the default Dafda implementation of <see cref="IIncomingMessageFactory"/>.
         /// </summary>
         /// <param name="incomingMessageFactory">A custom implementation of <see cref="IIncomingMessageFactory"/>.</param>
-        public void WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
+        public void WithIncomingMessageFactory(Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory)
         {
             _builder.WithIncomingMessageFactory(incomingMessageFactory);
         }

@@ -1,13 +1,16 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
     internal class PoisonAwareIncomingMessageFactory : IIncomingMessageFactory
     {
+        private readonly ILogger<PoisonAwareIncomingMessageFactory> _logger;
         private readonly IIncomingMessageFactory _innerIncomingMessageFactory;
 
-        public PoisonAwareIncomingMessageFactory(IIncomingMessageFactory innerIncomingMessageFactory)
+        public PoisonAwareIncomingMessageFactory(ILogger<PoisonAwareIncomingMessageFactory> logger, IIncomingMessageFactory innerIncomingMessageFactory)
         {
+            _logger = logger;
             _innerIncomingMessageFactory = innerIncomingMessageFactory;
         }
 
@@ -19,7 +22,7 @@ namespace Dafda.Consuming
             }
             catch(Exception ex)
             {
-                //TODO: _logger.LogWarning(ex, "Exception thrown when creating transport level message.");
+                _logger.LogWarning(ex, "Exception thrown when creating transport level message");
                 return new TransportLevelMessage(new Metadata() { Type = TransportLevelPoisonMessage.Type }, (t) => new TransportLevelPoisonMessage(rawMessage, ex));
             }
         }
