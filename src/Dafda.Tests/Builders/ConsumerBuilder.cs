@@ -1,16 +1,13 @@
-﻿using System;
-using Dafda.Consuming;
+﻿using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
 using Dafda.Tests.TestDoubles;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dafda.Tests.Builders
 {
     internal class ConsumerBuilder
     {
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
+        private IConsumerScopeFactory _consumerScopeFactory;
         private MessageHandlerRegistry _registry;
         private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
 
@@ -20,11 +17,7 @@ namespace Dafda.Tests.Builders
         public ConsumerBuilder()
         {
             _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
-            _consumerScopeFactory =
-                _ =>
-                    new ConsumerScopeFactoryStub(
-                        new ConsumerScopeStub(
-                            new MessageResultBuilder().Build()));
+            _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
             _registry = new MessageHandlerRegistry();
             _unconfiguredMessageStrategy = new RequireExplicitHandlers();
         }
@@ -40,8 +33,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ConsumerBuilder WithConsumerScopeFactory(
-            Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
+        public ConsumerBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;
@@ -75,7 +67,7 @@ namespace Dafda.Tests.Builders
             new Consumer(
                 _registry,
                 _unitOfWorkFactory,
-                _consumerScopeFactory(NullLoggerFactory.Instance),
+                _consumerScopeFactory,
                 _unconfiguredMessageStrategy,
                 _messageFilter,
                 _enableAutoCommit);

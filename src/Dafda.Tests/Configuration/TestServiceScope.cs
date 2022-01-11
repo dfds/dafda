@@ -42,14 +42,13 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
                 .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
-                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();
 
@@ -89,14 +88,13 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
                 .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
-                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();
 
@@ -136,14 +134,13 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
                 .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
-                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();
 
@@ -183,14 +180,13 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
-                .WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
                 .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
-                .WithConsumerScopeFactory(consumerConfiguration.ConsumerScopeFactory)
+                .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();
 
