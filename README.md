@@ -10,6 +10,8 @@ See [dfds.github.io/dafda](https://dfds.github.io/dafda/) for more the documenta
 
 Dafda is build and released using a combination of `make` and [GitHub Actions](https://github.com/dfds/dafda/blob/master/.github/workflows/release.yml)
 
+You will need the dotnet sdk. Refer to the [Microsoft Documentation](https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu) on how to install
+
 Dafda is available on [NuGet](https://www.nuget.org/packages/Dafda/).
 
 ### Versioning
