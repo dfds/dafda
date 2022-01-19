@@ -3,47 +3,38 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
-using Dafda.Messaging;
+using Dafda.Producing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Tester
 {
     class Program
     {
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var subscriber = CreateSubscriber();
-            var configuration = new ConfigurationBuilder()
-                .WithConfiguration("bootstrap.servers", "localhost:29092")
-                .WithConfiguration("group.id", "foo")
-                .Build();
-
             var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
-            Console.WriteLine("subscribing...");
-            await subscriber.Start(configuration,new[] {"p-project.tracking.vehicles"}, tokenSource.Token);
-            Console.WriteLine("Stopped!");
+            await CreateHostBuilder(args).Build().RunAsync(tokenSource.Token);
         }
 
-        private static TopicSubscriber CreateSubscriber()
-        {
-            var factory = new ConsumerFactory();
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureServices((hostContext, services) =>
+                {
+                    services.AddConsumer(cfg =>
+                    {
+                        cfg.WithBootstrapServers("localhost:29092");
+                        cfg.WithGroupId("foo");
+                        cfg.RegisterMessageHandler<PositionMessage, MessageHandler>("p-project.tracking.vehicles", "vehicle_position_changed");
+                    });
+                    services.AddProducerFor<IHostedService, MessageProducer>(o => 
+                    {
+                        o.WithBootstrapServers("localhost:29092"); 
+                        o.Register<PositionMessage>("p-project.tracking.vehicles", "vehicle_position_changed", k => k.VehicleId); 
+                    });
+                    services.AddHostedService<MessageProducer>();
+                });
 
-            var handlerRegistry = new MessageHandlerRegistry();
-            handlerRegistry.Register<PositionMessage, MessageHandler>("p-project.tracking.vehicles", "vehicle_position_changed");
-
-            var typeResolver = new HandRolledResolver();
-            var dispatcher = new LocalMessageDispatcher(handlerRegistry, typeResolver);
-
-            return new TopicSubscriber(factory, dispatcher);
-        }
-    }
-
-    public class HandRolledResolver : ITypeResolver
-    {
-        public object Resolve(Type instanceType)
-        {
-            return Activator.CreateInstance(instanceType);
-        }
     }
 
     public class PositionMessage
@@ -56,10 +47,34 @@ namespace Tester
             return $"vehicle: {VehicleId}, @~{Timestamp.TimeOfDay}";
         }
     }
-    
+
+    public class MessageProducer : IHostedService
+    {
+        private readonly Producer producer;
+
+        public MessageProducer(Producer producer)
+        {
+            this.producer = producer;
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(100, cancellationToken);
+                await producer.Produce(new PositionMessage() { Timestamp = DateTime.UtcNow, VehicleId = DateTime.UtcNow.Ticks.ToString() });
+            }
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
     public class MessageHandler : IMessageHandler<PositionMessage>
     {
-        public Task Handle(PositionMessage message)
+        public Task Handle(PositionMessage message, MessageHandlerContext context)
         {
             Console.WriteLine($"{DateTime.Now.TimeOfDay}> {message}");
             return Task.CompletedTask;
