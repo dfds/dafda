@@ -56,7 +56,7 @@ namespace Dafda.Producing
         /// Produce a <paramref name="message"/> on Kafka
         /// </summary>
         /// <param name="message">The message</param>
-        /// <param name="context">Context from the consumer</param>
+        /// <param name="context">Context from the consumer. Supply this to get correlation and causation id on the new message</param>
         public async Task Produce(object message, MessageHandlerContext context)
         {
             await Produce(message, context, new Dictionary<string, string>());
@@ -66,8 +66,8 @@ namespace Dafda.Producing
         /// Produce a <paramref name="message"/> on Kafka
         /// </summary>
         /// <param name="message">The message</param>
-        /// <param name="context">Context from the consumer</param>
-        /// <param name="headers">The message headers</param>
+        /// <param name="context">Context from the consumer. Supply this to get correlation and causation id on the new message</param>
+        /// <param name="headers">Additional message headers</param>
         public async Task Produce(object message, MessageHandlerContext context, Dictionary<string, string> headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, context, headers);
