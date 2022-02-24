@@ -137,6 +137,7 @@ namespace Dafda.Tests.Producing
                                 ""type"":""bar"",
                                 ""causationId"":""1"",
                                 ""correlationId"":""1"",
+                                ""version"":""1"",
                                 ""data"":{
                                     ""id"":""dummyId""
                                     }
@@ -173,6 +174,7 @@ namespace Dafda.Tests.Producing
                                 ""foo-key"":""foo-value"",
                                 ""causationId"":""1"",
                                 ""correlationId"":""1"",
+                                ""version"":""1"",
                                 ""data"":{
                                     ""id"":""dummyId""
                                     }
@@ -238,6 +240,7 @@ namespace Dafda.Tests.Producing
                             ""type"":""bar"",
                             ""correlationId"":""my-correlation"",
                             ""causationId"":""1"",
+                            ""version"":""1"",
                             ""data"":{
                                 ""id"":""0""
                                 }

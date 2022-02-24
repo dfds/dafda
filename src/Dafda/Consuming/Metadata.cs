@@ -68,6 +68,15 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
+        /// The version identifier
+        /// </summary>
+        public string Version
+        {
+            get => this[MessageEnvelopeProperties.Version];
+            init => this[MessageEnvelopeProperties.Version] = value;
+        }
+
+        /// <summary>
         /// Other metadata values are access through this.
         /// </summary>
         /// <param name="key">A metadata key</param>
@@ -91,4 +100,3 @@ namespace Dafda.Consuming
         }
     }
 }
-

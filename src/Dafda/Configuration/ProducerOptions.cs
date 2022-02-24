@@ -107,9 +107,10 @@ namespace Dafda.Configuration
         /// <param name="type">The event type to use in the Dafda message envelope.</param>
         /// <param name="keySelector">The key selector takes an instance of <typeparamref name="T"/>,
         /// and returns a string of the Kafka partition key.</param>
-        public void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class
+        /// <param name="version">The version to use in the Dafda message envelope.</param>
+        public void Register<T>(string topic, string type, Func<T, string> keySelector, string version = "1") where T : class
         {
-            _outgoingMessageRegistry.Register(topic, type, keySelector);
+            _outgoingMessageRegistry.Register(topic, type, keySelector, version);
         }
 
         /// <summary>

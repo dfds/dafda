@@ -7,5 +7,6 @@ namespace Dafda.Consuming
         public const string CorrelationId = "correlationId";
         public const string CausationId = "causationId";
         public const string Data = "data";
+        public const string Version = "version";
     }
 }

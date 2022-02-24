@@ -34,6 +34,7 @@ namespace Dafda.Tests.Producing
                                 ""type"":""{DummyType}"",
                                 ""causationId"":""foo_id"",
                                 ""correlationId"":""foo_id"",
+                                ""version"":""1"",
                                 ""data"":{{
                                     ""aggregateId"":""{dummyAggregateId}""
                                     }}

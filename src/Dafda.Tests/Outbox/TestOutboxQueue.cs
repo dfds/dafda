@@ -64,6 +64,7 @@ namespace Dafda.Tests.Outbox
                             ""type"":""bar"",
                             ""causationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
                             ""correlationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
+                            ""version"":""1"",
                             ""data"":{
                                 }
                             }";

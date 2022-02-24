@@ -8,24 +8,26 @@ namespace Dafda.Consuming
     {
         private readonly List<MessageRegistration> _registrations = new List<MessageRegistration>();
 
-        public void Register<TMessage, THandler>(string topic, string messageType) 
+        public void Register<TMessage, THandler>(string topic, string messageType, string version) 
             where THandler : IMessageHandler<TMessage> 
         {
             Register(
                 handlerInstanceType: typeof(THandler),
                 messageInstanceType: typeof(TMessage),
                 topic: topic,
-                messageType: messageType
+                messageType: messageType,
+                version: version
             );
         }
 
-        public MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType)
+        public MessageRegistration Register(Type handlerInstanceType, Type messageInstanceType, string topic, string messageType, string version)
         {
             var registration = new MessageRegistration(
                 handlerInstanceType: handlerInstanceType,
                 messageInstanceType: messageInstanceType,
                 topic: topic,
-                messageType: messageType
+                messageType: messageType,
+                version: version
             );
 
             Register(registration);
@@ -42,9 +44,9 @@ namespace Dafda.Consuming
 
         public IEnumerable<MessageRegistration> Registrations => _registrations;
 
-        public MessageRegistration GetRegistrationFor(string messageType)
+        public MessageRegistration GetRegistrationFor(string messageType, string version = "1")
         {
-            return _registrations.SingleOrDefault(x => x.MessageType == messageType);
+            return _registrations.SingleOrDefault(x => x.MessageType == messageType && x.Version == version);
         }
     }
 }

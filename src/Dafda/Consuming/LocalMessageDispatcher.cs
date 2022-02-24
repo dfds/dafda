@@ -26,7 +26,7 @@ namespace Dafda.Consuming
         }
 
         private MessageRegistration GetMessageRegistrationFor(TransportLevelMessage message) =>
-            _messageHandlerRegistry.GetRegistrationFor(message.Metadata.Type)
+            _messageHandlerRegistry.GetRegistrationFor(message.Metadata.Type, message.Metadata.Version)
             ?? _fallbackHandler.GetFallback(message.Metadata.Type);
 
         public async Task Dispatch(TransportLevelMessage message)

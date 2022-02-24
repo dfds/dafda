@@ -49,6 +49,11 @@ namespace Dafda.Consuming
         public virtual string CausationId => _metadata.CausationId;
 
         /// <summary>
+        /// The message version identifier
+        /// </summary>
+        public virtual string Version => _metadata.Version;
+
+        /// <summary>
         /// Access to message metadata values.
         /// </summary>
         /// <param name="key">A metadata name</param>

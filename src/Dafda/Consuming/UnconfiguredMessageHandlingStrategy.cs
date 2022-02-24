@@ -34,6 +34,7 @@ namespace Dafda.Consuming
     /// </summary>
     public sealed class UseNoOpHandler : IUnconfiguredMessageHandlingStrategy
     {
+        private const string DefaultVersion = "1";
         /// <summary>
         /// Returns a MessageRegistration specifying that this type should use the NoOpHandler
         /// </summary>
@@ -42,7 +43,8 @@ namespace Dafda.Consuming
                 typeof(NoOpHandler),
                 typeof(object),
                 "",
-                messageType);
+                messageType,
+                DefaultVersion);
 
     }
 }

@@ -112,10 +112,10 @@ namespace Dafda.Configuration
             _messageFilter = messageFilter;
         }
 
-        public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
+        public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType, string version = "1")
             where TMessageHandler : IMessageHandler<TMessage>
         {
-            _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
+            _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType, version);
             return this;
         }
 

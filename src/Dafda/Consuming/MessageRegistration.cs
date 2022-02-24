@@ -15,13 +15,15 @@ namespace Dafda.Consuming
             Type handlerInstanceType,
             Type messageInstanceType,
             string topic,
-            string messageType)
+            string messageType,
+            string version)
         {
             EnsureProperHandlerType(handlerInstanceType, messageInstanceType);
 
             HandlerInstanceType = handlerInstanceType;
             MessageInstanceType = messageInstanceType;
             MessageType = messageType;
+            Version = version;
             Topic = EnsureValidTopicName(topic);
         }
 
@@ -58,5 +60,7 @@ namespace Dafda.Consuming
         public string Topic { get; }
         /// <summary>The name of the message type as sent over kafka</summary>
         public string MessageType { get; }
+        /// <summary>The event version of the message as sent over kafka</summary>
+        public string Version { get; set; }
     }
 }

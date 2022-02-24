@@ -13,6 +13,8 @@ namespace Dafda.Tests.Configuration
 {
     public class TestServiceScope
     {
+        private const string DefaultVersion = "1";
+
         [Fact]
         public async Task Has_expected_number_of_creations_and_disposals_when_transient()
         {
@@ -41,7 +43,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage), DefaultVersion)
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -87,7 +89,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage), DefaultVersion)
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -133,7 +135,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage), DefaultVersion)
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -179,7 +181,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage), DefaultVersion)
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 

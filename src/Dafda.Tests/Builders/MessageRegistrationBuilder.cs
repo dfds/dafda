@@ -8,6 +8,7 @@ namespace Dafda.Tests.Builders
     {
         private string _topic;
         private string _messageType;
+        private string _version;
         private Type _handlerInstanceType;
         private Type _messageInstanceType;
 
@@ -15,6 +16,7 @@ namespace Dafda.Tests.Builders
         {
             _topic = "dummy topic";
             _messageType = "dummy message type";
+            _version = "1";
             _handlerInstanceType = typeof(FooHandler);
             _messageInstanceType = typeof(FooMessage);
         }
@@ -43,13 +45,20 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public MessageRegistrationBuilder WithVersion(string version)
+        {
+            _version = version;
+            return this;
+        }
+
         public MessageRegistration Build()
         {
             return new MessageRegistration(
                 topic: _topic,
                 messageType: _messageType,
                 handlerInstanceType: _handlerInstanceType,
-                messageInstanceType: _messageInstanceType
+                messageInstanceType: _messageInstanceType,
+                version: _version
             );
         }
 

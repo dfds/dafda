@@ -166,10 +166,11 @@ namespace Dafda.Configuration
         /// <typeparam name="TMessageHandler">The message handler.</typeparam>
         /// <param name="topic">The name of the topic in Kafka.</param>
         /// <param name="messageType">The messageType as specified in the Dafda envelope in the Kafka message.</param>
-        public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
+        /// <param name="version">The version as specified in the Dafda envelope in the Kafka message. Defaults to "1"</param>
+        public void RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType, string version = "1")
             where TMessageHandler : class, IMessageHandler<TMessage>
         {
-            _builder.RegisterMessageHandler<TMessage, TMessageHandler>(topic, messageType);
+            _builder.RegisterMessageHandler<TMessage, TMessageHandler>(topic, messageType, version);
             _services.AddTransient<TMessageHandler>();
         }
 

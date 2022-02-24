@@ -9,6 +9,8 @@ namespace Dafda.Tests.Configuration
 {
     public class TestConsumerConfigurationBuilder
     {
+        private const string DefaultVersion = "1";
+
         [Fact]
         public void Can_validate_configuration()
         {
@@ -67,7 +69,7 @@ namespace Dafda.Tests.Configuration
             var configuration = new ConsumerConfigurationBuilder()
                 .WithGroupId("foo")
                 .WithBootstrapServers("bar")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage), DefaultVersion)
                 .Build();
 
             var registration = configuration.MessageHandlerRegistry.GetRegistrationFor(nameof(DummyMessage));

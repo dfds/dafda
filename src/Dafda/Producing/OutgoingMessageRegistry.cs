@@ -8,9 +8,9 @@ namespace Dafda.Producing
     {
         private readonly IDictionary<Type, OutgoingMessageRegistration> _registrations = new ConcurrentDictionary<Type, OutgoingMessageRegistration>();
 
-        public void Register<T>(string topic, string type, Func<T, string> keySelector) where T : class
+        public void Register<T>(string topic, string type, Func<T, string> keySelector, string version = "1") where T : class
         {
-            _registrations[typeof(T)] = new OutgoingMessageRegistration(topic, type, evt => keySelector((T) evt));
+            _registrations[typeof(T)] = new OutgoingMessageRegistration(topic, type, evt => keySelector((T) evt), version);
         }
 
         public OutgoingMessageRegistration GetRegistration(object @event)

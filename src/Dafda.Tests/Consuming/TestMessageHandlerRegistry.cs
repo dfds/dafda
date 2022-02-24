@@ -26,7 +26,8 @@ namespace Dafda.Tests.Consuming
                 handlerInstanceType: expected.HandlerInstanceType,
                 messageInstanceType: expected.MessageInstanceType,
                 topic: expected.Topic,
-                messageType: expected.MessageType
+                messageType: expected.MessageType,
+                version: expected.Version
             );
 
             Assert.Equal(expected, result, new MessageRegistrationComparer());

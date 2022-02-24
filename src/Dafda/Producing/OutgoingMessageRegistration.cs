@@ -4,7 +4,7 @@ namespace Dafda.Producing
 {
     internal class OutgoingMessageRegistration
     {
-        public OutgoingMessageRegistration(string topic, string type, Func<object, string> keySelector)
+        public OutgoingMessageRegistration(string topic, string type, Func<object, string> keySelector, string version)
         {
             if (string.IsNullOrEmpty(topic))
             {
@@ -18,10 +18,12 @@ namespace Dafda.Producing
             Type = type;
             Topic = topic;
             KeySelector = keySelector ?? throw new ArgumentNullException(nameof(keySelector));
+            Version = version;
         }
 
         public string Type { get; }
         public string Topic { get; }
+        public string Version { get; }
         public Func<object, string> KeySelector { get; }
     }
 }
