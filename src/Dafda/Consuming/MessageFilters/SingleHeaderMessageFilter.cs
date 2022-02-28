@@ -11,7 +11,11 @@ namespace Dafda.Consuming.MessageFilters
         private readonly string _referenceHeaderName;
         private readonly string _requiredHeaderValue;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Evaluates provided header and header value for each consumed message to determine whether to post to configured handler or to disregard
+        /// </summary>
+        /// <param name="headerName">Header name to be filtered on</param>
+        /// <param name="headerValue">Required value of provided header name</param>
         public SingleHeaderMessageFilter(string headerName, string headerValue)
         {
             if (string.IsNullOrWhiteSpace(headerName))
@@ -33,12 +37,12 @@ namespace Dafda.Consuming.MessageFilters
         {
             var header = result?.Message.Metadata.AsEnumerable()?.FirstOrDefault(i => string.Equals(i.Key, _referenceHeaderName, StringComparison.InvariantCultureIgnoreCase));
 
-            if (header.HasValue && header.Equals(default(KeyValuePair<string, string>)) && string.Equals(header.Value.Value, _requiredHeaderValue, StringComparison.InvariantCultureIgnoreCase))
+            if (header.Equals(default(KeyValuePair<string, string>)))
             {
-                return true;
+                return false;
             }
 
-            return false;
+            return header.HasValue && string.Equals(header.Value.Value, _requiredHeaderValue, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
