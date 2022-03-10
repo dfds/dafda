@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
@@ -179,6 +180,40 @@ namespace Dafda.Configuration
         public void WithUnconfiguredMessageHandlingStrategy<T>()
             where T: class, IUnconfiguredMessageHandlingStrategy =>
             _services.AddTransient<IUnconfiguredMessageHandlingStrategy, T>();
+
+
+        /// <summary>
+        /// Use the <paramref name="failureEvaluation"></paramref> evaluation method to return the desired
+        /// <see cref="ConsumerFailureStrategy"/>.
+        ///
+        /// <para>
+        ///     Failure Strategies:
+        ///     <list type="table">
+        ///         <listheader>
+        ///             <term>Strategy</term>
+        ///             <description>description</description>
+        ///         </listheader>
+        ///         <item>
+        ///             <term><see cref="ConsumerFailureStrategy.Default"/></term>
+        ///             <description><inheritdoc cref="ConsumerFailureStrategy.Default"/></description>
+        ///         </item>
+        ///         <item>
+        ///             <term><see cref="ConsumerFailureStrategy.RestartConsumer"/></term>
+        ///             <description>
+        ///                 <inheritdoc cref="ConsumerFailureStrategy.RestartConsumer"/>
+        ///                 Evaluation, including restart backoff strategies can be supplied here.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// </para>
+        /// 
+        /// </summary>
+        /// <param name="failureEvaluation">An evaluation function that must return a
+        /// <see cref="ConsumerFailureStrategy"/>.</param>
+        public void WithConsumerErrorHandler(Func<Exception, Task<ConsumerFailureStrategy>> failureEvaluation)
+        {
+            _builder.WithConsumerErrorHandler(failureEvaluation);
+        } 
 
         private class DefaultConfigurationSource : ConfigurationSource
         {

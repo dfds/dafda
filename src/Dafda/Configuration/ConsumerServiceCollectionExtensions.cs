@@ -72,7 +72,8 @@ namespace Dafda.Configuration
                     configuration.MessageFilter,
                     configuration.EnableAutoCommit
                 ),
-                configuration.GroupId
+                configuration.GroupId,
+                configuration.ConsumerErrorHandler
             );
 
             services.AddTransient<IHostedService, ConsumerHostedService>(HostedServiceFactory);
