@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,7 @@ namespace Dafda.Configuration
         private bool _readFromBeginning;
 
         private MessageFilter _messageFilter = MessageFilter.Default;
+        private ConsumerErrorHandler _consumerErrorHandler = ConsumerErrorHandler.Default;
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -135,6 +137,12 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder WithConsumerErrorHandler(Func<Exception, Task<ConsumerFailureStrategy>> failureEvaluation)
+        {
+            _consumerErrorHandler = new ConsumerErrorHandler(failureEvaluation);
+            return this;
+        }
+
         internal ConsumerConfiguration Build()
         {
             var configurations = new ConfigurationBuilder()
@@ -168,7 +176,8 @@ namespace Dafda.Configuration
                 unitOfWorkFactory: _unitOfWorkFactory,
                 consumerScopeFactory: _consumerScopeFactory,
                 incomingMessageFactory: _incomingMessageFactory, 
-                messageFilter: _messageFilter
+                messageFilter: _messageFilter,
+                consumerErrorHandler: _consumerErrorHandler
             );
         }
     }

@@ -120,6 +120,66 @@ namespace Dafda.Tests.Configuration
             });
         }
 
+        [Fact]
+        public async Task default_consumer_failure_strategy_will_stop_application()
+        {
+            var spy = new ApplicationLifetimeSpy();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddSingleton<IHostApplicationLifetime>(_ => spy);
+            services.AddConsumer(options =>
+            {
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId");
+                options.WithConsumerScopeFactory(_ => new FailingConsumerScopeFactory());
+            });
+            var serviceProvider = services.BuildServiceProvider();
+
+            var consumerHostedService = serviceProvider.GetServices<IHostedService>()
+                .OfType<ConsumerHostedService>()
+                .Single();
+
+            await consumerHostedService.ConsumeAll(CancellationToken.None);
+
+            Assert.True(spy.StopApplicationWasCalled);
+        }
+
+        [Fact]
+        public async Task consumer_failure_strategy_is_evaluated()
+        {
+            const int failuresBeforeQuitting = 2;
+            var count = 0;
+
+            var spy = new ApplicationLifetimeSpy();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddSingleton<IHostApplicationLifetime>(_ => spy);
+            services.AddConsumer(options =>
+            {
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId");
+                options.WithConsumerScopeFactory(_ => new FailingConsumerScopeFactory());
+                options.WithConsumerErrorHandler(exception =>
+                {
+                    if (++count > failuresBeforeQuitting)
+                    {
+                        return Task.FromResult(ConsumerFailureStrategy.Default);
+                    }
+
+                    return Task.FromResult(ConsumerFailureStrategy.RestartConsumer);
+                });
+            });
+            var serviceProvider = services.BuildServiceProvider();
+
+            var consumerHostedService = serviceProvider.GetServices<IHostedService>()
+                .OfType<ConsumerHostedService>()
+                .Single();
+
+            await consumerHostedService.ConsumeAll(CancellationToken.None);
+
+            Assert.Equal(failuresBeforeQuitting + 1, count);
+        }
+
         public class DummyMessage
         {
         }
@@ -134,6 +194,14 @@ namespace Dafda.Tests.Configuration
             }
 
             public static object LastHandledMessage { get; private set; }
+        }
+
+        private class FailingConsumerScopeFactory : IConsumerScopeFactory
+        {
+            public ConsumerScope CreateConsumerScope()
+            {
+                throw new System.InvalidOperationException();
+            }
         }
     }
 }

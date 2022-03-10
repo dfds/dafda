@@ -13,7 +13,8 @@ namespace Dafda.Configuration
             IHandlerUnitOfWorkFactory unitOfWorkFactory,
             Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory,
             Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory,
-            MessageFilter messageFilter)
+            MessageFilter messageFilter,
+            ConsumerErrorHandler consumerErrorHandler)
         {
             KafkaConfiguration = configuration;
             MessageHandlerRegistry = messageHandlerRegistry;
@@ -21,6 +22,7 @@ namespace Dafda.Configuration
             ConsumerScopeFactory = consumerScopeFactory;
             IncomingMessageFactory = incomingMessageFactory;
             MessageFilter = messageFilter;
+            ConsumerErrorHandler = consumerErrorHandler;
         }
 
         public IDictionary<string, string> KafkaConfiguration { get; }
@@ -32,6 +34,7 @@ namespace Dafda.Configuration
         public string GroupId => KafkaConfiguration[ConfigurationKey.GroupId];
 
         public MessageFilter MessageFilter { get; }
+        public ConsumerErrorHandler ConsumerErrorHandler { get; }
 
         public bool EnableAutoCommit
         {
