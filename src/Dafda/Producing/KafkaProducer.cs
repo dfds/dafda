@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Confluent.Kafka;
+using Dafda.Consuming;
 using Dafda.Serializing;
 using Microsoft.Extensions.Logging;
 
@@ -22,6 +24,8 @@ namespace Dafda.Producing
 
         public async Task Produce(PayloadDescriptor payloadDescriptor)
         {
+            using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{payloadDescriptor.TopicName} send", ActivityKind.Producer);
+
             var serializer = _payloadSerializerRegistry.Get(payloadDescriptor.TopicName);
             
             await InternalProduce(
