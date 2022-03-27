@@ -57,3 +57,10 @@ services:
       KAFKA_SCHEMA_REGISTRY_URL: "schemaregistry:8081"
       #KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
       KAFKA_JMX_PORT: 9991
+
+  jaeger:
+    image: jaegertracing/opentelemetry-all-in-one
+    ports:
+      - "13133:13133"
+      - "16686:16686"
+      - "4317:55680"
