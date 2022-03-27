@@ -14,14 +14,18 @@ namespace Dafda.Tests.Builders
             _data = null;
         }
 
-        public TransportLevelMessageBuilder WithType(string type)
+        public TransportLevelMessageBuilder WithType(string type, string traceparent=null, string baggage=null)
         {
-            _metadata = new Metadata()
+            _metadata = new Metadata
             {
                 MessageId = "foo-message-id",
                 CorrelationId = "foo-correlation-id",
-                Type = type
+                Type = type,
             };
+
+            _metadata["traceparent"] = traceparent;
+            _metadata["baggage"] = baggage;
+
             return this;
         }
 
