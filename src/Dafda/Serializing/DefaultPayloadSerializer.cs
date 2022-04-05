@@ -85,14 +85,10 @@ namespace Dafda.Serializing
             activity?.SetTag("messaging.destination", descriptor.TopicName);
             activity?.SetTag("messaging.destination_kind", "topic");
             activity?.SetTag("messaging.message_id", descriptor.MessageId);
-            //activity?.SetTag("messaging.conversation_id", descriptor.CorrelationId);
             //activity?.SetTag("messaging.message_payload_size_bytes", "0");
-            // consumer
             // kafka
             activity?.SetTag("messaging.kafka.message_key", descriptor.PartitionKey);
-            //activity?.SetTag("messaging.kafka.consumer_group", "consumer_group");
-            //activity?.SetTag("messaging.kafka.client_id", "client_id");
-            //activity?.SetTag("messaging.kafka.partition", "partition");
+            activity?.SetTag("messaging.kafka.client_id", descriptor.ClientId);
 
             envelope.Add(MakeKeyFrom("Data"), descriptor.MessageData);
 

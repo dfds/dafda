@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Confluent.Kafka;
+using Dafda.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
@@ -33,7 +34,8 @@ namespace Dafda.Consuming
             var consumer = consumerBuilder.Build();
             consumer.Subscribe(_topics);
 
-            return new KafkaConsumerScope(_loggerFactory, consumer, _incomingMessageFactory);
+            var groupId = _configuration.FirstOrDefault(x => x.Key==ConfigurationKey.GroupId).Value;
+            return new KafkaConsumerScope(_loggerFactory, consumer, _incomingMessageFactory, groupId);
         }
     }
 }

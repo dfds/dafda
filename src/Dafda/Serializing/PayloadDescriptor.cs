@@ -57,5 +57,7 @@ namespace Dafda.Serializing
         /// The message
         /// </summary>
         public object MessageData { get; private set; }
+
+        internal string ClientId { get; set; }
     }
 }

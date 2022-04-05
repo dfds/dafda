@@ -21,10 +21,21 @@ namespace Dafda.Consuming
             _onCommit = onCommit ?? EmptyCommitAction;
         }
 
+        internal string Topic { get; set; }
+        
+        internal int Partition { get; set; }
+
+        internal string PartitionKey { get; set; }
+
+        internal string ClientId { get; set; }
+        
+        internal string GroupId { get; set; }
+
         /// <summary>
         /// Transmitted message consumed from Kafka
         /// </summary>
         public TransportLevelMessage Message { get; }
+
 
         /// <summary>
         /// Commit message to handlers

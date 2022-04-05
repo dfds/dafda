@@ -38,6 +38,8 @@ namespace Dafda.Producing
         public async Task Produce(object message, Metadata headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);
+            payloadDescriptor.ClientId = _kafkaProducer.ClientId;
+
             await _kafkaProducer.Produce(payloadDescriptor);
         }
 
@@ -71,6 +73,8 @@ namespace Dafda.Producing
         public async Task Produce(object message, MessageHandlerContext context, Dictionary<string, string> headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, context, headers);
+            payloadDescriptor.ClientId = _kafkaProducer.ClientId;
+
             await _kafkaProducer.Produce(payloadDescriptor);
         }
     }

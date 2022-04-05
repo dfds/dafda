@@ -64,21 +64,21 @@ internal class Consumer
         var parentContext = Propagator.Extract(default, message.Metadata, ExtractFromMetadata);
         Baggage.Current = parentContext.Baggage;
 
-        using var activity = DafdaActivitySource.ActivitySource.StartActivity("<topic> receive", ActivityKind.Consumer, parentContext.ActivityContext);
+        using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{messageResult.Topic} receive", ActivityKind.Consumer, parentContext.ActivityContext);
         activity?.SetTag("messaging.system", "kafka");
-        activity?.SetTag("messaging.destination", "<topic>");
+        activity?.SetTag("messaging.destination", messageResult.Topic);
         activity?.SetTag("messaging.destination_kind", "topic");
         activity?.SetTag("messaging.message_id", message.Metadata.MessageId);
         activity?.SetTag("messaging.conversation_id", message.Metadata.CorrelationId);
         //activity?.SetTag("messaging.message_payload_size_bytes", "0");
         // consumer
         activity?.SetTag("messaging.operation", "receive");
-        activity?.SetTag("messaging.consumer_id", "<consumer_group> - <client_id>");
+        activity?.SetTag("messaging.consumer_id", $"{messageResult.GroupId} - {messageResult.ClientId}");
         // kafka
-        //activity?.SetTag("messaging.kafka.message_key", "partition_key");
-        //activity?.SetTag("messaging.kafka.consumer_group", "consumer_group");
-        //activity?.SetTag("messaging.kafka.client_id", "client_id");
-        //activity?.SetTag("messaging.kafka.partition", "partition");
+        activity?.SetTag("messaging.kafka.message_key", messageResult.PartitionKey);
+        activity?.SetTag("messaging.kafka.consumer_group", messageResult.GroupId);
+        activity?.SetTag("messaging.kafka.client_id", messageResult.ClientId);
+        activity?.SetTag("messaging.kafka.partition", messageResult.Partition);
 
         if (_messageFilter.CanAcceptMessage(messageResult))
             await _localMessageDispatcher.Dispatch(message);

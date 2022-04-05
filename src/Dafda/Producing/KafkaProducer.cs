@@ -22,6 +22,8 @@ namespace Dafda.Producing
             _innerKafkaProducer = new ProducerBuilder<string, string>(configuration).Build();
         }
 
+        public string ClientId => _innerKafkaProducer.Name;
+
         public async Task Produce(PayloadDescriptor payloadDescriptor)
         {
             using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{payloadDescriptor.TopicName} send", ActivityKind.Producer);
