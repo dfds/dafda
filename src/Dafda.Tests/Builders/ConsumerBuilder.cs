@@ -1,6 +1,7 @@
 ﻿using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
 using Dafda.Tests.TestDoubles;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dafda.Tests.Builders
 {
@@ -65,6 +66,7 @@ namespace Dafda.Tests.Builders
 
         public Consumer Build() =>
             new Consumer(
+                NullLogger<Consumer>.Instance, 
                 _registry,
                 _unitOfWorkFactory,
                 _consumerScopeFactory,

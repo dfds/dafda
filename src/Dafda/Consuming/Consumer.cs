@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Confluent.Kafka;
 using Dafda.Consuming.MessageFilters;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
@@ -14,12 +13,14 @@ namespace Dafda.Consuming
 {
     internal class Consumer
     {
+        private readonly ILogger<Consumer> _logger;
         private readonly IConsumerScopeFactory _consumerScopeFactory;
         private readonly bool _isAutoCommitEnabled;
         private readonly LocalMessageDispatcher _localMessageDispatcher;
         private readonly MessageFilter _messageFilter;
 
         public Consumer(
+            ILogger<Consumer> logger, 
             MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory unitOfWorkFactory,
             IConsumerScopeFactory consumerScopeFactory,
@@ -32,6 +33,7 @@ namespace Dafda.Consuming
                     messageHandlerRegistry,
                     unitOfWorkFactory,
                     fallbackHandler);
+            _logger = logger;
             _consumerScopeFactory =
                 consumerScopeFactory
                 ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
@@ -60,11 +62,18 @@ namespace Dafda.Consuming
         {
             var messageResult = await consumerScope.GetNext(cancellationToken);
 
+            using var scope = _logger.BeginScope("{TraceParent}", messageResult.Message.Metadata["traceparent"]);
+
             var message = messageResult.Message;
             var parentContext = Propagator.Extract(default, message.Metadata, ExtractFromMetadata);
             Baggage.Current = parentContext.Baggage;
 
+            _logger.LogDebug("Extracted ActivityContext: {@ActivityContext}", parentContext.ActivityContext);
+
             using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{messageResult.Topic} receive", ActivityKind.Consumer, parentContext.ActivityContext);
+
+            _logger.LogDebug("Starting new activity Consumer:{ParentActivityId}:{ActivityId}", activity?.ParentId, activity?.Id);
+
             activity?.SetTag("messaging.system", "kafka");
             activity?.SetTag("messaging.destination", messageResult.Topic);
             activity?.SetTag("messaging.destination_kind", "topic");
