@@ -10,93 +10,94 @@ using Dafda.Consuming.MessageFilters;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
-namespace Dafda.Consuming;
-
-internal class Consumer
+namespace Dafda.Consuming
 {
-    private readonly IConsumerScopeFactory _consumerScopeFactory;
-    private readonly bool _isAutoCommitEnabled;
-    private readonly LocalMessageDispatcher _localMessageDispatcher;
-    private readonly MessageFilter _messageFilter;
-
-    public Consumer(
-        MessageHandlerRegistry messageHandlerRegistry,
-        IHandlerUnitOfWorkFactory unitOfWorkFactory,
-        IConsumerScopeFactory consumerScopeFactory,
-        IUnconfiguredMessageHandlingStrategy fallbackHandler,
-        MessageFilter messageFilter,
-        bool isAutoCommitEnabled = false)
+    internal class Consumer
     {
-        _localMessageDispatcher =
-            new LocalMessageDispatcher(
-                messageHandlerRegistry,
-                unitOfWorkFactory,
-                fallbackHandler);
-        _consumerScopeFactory =
-            consumerScopeFactory
-            ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
-        _messageFilter = messageFilter;
-        _isAutoCommitEnabled = isAutoCommitEnabled;
-    }
+        private readonly IConsumerScopeFactory _consumerScopeFactory;
+        private readonly bool _isAutoCommitEnabled;
+        private readonly LocalMessageDispatcher _localMessageDispatcher;
+        private readonly MessageFilter _messageFilter;
 
-    public async Task ConsumeAll(CancellationToken cancellationToken)
-    {
-        using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
+        public Consumer(
+            MessageHandlerRegistry messageHandlerRegistry,
+            IHandlerUnitOfWorkFactory unitOfWorkFactory,
+            IConsumerScopeFactory consumerScopeFactory,
+            IUnconfiguredMessageHandlingStrategy fallbackHandler,
+            MessageFilter messageFilter,
+            bool isAutoCommitEnabled = false)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            _localMessageDispatcher =
+                new LocalMessageDispatcher(
+                    messageHandlerRegistry,
+                    unitOfWorkFactory,
+                    fallbackHandler);
+            _consumerScopeFactory =
+                consumerScopeFactory
+                ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
+            _messageFilter = messageFilter;
+            _isAutoCommitEnabled = isAutoCommitEnabled;
+        }
+
+        public async Task ConsumeAll(CancellationToken cancellationToken)
+        {
+            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                    await ProcessNextMessage(consumerScope, cancellationToken);
+            }
+        }
+
+        public async Task ConsumeSingle(CancellationToken cancellationToken)
+        {
+            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
+            {
                 await ProcessNextMessage(consumerScope, cancellationToken);
+            }
         }
-    }
 
-    public async Task ConsumeSingle(CancellationToken cancellationToken)
-    {
-        using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
+        private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
         {
-            await ProcessNextMessage(consumerScope, cancellationToken);
+            var messageResult = await consumerScope.GetNext(cancellationToken);
+
+            var message = messageResult.Message;
+            var parentContext = Propagator.Extract(default, message.Metadata, ExtractFromMetadata);
+            Baggage.Current = parentContext.Baggage;
+
+            using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{messageResult.Topic} receive", ActivityKind.Consumer, parentContext.ActivityContext);
+            activity?.SetTag("messaging.system", "kafka");
+            activity?.SetTag("messaging.destination", messageResult.Topic);
+            activity?.SetTag("messaging.destination_kind", "topic");
+            activity?.SetTag("messaging.message_id", message.Metadata.MessageId);
+            activity?.SetTag("messaging.conversation_id", message.Metadata.CorrelationId);
+            //activity?.SetTag("messaging.message_payload_size_bytes", "0");
+            // consumer
+            activity?.SetTag("messaging.operation", "receive");
+            activity?.SetTag("messaging.consumer_id", $"{messageResult.GroupId} - {messageResult.ClientId}");
+            // kafka
+            activity?.SetTag("messaging.kafka.message_key", messageResult.PartitionKey);
+            activity?.SetTag("messaging.kafka.consumer_group", messageResult.GroupId);
+            activity?.SetTag("messaging.kafka.client_id", messageResult.ClientId);
+            activity?.SetTag("messaging.kafka.partition", messageResult.Partition);
+
+            if (_messageFilter.CanAcceptMessage(messageResult))
+                await _localMessageDispatcher.Dispatch(message);
+
+            if (!_isAutoCommitEnabled) await messageResult.Commit();
         }
+
+        public static TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
+
+        private static IEnumerable<string> ExtractFromMetadata(Metadata metadata, string key)
+        {
+            yield return metadata[key];
+        }
+
     }
 
-    private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
+    internal static class DafdaActivitySource
     {
-        var messageResult = await consumerScope.GetNext(cancellationToken);
-
-        var message = messageResult.Message;
-        var parentContext = Propagator.Extract(default, message.Metadata, ExtractFromMetadata);
-        Baggage.Current = parentContext.Baggage;
-
-        using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{messageResult.Topic} receive", ActivityKind.Consumer, parentContext.ActivityContext);
-        activity?.SetTag("messaging.system", "kafka");
-        activity?.SetTag("messaging.destination", messageResult.Topic);
-        activity?.SetTag("messaging.destination_kind", "topic");
-        activity?.SetTag("messaging.message_id", message.Metadata.MessageId);
-        activity?.SetTag("messaging.conversation_id", message.Metadata.CorrelationId);
-        //activity?.SetTag("messaging.message_payload_size_bytes", "0");
-        // consumer
-        activity?.SetTag("messaging.operation", "receive");
-        activity?.SetTag("messaging.consumer_id", $"{messageResult.GroupId} - {messageResult.ClientId}");
-        // kafka
-        activity?.SetTag("messaging.kafka.message_key", messageResult.PartitionKey);
-        activity?.SetTag("messaging.kafka.consumer_group", messageResult.GroupId);
-        activity?.SetTag("messaging.kafka.client_id", messageResult.ClientId);
-        activity?.SetTag("messaging.kafka.partition", messageResult.Partition);
-
-        if (_messageFilter.CanAcceptMessage(messageResult))
-            await _localMessageDispatcher.Dispatch(message);
-
-        if (!_isAutoCommitEnabled) await messageResult.Commit();
+        public static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
+        public static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
     }
-
-    public static TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
-
-    private static IEnumerable<string> ExtractFromMetadata(Metadata metadata, string key)
-    {
-        yield return metadata[key];
-    }
-
-}
-
-internal static class DafdaActivitySource
-{
-    public static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
-    public static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
 }
