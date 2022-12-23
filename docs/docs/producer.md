@@ -34,6 +34,17 @@ public class Startup
 !!! warning "Producers are registered as a per service registration"
     The `Service` is registered with the .NET dependency injection, and able to produce `Test` messages on the Kafka topic `test-topic`.
 
+#### Services with interfaces
+
+If the `Service` is injected to consumers with an interface (like `IService`), register it like so:
+
+```
+    services.AddProducerFor<IService,Service>(options => ...);
+```
+
+!!! info "Make sure the service/interface is not registered elsewhere"
+    If the service is registered with the interface elsewhere, like `services.AddTransient<IService,Service>();`, the `Producer` cannot be resolved. Dafda takes care of registering the service, not just the `Producer` dependency for it.
+
 ### Create a message class
 
 Create a POCO representation of the Kafka message:
