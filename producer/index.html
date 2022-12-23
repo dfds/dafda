@@ -372,6 +372,19 @@
     Setup producer configuration
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#services-with-interfaces" title="Services with interfaces" class="md-nav__link">
+    Services with interfaces
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -496,6 +509,19 @@
     Setup producer configuration
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#services-with-interfaces" title="Services with interfaces" class="md-nav__link">
+    Services with interfaces
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -615,6 +641,15 @@
 <div class="admonition warning">
 <p class="admonition-title">Producers are registered as a per service registration</p>
 <p>The <code>Service</code> is registered with the .NET dependency injection, and able to produce <code>Test</code> messages on the Kafka topic <code>test-topic</code>.</p>
+</div>
+<h4 id="services-with-interfaces">Services with interfaces<a class="headerlink" href="#services-with-interfaces" title="Permanent link">&para;</a></h4>
+<p>If the <code>Service</code> is injected to consumers with an interface (like <code>IService</code>), register it like so:</p>
+<div class="codehilite"><pre><span></span>    services.AddProducerFor&lt;IService,Service&gt;(options =&gt; ...);
+</pre></div>
+
+<div class="admonition info">
+<p class="admonition-title">Make sure the service/interface is not registered elsewhere</p>
+<p>If the service is registered with the interface elsewhere, like <code>services.AddTransient&lt;IService,Service&gt;();</code>, the <code>Producer</code> cannot be resolved. Dafda takes care of registering the service, not just the <code>Producer</code> dependency for it.</p>
 </div>
 <h3 id="create-a-message-class">Create a message class<a class="headerlink" href="#create-a-message-class" title="Permanent link">&para;</a></h3>
 <p>Create a POCO representation of the Kafka message:</p>
