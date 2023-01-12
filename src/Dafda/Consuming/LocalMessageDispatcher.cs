@@ -40,7 +40,11 @@ namespace Dafda.Consuming
             }
 
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
-            var context = new MessageHandlerContext(message.Metadata);
+            var context = new MessageHandlerContext(message.Metadata)
+            {
+                Topic = message.Topic,
+                PartitionKey = message.PartitionKey,
+            };
 
             await unitOfWork.Run(async handler =>
             {

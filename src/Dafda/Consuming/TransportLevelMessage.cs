@@ -25,6 +25,9 @@ namespace Dafda.Consuming
         /// </summary>
         public Metadata Metadata { get; }
 
+        internal string Topic { get; set; }
+        internal string PartitionKey { get; set; }
+
         /// <summary>
         /// Return a deserialized instance of the <paramref name="messageInstanceType"/>.
         /// </summary>

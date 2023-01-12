@@ -5,8 +5,9 @@ namespace Dafda.Tests.Builders
     public class TransportLevelMessageBuilder
     {
         private Metadata _metadata;
-
         private object _data;
+        private string _topic;
+        private string _partitionKey;
 
         public TransportLevelMessageBuilder()
         {
@@ -31,9 +32,25 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public TransportLevelMessageBuilder WithTopic(string topic)
+        {
+            _topic = topic;
+            return this;
+        }
+
+        public TransportLevelMessageBuilder WithPartitionKey(string partitionKey)
+        {
+            _partitionKey = partitionKey;
+            return this;
+        }
+
         public TransportLevelMessage Build()
         {
-            return new TransportLevelMessage(_metadata, type => _data);
+            return new TransportLevelMessage(_metadata, type => _data)
+            {
+                Topic = _topic,
+                PartitionKey = _partitionKey
+            };
         }
     }
 }

@@ -24,8 +24,12 @@ namespace Dafda.Consuming
 
             _logger.LogDebug("Received message {Key}: {RawMessage}", innerResult.Message?.Key, innerResult.Message?.Value);
 
+            var message = _incomingMessageFactory.Create(innerResult.Message.Value);
+            message.Topic = innerResult.Topic;
+            message.PartitionKey = innerResult.Message.Key;
+            
             var result = new MessageResult(
-                message: _incomingMessageFactory.Create(innerResult.Message.Value),
+                message: message,
                 onCommit: () =>
                 {
                     _innerKafkaConsumer.Commit(innerResult);

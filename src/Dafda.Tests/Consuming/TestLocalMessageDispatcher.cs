@@ -77,6 +77,32 @@ namespace Dafda.Tests.Consuming
             await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(transportMessageDummy));
         }
         
+        [Fact]
+        public async Task has_correct_topic_and_partition_key_available_in_message_handler_context()
+        {
+            const string dummyTopic = "dummy-topic";
+            const string dummyPartitionKey = "dummy-partition-key";
+            
+            var mock = new Mock<IMessageHandler<object>>();
+
+            var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").WithTopic(dummyTopic).WithPartitionKey(dummyPartitionKey).Build();
+            var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").Build();
+            var registry = new MessageHandlerRegistry();
+            registry.Register(registrationDummy);
+            
+            var sut = new LocalMessageDispatcherBuilder()
+                .WithMessageHandlerRegistry(registry)
+                .WithHandlerUnitOfWork(new UnitOfWorkStub(mock.Object))
+                .Build();
+
+            await sut.Dispatch(transportMessageDummy);
+
+            mock.Verify(x => x.Handle(
+                It.IsAny<object>(),
+                It.Is<MessageHandlerContext>(x => x.Topic==dummyTopic && x.PartitionKey==dummyPartitionKey)), 
+                Times.Once);
+        }
+       
         #region private helper classes
 
         private class ExpectedException : Exception

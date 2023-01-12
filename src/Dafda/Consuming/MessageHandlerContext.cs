@@ -53,5 +53,15 @@ namespace Dafda.Consuming
         /// </summary>
         /// <param name="key">A metadata name</param>
         public virtual string this[string key] => _metadata[key];
+
+        /// <summary>
+        /// Name of the topic.
+        /// </summary>
+        public string Topic { get; internal set; }
+
+        /// <summary>
+        /// The partition key.
+        /// </summary>
+        public string PartitionKey { get; internal set; }
     }
 }
