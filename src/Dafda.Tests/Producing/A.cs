@@ -1,4 +1,5 @@
 using Dafda.Configuration;
+using Dafda.Configuration.ProducerConfigurations;
 using Dafda.Tests.Builders;
 
 namespace Dafda.Tests.Producing

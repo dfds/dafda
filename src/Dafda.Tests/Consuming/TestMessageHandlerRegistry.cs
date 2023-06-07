@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Dafda.Consuming;
+using Dafda.Consuming.Handlers;
 using Dafda.Tests.Builders;
 using Xunit;
 

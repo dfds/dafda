@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Consuming.Exceptions;
+using Dafda.Consuming.Interfaces;
 using Dafda.Tests.Builders;
 using Xunit;
 
@@ -51,7 +53,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void throws_for_null_topic()
         {
-            Assert.Throws<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() =>
                 new MessageRegistrationBuilder()
                 .WithTopic(null)
                 .Build());

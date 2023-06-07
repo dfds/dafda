@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
+using Dafda.Configuration.Outbox;
 
 namespace Dafda.Outbox
 {

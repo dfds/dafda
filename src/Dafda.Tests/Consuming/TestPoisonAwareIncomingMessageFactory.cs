@@ -1,6 +1,8 @@
 using System;
-using Dafda.Configuration;
+using Dafda.Configuration.ConsumerConfigurations;
 using Dafda.Consuming;
+using Dafda.Consuming.Factories;
+using Dafda.Consuming.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -18,7 +20,7 @@ namespace Dafda.Tests.Consuming
 
             var transportLevelMessage = sut.Create("");
             var data = transportLevelMessage.ReadDataAs(typeof(object));
-            
+
             Assert.Same(dummy, data);
         }
 

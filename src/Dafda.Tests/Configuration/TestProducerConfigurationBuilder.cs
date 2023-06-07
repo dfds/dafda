@@ -1,5 +1,6 @@
 using System.Linq;
 using Dafda.Configuration;
+using Dafda.Configuration.ProducerConfigurations;
 using Dafda.Producing;
 using Dafda.Tests.TestDoubles;
 using Xunit;

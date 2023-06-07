@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Consuming.Exceptions;
+using Dafda.Consuming.Handlers;
+using Dafda.Consuming.Interfaces;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Moq;
@@ -50,7 +53,7 @@ namespace Dafda.Tests.Consuming
             var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").Build();
             var registry = new MessageHandlerRegistry();
             registry.Register(registrationDummy);
-            
+
             var sut = new LocalMessageDispatcherBuilder()
                 .WithMessageHandlerRegistry(registry)
                 .WithHandlerUnitOfWork(new UnitOfWorkStub(mock.Object))
@@ -68,7 +71,7 @@ namespace Dafda.Tests.Consuming
             var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").Build();
             var registry = new MessageHandlerRegistry();
             registry.Register(registrationDummy);
-            
+
             var sut = new LocalMessageDispatcherBuilder()
                 .WithMessageHandlerRegistry(registry)
                 .WithHandlerUnitOfWork(new UnitOfWorkStub(new ErroneusHandler()))
@@ -76,7 +79,7 @@ namespace Dafda.Tests.Consuming
 
             await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(transportMessageDummy));
         }
-        
+
         #region private helper classes
 
         private class ExpectedException : Exception

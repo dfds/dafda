@@ -1,3 +1,6 @@
+using Avro.Specific;
+using Dafda.Consuming.Exceptions;
+using Dafda.Consuming.Interfaces;
 using System;
 
 namespace Dafda.Consuming
@@ -58,5 +61,49 @@ namespace Dafda.Consuming
         public string Topic { get; }
         /// <summary>The name of the message type as sent over kafka</summary>
         public string MessageType { get; }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
+    public sealed class MessageRegistration<TKey, TValue> where TValue : ISpecificRecord
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="handlerInstanceType"></param>
+        public MessageRegistration(string topic, Type handlerInstanceType)
+        {
+            EnsureProperHandlerType(handlerInstanceType, typeof(TValue));
+            Topic = topic;
+            HandlerInstanceType = handlerInstanceType;
+        }
+        /// <summary>The type of the message handler</summary>
+        public Type HandlerInstanceType { get; }
+
+        /// <summary>The type of the message</summary>
+        public Type MessageInstanceType { get; } = typeof(TValue);
+
+        /// <summary>The type of the key</summary>
+        public Type KeyInstanceType { get; } = typeof(TKey);
+        /// <summary>The name of the kafka topic</summary>
+        public string Topic { get; }
+
+        private static void EnsureProperHandlerType(Type handlerInstanceType, Type messageInstanceType)
+        {
+            var expectedHandlerInstanceBaseType = typeof(IMessageHandler<>).MakeGenericType(messageInstanceType); //TODO come back to this
+            if (expectedHandlerInstanceBaseType.IsAssignableFrom(handlerInstanceType))
+            {
+                return;
+            }
+
+            var openGenericInterfaceName = typeof(IMessageHandler<>).Name;
+            var expectedInterface = $"{openGenericInterfaceName.Substring(0, openGenericInterfaceName.Length - 2)}<{messageInstanceType.FullName}>";
+
+            throw new MessageRegistrationException($"Error! Message handler type \"{handlerInstanceType.FullName}\" does not implement expected interface \"{expectedInterface}\". It's expected when registered together with a message instance type of \"{messageInstanceType.FullName}\".");
+        }
     }
 }

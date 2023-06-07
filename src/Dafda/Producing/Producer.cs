@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Dafda.Consuming.Handlers;
 using Dafda.Consuming;
 
 namespace Dafda.Producing

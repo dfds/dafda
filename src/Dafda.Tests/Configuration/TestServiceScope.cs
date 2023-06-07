@@ -1,8 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Configuration;
+using Dafda.Configuration.ConsumerConfigurations;
 using Dafda.Consuming;
+using Dafda.Consuming.Factories;
+using Dafda.Consuming.Interfaces;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;

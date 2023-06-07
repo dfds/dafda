@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
+using Dafda.Consuming.Handlers;
+using Dafda.Consuming.Interfaces;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,7 +36,7 @@ namespace Dafda.Tests.Configuration
                 options.WithGroupId("dummyGroupId");
                 options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage));
 
-                options.WithConsumerScopeFactory(_ =>new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
+                options.WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
             });
             var serviceProvider = services.BuildServiceProvider();
 
@@ -61,7 +63,7 @@ namespace Dafda.Tests.Configuration
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId");
             });
-            
+
             var serviceProvider = services.BuildServiceProvider();
             var consumerHostedServices = serviceProvider
                 .GetServices<IHostedService>()
@@ -77,19 +79,19 @@ namespace Dafda.Tests.Configuration
 
             services.AddLogging();
             services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
-            
+
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId 1");
             });
-            
+
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId 2");
             });
-            
+
             var serviceProvider = services.BuildServiceProvider();
             var consumerHostedServices = serviceProvider
                 .GetServices<IHostedService>()
@@ -196,9 +198,9 @@ namespace Dafda.Tests.Configuration
             public static object LastHandledMessage { get; private set; }
         }
 
-        private class FailingConsumerScopeFactory : IConsumerScopeFactory
+        private class FailingConsumerScopeFactory : IConsumerScopeFactory<MessageResult>
         {
-            public ConsumerScope CreateConsumerScope()
+            public IConsumerScope<MessageResult> CreateConsumerScope()
             {
                 throw new System.InvalidOperationException();
             }

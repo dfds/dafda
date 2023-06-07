@@ -1,4 +1,5 @@
 ﻿using Dafda.Consuming;
+using Dafda.Consuming.Factories;
 
 namespace Dafda.Tests.Builders
 {

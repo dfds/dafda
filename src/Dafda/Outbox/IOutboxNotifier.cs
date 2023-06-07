@@ -8,6 +8,7 @@ namespace Dafda.Outbox
     /// Implement and override using the <see cref="OutboxOptions.WithNotifier"/> to allow
     /// for signalling between the outbox collector and dispatcher. 
     /// </summary>
+    
     public interface IOutboxNotifier
     {
         /// <summary>

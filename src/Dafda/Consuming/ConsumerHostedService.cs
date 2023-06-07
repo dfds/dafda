@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
+using Dafda.Consuming.Handlers;
+using Dafda.Consuming.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -11,11 +13,11 @@ namespace Dafda.Consuming
     {
         private readonly ILogger<ConsumerHostedService> _logger;
         private readonly IHostApplicationLifetime _applicationLifetime;
-        private readonly Consumer _consumer;
+        private readonly IConsumer _consumer;
         private readonly string _groupId;
         private readonly ConsumerErrorHandler _consumerErrorHandler;
 
-        public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IHostApplicationLifetime applicationLifetime, Consumer consumer, string groupId, ConsumerErrorHandler consumerErrorHandler)
+        public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IHostApplicationLifetime applicationLifetime, IConsumer consumer, string groupId, ConsumerErrorHandler consumerErrorHandler)
         {
             _logger = logger;
             _applicationLifetime = applicationLifetime;

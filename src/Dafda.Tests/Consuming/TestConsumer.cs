@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Consuming.Exceptions;
+using Dafda.Consuming.Handlers;
+using Dafda.Consuming.Interfaces;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.Logging;
@@ -84,7 +87,7 @@ namespace Dafda.Tests.Consuming
 
             await sut.ConsumeSingle(CancellationToken.None);
 
-            Assert.Equal(new[] {"before", "during", "after"}, orderOfInvocation);
+            Assert.Equal(new[] { "before", "during", "after" }, orderOfInvocation);
         }
 
         [Fact]
@@ -310,20 +313,20 @@ namespace Dafda.Tests.Consuming
 
         #region helper classes
 
-        private class ConsumerScopeDecoratorWithHooks : ConsumerScope
+        private class ConsumerScopeDecoratorWithHooks : IConsumerScope<MessageResult>
         {
-            private readonly ConsumerScope _inner;
+            private readonly IConsumerScope<MessageResult> _inner;
             private readonly Action _preHook;
             private readonly Action _postHook;
 
-            public ConsumerScopeDecoratorWithHooks(ConsumerScope inner, Action preHook = null, Action postHook = null)
+            public ConsumerScopeDecoratorWithHooks(IConsumerScope<MessageResult> inner, Action preHook = null, Action postHook = null)
             {
                 _inner = inner;
                 _preHook = preHook;
                 _postHook = postHook;
             }
 
-            public override async Task<MessageResult> GetNext(CancellationToken cancellationToken)
+            public async Task<MessageResult> GetNext(CancellationToken cancellationToken)
             {
                 _preHook?.Invoke();
                 var result = await _inner.GetNext(cancellationToken);
@@ -332,7 +335,7 @@ namespace Dafda.Tests.Consuming
                 return result;
             }
 
-            public override void Dispose()
+            public void Dispose()
             {
                 _inner.Dispose();
             }
@@ -346,7 +349,7 @@ namespace Dafda.Tests.Consuming
         #endregion
     }
 
-    internal class ConsumerScopeSpy : ConsumerScope
+    internal class ConsumerScopeSpy : IConsumerScope<MessageResult>
     {
         private readonly MessageResult _messageResult;
         private readonly Action _onGetNext;
@@ -357,14 +360,14 @@ namespace Dafda.Tests.Consuming
             _onGetNext = onGetNext;
         }
 
-        public override Task<MessageResult> GetNext(CancellationToken cancellationToken)
+        public Task<MessageResult> GetNext(CancellationToken cancellationToken)
         {
             _onGetNext?.Invoke();
 
             return Task.FromResult(_messageResult);
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             Disposed++;
         }

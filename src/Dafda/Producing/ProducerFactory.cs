@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Dafda.Configuration;
+using Dafda.Configuration.ProducerConfigurations;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Producing

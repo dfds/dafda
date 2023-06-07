@@ -1,32 +1,46 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Company>DFDS</Company>
-    <Authors>DFDS</Authors>
-    <Description>A small client for Kafka</Description>
-    <RepositoryUrl>https://github.com/dfds/dafda</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/dfds/dafda</PackageProjectUrl>
-    <Version>0.11.4</Version>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Company>DFDS</Company>
+		<Authors>DFDS</Authors>
+		<Description>A small client for Kafka</Description>
+		<RepositoryUrl>https://github.com/dfds/dafda</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/dfds/dafda</PackageProjectUrl>
+		<Version>0.11.5-add-avro-consumer</Version>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DocumentationFile>bin\Debug\Dafda.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<DocumentationFile>bin\Debug\Dafda.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.0.2" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
 
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
 
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Apache.Avro" Version="1.11.1" />
+		<PackageReference Include="Confluent.Kafka" Version="2.1.1" />
+		<PackageReference Include="Confluent.SchemaRegistry" Version="2.1.1" />
+		<PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.1.1" />
+		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+		<PackageReference Include="System.Text.Json" Version="5.0.2" />
+
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+
+	</ItemGroup>
 
 </Project>
