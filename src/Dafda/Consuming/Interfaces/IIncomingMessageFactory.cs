@@ -1,4 +1,4 @@
-namespace Dafda.Consuming.Interfaces
+namespace Dafda.Consuming
 {
     /// <summary>
     /// The implementation of this interface will be in charge of deserializing the raw

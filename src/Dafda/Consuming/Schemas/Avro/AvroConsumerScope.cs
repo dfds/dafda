@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Dafda.Consuming
+namespace Dafda.Consuming.Schemas.Avro
 {
     internal class AvroConsumerScope<TKey, TValue> : IConsumerScope<MessageResult<TKey, TValue>> where TValue : ISpecificRecord
     {
@@ -33,7 +33,7 @@ namespace Dafda.Consuming
             var innerResult = _innerKafkaConsumer.Consume(cancellationToken);
 
             _logger.LogDebug($"Consumed {innerResult.Message.Value.GetType().Name}. Topic = {innerResult.Topic} Offset = {innerResult.Offset} Partition = {innerResult.Partition} Timestamp = {innerResult.Message.Timestamp.UnixTimestampMs}");
-            var metadata = new Avro.MessageMetadata(
+            var metadata = new Dafda.Consuming.Avro.MessageMetadata(
                 topic: innerResult.Topic,
                 partition: innerResult.Partition.Value,
                 timestamp: innerResult.Message.Timestamp,

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Dafda.Consuming.Handlers;
 
-namespace Dafda.Consuming.Interfaces
+namespace Dafda.Consuming
 {
     /// <summary>
     /// A registration (see <see cref="MessageHandlerRegistry"/>) of <see cref="IMessageHandler{T}"/>

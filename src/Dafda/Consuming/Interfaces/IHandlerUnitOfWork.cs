@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Dafda.Consuming.Interfaces
+namespace Dafda.Consuming
 {
     /// <summary>
     /// The <see cref="IHandlerUnitOfWork"/> must provide the concrete instance

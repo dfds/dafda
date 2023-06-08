@@ -1,7 +1,7 @@
 using System;
 using Dafda.Consuming.Interfaces;
 
-namespace Dafda.Consuming.Exceptions
+namespace Dafda.Consuming
 {
     /// <summary>
     /// Thrown when trying to register any type that does not implement <see cref="IMessageHandler{T}"/>.

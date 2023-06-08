@@ -113,7 +113,7 @@ namespace Dafda.Configuration.ConsumerConfigurations
             where TMessageHandler : IMessageHandler<MessageResult<TKey, TValue>> where TMessage : MessageResult<TKey, TValue>
         {
             if (_messageRegistration != null)
-                throw new Exception("Do real exception here: There is only support for "); //TODO Get back to this
+                throw new Exception("At the moment there is only support for one MessageHandler per consumer");
 
             _messageRegistration = new MessageRegistration<TKey, TValue>(topic, typeof(TMessageHandler));
             return this;
@@ -123,7 +123,7 @@ namespace Dafda.Configuration.ConsumerConfigurations
             where TMessageHandler : IMessageHandler<TMessage> where TMessage : ISpecificRecord
         {
             if (_messageRegistration != null)
-                throw new Exception("Do real exception here: There is only support for "); //TODO Get back to this
+                throw new Exception("At the moment there is only support for one MessageHandler per consumer");
 
             _messageRegistration = new MessageRegistration<TKey, TValue>(topic, typeof(TMessageHandler));
             return this;

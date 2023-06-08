@@ -1,7 +1,7 @@
 using System;
 using Dafda.Consuming.Interfaces;
 
-namespace Dafda.Consuming.Exceptions
+namespace Dafda.Consuming
 {
     /// <summary>
     /// Thrown when no <see cref="IHandlerUnitOfWork"/> was returned by

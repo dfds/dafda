@@ -1,6 +1,6 @@
 using System;
 
-namespace Dafda.Consuming.Interfaces
+namespace Dafda.Consuming
 {
     /// <summary>
     /// This factory is in charge of creating instances of
