@@ -1,4 +1,5 @@
 using Avro.Specific;
+using Dafda.Consuming.Avro;
 using Dafda.Consuming.Interfaces;
 using System;
 
@@ -63,20 +64,23 @@ namespace Dafda.Consuming
     }
 
     /// <summary>
-    /// 
+    /// Create a message registration with the given properties,
+    /// will throw if the handler doesn't match the message
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
     public sealed class MessageRegistration<TKey, TValue> where TValue : ISpecificRecord
     {
         /// <summary>
-        /// 
+        /// CTOR
         /// </summary>
         /// <param name="topic"></param>
         /// <param name="handlerInstanceType"></param>
-        public MessageRegistration(string topic, Type handlerInstanceType)
+        /// <param name="isMessageResultHandler"></param>
+        public MessageRegistration(string topic, Type handlerInstanceType, bool isMessageResultHandler)
         {
-            EnsureProperHandlerType(handlerInstanceType, typeof(TValue));
+            IsMessageResultHandler = isMessageResultHandler;
+            EnsureProperHandlerType(handlerInstanceType, typeof(TValue), isMessageResultHandler);
             Topic = topic;
             HandlerInstanceType = handlerInstanceType;
         }
@@ -91,13 +95,20 @@ namespace Dafda.Consuming
         /// <summary>The name of the kafka topic</summary>
         public string Topic { get; }
 
-        private static void EnsureProperHandlerType(Type handlerInstanceType, Type messageInstanceType)
+        /// <summary>
+        /// Indicates if its a handler for a MessageResult or just a Message
+        /// </summary>
+        public bool IsMessageResultHandler { get; }
+
+        private static void EnsureProperHandlerType(Type handlerInstanceType, Type messageInstanceType, bool isMessageResultHandler)
         {
             var expectedHandlerInstanceBaseType = typeof(IMessageHandler<>).MakeGenericType(messageInstanceType); //TODO come back to this
+
+            if (isMessageResultHandler)
+                expectedHandlerInstanceBaseType = typeof(IMessageHandler<>).MakeGenericType(typeof(MessageResult<TKey, TValue>)); //TODO come back to this
+            
             if (expectedHandlerInstanceBaseType.IsAssignableFrom(handlerInstanceType))
-            {
                 return;
-            }
 
             var openGenericInterfaceName = typeof(IMessageHandler<>).Name;
             var expectedInterface = $"{openGenericInterfaceName.Substring(0, openGenericInterfaceName.Length - 2)}<{messageInstanceType.FullName}>";

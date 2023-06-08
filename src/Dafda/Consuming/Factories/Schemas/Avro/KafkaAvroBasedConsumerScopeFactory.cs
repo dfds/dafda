@@ -14,30 +14,16 @@ using Dafda.Consuming.Schemas.Avro;
 
 namespace Dafda.Consuming.Factories.Schemas.Avro
 {
-    internal class KafkaAvroBasedConsumerScopeFactoryBase {
-        internal ILoggerFactory _loggerFactory;
-        internal IEnumerable<KeyValuePair<string, string>> _configuration;
-        internal string _topic;
-        internal bool _readFromBeginning;
-        internal SchemaRegistryConfig _schemaRegistryConfig;
-        internal AvroSerializerConfig _avroSerializerConfig;
-    }
-    internal class KafkaAvroBasedConsumerScopeFactory<TKey, TValue> : KafkaAvroBasedConsumerScopeFactoryBase, IConsumerScopeFactory<MessageResult<TKey, TValue>> where TValue : ISpecificRecord
+    internal class KafkaAvroBasedConsumerScopeFactory<TKey, TValue> : IConsumerScopeFactory<MessageResult<TKey, TValue>> where TValue : ISpecificRecord
     {
-        
+        internal readonly ILoggerFactory _loggerFactory;
+        internal readonly IEnumerable<KeyValuePair<string, string>> _configuration;
+        internal readonly string _topic;
+        internal readonly bool _readFromBeginning;
+        internal readonly SchemaRegistryConfig _schemaRegistryConfig;
+        internal readonly AvroSerializerConfig _avroSerializerConfig;
 
         public KafkaAvroBasedConsumerScopeFactory(ILoggerFactory loggerFactory, IEnumerable<KeyValuePair<string, string>> configuration, string topic, bool readFromBeginning, SchemaRegistryConfig schemaRegistryConfig, AvroSerializerConfig avroSerializerConfig)
-        {
-            _loggerFactory = loggerFactory;
-            _configuration = configuration;
-            _topic = topic;
-            _readFromBeginning = readFromBeginning;
-            _schemaRegistryConfig = schemaRegistryConfig;
-            _avroSerializerConfig = avroSerializerConfig;
-        }
-        public KafkaAvroBasedConsumerScopeFactory() { }
-
-        public void Init(ILoggerFactory loggerFactory, IEnumerable<KeyValuePair<string, string>> configuration, string topic, bool readFromBeginning, SchemaRegistryConfig schemaRegistryConfig, AvroSerializerConfig avroSerializerConfig)
         {
             _loggerFactory = loggerFactory;
             _configuration = configuration;

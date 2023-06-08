@@ -130,18 +130,6 @@ namespace Dafda.Configuration.ConsumerConfigurations.Schemas.Avro
             _services.AddTransient(implementationFactory);
         }
 
-
-        /// <summary>
-        /// If the <see cref="IIncomingMessageFactory"/> throws an exception during message deserialization, 
-        /// Dafda will create a <see cref="TransportLevelPoisonMessage"/> 
-        /// that can be handled by the consumer instead of throwing an exception.
-        /// Note, if you wish to overwrite the default <see cref="IIncomingMessageFactory"/> you should do so before enabling poison message handling
-        /// </summary>
-        public void WithPoisonMessageHandling()
-        {
-            _builder.WithPoisonMessageHandling();
-        }
-
         /// <summary>
         /// Register a message handler for on <paramref name="topic"/>. The
         /// specified <typeparamref name="TMessageHandler"/> must implements <see cref="IMessageHandler{T}"/>

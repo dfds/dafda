@@ -9,6 +9,7 @@ using Avro.Specific;
 using System.Diagnostics;
 using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.Avro;
+using System.ComponentModel.Design;
 
 namespace Dafda.Consuming.Schemas.Avro
 {
@@ -71,8 +72,12 @@ namespace Dafda.Consuming.Schemas.Avro
                     throw new InvalidMessageHandlerException($"Error! Message handler of type \"{_messageRegistration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{_messageRegistration.MessageInstanceType}\" for message type \"{_messageRegistration.MessageInstanceType}\" can therefor not be handled.");
 
                 // TODO -- verify that the handler is in fact an implementation of IMessageHandler<registration.MessageInstanceType> to provider sane error messages.
-                //await ((IMessageHandler<TValue>)handler).Handle(messageResult.Value, messageContext);
-                await ((IMessageHandler<MessageResult<TKey, TValue>>)handler).Handle(messageResult, messageContext);
+
+                if(_messageRegistration.IsMessageResultHandler)
+                    await ((IMessageHandler<MessageResult<TKey, TValue>>)handler).Handle(messageResult, messageContext);
+                else
+                    await ((IMessageHandler<TValue>)handler).Handle(messageResult.Value, messageContext);
+                
             });
 
             if (!_isAutoCommitEnabled)

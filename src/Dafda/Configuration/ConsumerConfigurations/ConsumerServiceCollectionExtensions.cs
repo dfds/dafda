@@ -121,7 +121,7 @@ namespace Dafda.Configuration
 
             if (consumerGroupIdRepository.Contains(configuration.GroupId))
             {
-                // throw new InvalidConfigurationException($"Multiple consumers CANNOT be configured with same consumer group id \"{configuration.GroupId}\".");
+                throw new InvalidConfigurationException($"Multiple consumers CANNOT be configured with same consumer group id \"{configuration.GroupId}\".");
             }
 
             consumerGroupIdRepository.Add(configuration.GroupId);

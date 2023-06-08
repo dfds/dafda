@@ -44,7 +44,6 @@ namespace Dafda.Configuration.ConsumerConfigurations
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
         private bool _readFromBeginning;
         private AvroSerializerConfig _searlizerConfig = null;
         private SchemaRegistryConfig _schemaRegistryConfig = null;
@@ -115,7 +114,7 @@ namespace Dafda.Configuration.ConsumerConfigurations
             if (_messageRegistration != null)
                 throw new Exception("At the moment there is only support for one MessageHandler per consumer");
 
-            _messageRegistration = new MessageRegistration<TKey, TValue>(topic, typeof(TMessageHandler));
+            _messageRegistration = new MessageRegistration<TKey, TValue>(topic, typeof(TMessageHandler), true);
             return this;
         }
 
@@ -125,7 +124,7 @@ namespace Dafda.Configuration.ConsumerConfigurations
             if (_messageRegistration != null)
                 throw new Exception("At the moment there is only support for one MessageHandler per consumer");
 
-            _messageRegistration = new MessageRegistration<TKey, TValue>(topic, typeof(TMessageHandler));
+            _messageRegistration = new MessageRegistration<TKey, TValue>(topic, typeof(TMessageHandler), false);
             return this;
         }
 
@@ -137,16 +136,6 @@ namespace Dafda.Configuration.ConsumerConfigurations
         public ConsumerConfigurationBuilderAvro<TKey, TValue> WithSchemaRegistryConfig(SchemaRegistryConfig config)
         {
             _schemaRegistryConfig = config;
-            return this;
-        }
-
-        public ConsumerConfigurationBuilderAvro<TKey, TValue> WithPoisonMessageHandling()
-        {
-            var inner = _incomingMessageFactory;
-            _incomingMessageFactory = provider => new PoisonAwareIncomingMessageFactory(
-                provider.GetRequiredService<ILogger<PoisonAwareIncomingMessageFactory>>(),
-                inner(provider)
-            );
             return this;
         }
 
