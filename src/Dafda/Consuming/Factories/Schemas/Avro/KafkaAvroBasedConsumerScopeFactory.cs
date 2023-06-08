@@ -10,6 +10,7 @@ using Confluent.Kafka.SyncOverAsync;
 using System.Linq;
 using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.Avro;
+using Dafda.Consuming.Schemas.Avro;
 
 namespace Dafda.Consuming.Factories.Schemas.Avro
 {

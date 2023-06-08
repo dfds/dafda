@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Dafda.Consuming.Exceptions;
 using Dafda.Consuming.Handlers;
 using Dafda.Consuming.Interfaces;
 

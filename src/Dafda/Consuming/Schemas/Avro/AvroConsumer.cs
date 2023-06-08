@@ -8,7 +8,6 @@ using System.Linq;
 using Avro.Specific;
 using System.Diagnostics;
 using Dafda.Consuming.Interfaces;
-using Dafda.Consuming.Exceptions;
 using Dafda.Consuming.Avro;
 
 namespace Dafda.Consuming.Schemas.Avro

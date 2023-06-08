@@ -1,4 +1,3 @@
-using Dafda.Consuming.Exceptions;
 using Dafda.Consuming.Handlers;
 
 namespace Dafda.Consuming

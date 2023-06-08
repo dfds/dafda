@@ -41,5 +41,5 @@ namespace Dafda.Consuming.Avro
         /// Offset for the consumed message
         /// </summary>
         public long Offset { get; set; }
-    
+    }
 }

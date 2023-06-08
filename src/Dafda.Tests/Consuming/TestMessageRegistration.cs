@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Dafda.Consuming;
-using Dafda.Consuming.Exceptions;
 using Dafda.Consuming.Interfaces;
 using Dafda.Tests.Builders;
 using Xunit;

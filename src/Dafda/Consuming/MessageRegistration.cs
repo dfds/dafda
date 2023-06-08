@@ -1,5 +1,4 @@
 using Avro.Specific;
-using Dafda.Consuming.Exceptions;
 using Dafda.Consuming.Interfaces;
 using System;
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming;
-using Dafda.Consuming.Exceptions;
 using Dafda.Consuming.Handlers;
 using Dafda.Consuming.Interfaces;
 using Dafda.Tests.Builders;
