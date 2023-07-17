@@ -1,10 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using Dafda.Configuration;
+using Dafda.Consuming.Interfaces;
 
 namespace Dafda.Consuming
 {
-    internal sealed class ConsumerErrorHandler
+    internal sealed class ConsumerErrorHandler : IConsumerErrorHandler
     {
         public static readonly ConsumerErrorHandler Default = new(_ => Task.FromResult(ConsumerFailureStrategy.Default));
 

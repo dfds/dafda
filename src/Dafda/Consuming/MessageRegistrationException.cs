@@ -7,7 +7,11 @@ namespace Dafda.Consuming
     /// </summary>
     public sealed class MessageRegistrationException : Exception
     {
-        internal MessageRegistrationException(string message) : base(message)
+        /// <summary>
+        /// Exception constructor
+        /// </summary>
+        /// <param name="message"></param>
+        public MessageRegistrationException(string message) : base(message)
         {
         }
     }

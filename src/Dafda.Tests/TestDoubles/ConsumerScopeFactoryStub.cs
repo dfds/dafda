@@ -1,17 +1,18 @@
 ﻿using Dafda.Consuming;
+using Dafda.Consuming.Interfaces;
 
 namespace Dafda.Tests.TestDoubles
 {
-    internal class ConsumerScopeFactoryStub : IConsumerScopeFactory
+    internal class ConsumerScopeFactoryStub : IConsumerScopeFactory<MessageResult>
     {
-        private readonly ConsumerScope _result;
+        private readonly IConsumerScope<MessageResult> _result;
 
-        public ConsumerScopeFactoryStub(ConsumerScope result)
+        public ConsumerScopeFactoryStub(IConsumerScope<MessageResult> result)
         {
             _result = result;
         }
 
-        public ConsumerScope CreateConsumerScope()
+        public IConsumerScope<MessageResult> CreateConsumerScope()
         {
             return _result;
         }

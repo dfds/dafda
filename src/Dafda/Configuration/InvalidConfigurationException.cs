@@ -25,7 +25,11 @@ namespace Dafda.Configuration
     /// </summary>
     public sealed class InvalidConfigurationException : Exception
     {
-        internal InvalidConfigurationException(string message) : base(message)
+        /// <summary>
+        /// Exception constructor
+        /// </summary>
+        /// <param name="message"></param>
+        public InvalidConfigurationException(string message) : base(message)
         {
         }
     }

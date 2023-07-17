@@ -1,11 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
+using Dafda.Consuming.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
-    internal class KafkaConsumerScope : ConsumerScope
+    internal class KafkaConsumerScope : IConsumerScope<MessageResult>
     {
         private readonly ILogger<KafkaConsumerScope> _logger;
         private readonly IConsumer<string, string> _innerKafkaConsumer;
@@ -18,7 +19,7 @@ namespace Dafda.Consuming
             _incomingMessageFactory = incomingMessageFactory;
         }
 
-        public override Task<MessageResult> GetNext(CancellationToken cancellationToken)
+        public Task<MessageResult> GetNext(CancellationToken cancellationToken)
         {
             var innerResult = _innerKafkaConsumer.Consume(cancellationToken);
 
@@ -35,7 +36,7 @@ namespace Dafda.Consuming
             return Task.FromResult(result);
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             _innerKafkaConsumer.Close();
             _innerKafkaConsumer.Dispose();

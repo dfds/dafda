@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,7 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
+        private Func<IServiceProvider, IConsumerScopeFactory<MessageResult>> _consumerScopeFactory;
         private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
         private bool _readFromBeginning;
 
@@ -97,7 +98,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory)
+        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory<MessageResult>> consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;

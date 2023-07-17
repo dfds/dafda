@@ -1,21 +1,22 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 
 namespace Dafda.Consuming
 {
-    internal class Consumer
+    internal class Consumer : IConsumer
     {
         private readonly LocalMessageDispatcher _localMessageDispatcher;
-        private readonly IConsumerScopeFactory _consumerScopeFactory;
+        private readonly IConsumerScopeFactory<MessageResult> _consumerScopeFactory;
         private readonly MessageFilter _messageFilter;
         private readonly bool _isAutoCommitEnabled;
 
         public Consumer(
             MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory unitOfWorkFactory,
-            IConsumerScopeFactory consumerScopeFactory,
+            IConsumerScopeFactory<MessageResult> consumerScopeFactory,
             IUnconfiguredMessageHandlingStrategy fallbackHandler,
             MessageFilter messageFilter,
             bool isAutoCommitEnabled = false)
@@ -51,7 +52,7 @@ namespace Dafda.Consuming
             }
         }
 
-        private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
+        private async Task ProcessNextMessage(IConsumerScope<MessageResult> consumerScope, CancellationToken cancellationToken)
         {
             var messageResult = await consumerScope.GetNext(cancellationToken);
 

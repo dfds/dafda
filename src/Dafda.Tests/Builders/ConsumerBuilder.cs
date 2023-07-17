@@ -1,4 +1,5 @@
 ﻿using Dafda.Consuming;
+using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 using Dafda.Tests.TestDoubles;
 
@@ -7,7 +8,7 @@ namespace Dafda.Tests.Builders
     internal class ConsumerBuilder
     {
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private IConsumerScopeFactory _consumerScopeFactory;
+        private IConsumerScopeFactory<MessageResult> _consumerScopeFactory;
         private MessageHandlerRegistry _registry;
         private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
 
@@ -33,7 +34,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public ConsumerBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+        public ConsumerBuilder WithConsumerScopeFactory(IConsumerScopeFactory<MessageResult> consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;

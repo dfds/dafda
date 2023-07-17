@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -121,7 +122,7 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        internal void WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory)
+        internal void WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory<MessageResult>> consumerScopeFactory)
         {
             _builder.WithConsumerScopeFactory(consumerScopeFactory);
         }

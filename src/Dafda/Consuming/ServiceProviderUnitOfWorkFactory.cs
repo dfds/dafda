@@ -4,15 +4,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Consuming
 {
-    internal class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
+    /// <summary>
+    /// Default IHandlerUnitOfWorkFactory implemtation
+    /// </summary>
+    public class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
     {
         private readonly IServiceProvider _serviceProvider;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="serviceProvider"></param>
         public ServiceProviderUnitOfWorkFactory(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// Returns new ServiceScopedUnitOfWork for handler type
+        /// </summary>
+        /// <param name="handlerType"></param>
+        /// <returns></returns>
         public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
         {
             return new ServiceScopedUnitOfWork(_serviceProvider, handlerType);

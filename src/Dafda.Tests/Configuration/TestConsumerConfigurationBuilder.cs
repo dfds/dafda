@@ -76,7 +76,7 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
-        public void returns_expected_auto_commit_when_not_set()
+        public void Returns_expected_auto_commit_when_not_set()
         {
             var configuration = new ConsumerConfigurationBuilder()
                 .WithGroupId("foo")
@@ -91,7 +91,7 @@ namespace Dafda.Tests.Configuration
         [InlineData("TRUE", true)]
         [InlineData("false", false)]
         [InlineData("FALSE", false)]
-        public void returns_expected_auto_commit_when_configured_with_valid_value(string configValue, bool expected)
+        public void Returns_expected_auto_commit_when_configured_with_valid_value(string configValue, bool expected)
         {
             var configuration = new ConsumerConfigurationBuilder()
                 .WithGroupId("foo")

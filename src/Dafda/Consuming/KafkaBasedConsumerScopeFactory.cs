@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Confluent.Kafka;
+using Dafda.Consuming.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
-    internal class KafkaBasedConsumerScopeFactory : IConsumerScopeFactory
+    internal class KafkaBasedConsumerScopeFactory : IConsumerScopeFactory<MessageResult>
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly IEnumerable<KeyValuePair<string, string>> _configuration;
@@ -21,8 +22,8 @@ namespace Dafda.Consuming
             _incomingMessageFactory = incomingMessageFactory;
             _readFromBeginning = readFromBeginning;
         }
-        
-        public ConsumerScope CreateConsumerScope()
+
+        public IConsumerScope<MessageResult> CreateConsumerScope()
         {
             var consumerBuilder = new ConsumerBuilder<string, string>(_configuration);
             if (_readFromBeginning)
