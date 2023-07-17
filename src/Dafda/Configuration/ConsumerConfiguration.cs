@@ -57,6 +57,7 @@ namespace Dafda.Configuration
             }
         }
     }
+
     internal class ConsumerConfiguration : ConsumerConfigurationBase
     {
         public ConsumerConfiguration(IDictionary<string, string> configuration,
@@ -72,7 +73,6 @@ namespace Dafda.Configuration
             MessageFilter = messageFilter;
             IncomingMessageFactory = incomingMessageFactory;
         }
-
 
         public Func<IServiceProvider, IConsumerScopeFactory<MessageResult>> ConsumerScopeFactory { get; }
         public Func<IServiceProvider, IIncomingMessageFactory> IncomingMessageFactory { get; }
