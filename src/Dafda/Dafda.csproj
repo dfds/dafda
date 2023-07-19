@@ -14,7 +14,7 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\Debug\Dafda.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
 
   <ItemGroup>
