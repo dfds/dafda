@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Consuming
 {
-    internal class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
+    public class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
     {
         private readonly IServiceProvider _serviceProvider;
 

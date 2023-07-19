@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Dafda.Configuration
 {
-    internal class ConfigurationKey
+    public class ConfigurationKey
     {
         public static readonly ConfigurationKey GroupId = new ConfigurationKey("group.id", ConfigurationKeyGroup.ConsumerOnly);
         public static readonly ConfigurationKey EnableAutoCommit = new ConfigurationKey("enable.auto.commit", ConfigurationKeyGroup.ConsumerOnly);

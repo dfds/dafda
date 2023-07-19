@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Dafda.Configuration
 {
-    internal sealed class NamingConvention
+    public sealed class NamingConvention
     {
         public static readonly NamingConvention Default = new NamingConvention();
 

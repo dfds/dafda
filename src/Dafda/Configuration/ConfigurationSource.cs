@@ -5,7 +5,7 @@ namespace Dafda.Configuration
     /// </summary>
     public abstract class ConfigurationSource
     {
-        internal static readonly ConfigurationSource Null = new NullConfigurationSource();
+        public static readonly ConfigurationSource Null = new NullConfigurationSource();
 
         /// <summary>
         /// Get the value of a configuration item by <paramref name="key"/>.

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Dafda.Configuration
 {
-    internal class ConfigurationBuilder
+    public class ConfigurationBuilder
     {
         private static readonly string[] EmptyConfigurationKeys = new string[0];
         private static readonly NamingConvention[] DefaultNamingConventions = {NamingConvention.Default};

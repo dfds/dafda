@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Dafda.Configuration
 {
-    internal abstract class ConfigurationReporter
+    public abstract class ConfigurationReporter
     {
         public static readonly ConfigurationReporter Null = new NullConfigurationReporter();
 

@@ -8,7 +8,7 @@ namespace Dafda.Consuming
     /// </summary>
     public sealed class UnableToResolveUnitOfWorkForHandlerException : Exception
     {
-        internal UnableToResolveUnitOfWorkForHandlerException(string message) : base(message)
+        public UnableToResolveUnitOfWorkForHandlerException(string message) : base(message)
         {
         }
     }
