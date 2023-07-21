@@ -3,6 +3,9 @@ using System.Linq;
 
 namespace Dafda.Configuration
 {
+    /// <summary>
+    /// Config builder
+    /// </summary>
     public class ConfigurationBuilder
     {
         private static readonly string[] EmptyConfigurationKeys = new string[0];
@@ -15,11 +18,17 @@ namespace Dafda.Configuration
         private readonly IDictionary<string, string> _configurations;
         private readonly ConfigurationReporter _configurationReporter;
 
+        /// <summary>
+        /// Parameterless constructor
+        /// </summary>
         public ConfigurationBuilder()
             : this(EmptyConfigurationKeys, EmptyConfigurationKeys, DefaultNamingConventions, ConfigurationSource.Null, new Dictionary<string, string>(), ConfigurationReporter.Null)
         {
         }
 
+        /// <summary>
+        /// Constructor with config keys
+        /// </summary>
         public ConfigurationBuilder(string[] configurationKeys, string[] requiredConfigurationKeys)
             : this(configurationKeys ?? EmptyConfigurationKeys, requiredConfigurationKeys ?? EmptyConfigurationKeys, DefaultNamingConventions, ConfigurationSource.Null, new Dictionary<string, string>(), ConfigurationReporter.Null)
         {
@@ -35,36 +44,45 @@ namespace Dafda.Configuration
             _configurationReporter = configurationReporter;
         }
 
+        /// <summary>Setting the config keys</summary>
         public ConfigurationBuilder WithConfigurationKeys(params string[] configurationKeys)
         {
             return new ConfigurationBuilder(configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations, _configurationReporter);
         }
 
+        /// <summary>Setting the required config keys</summary>
         public ConfigurationBuilder WithRequiredConfigurationKeys(params string[] requiredConfigurationKeys)
         {
             return new ConfigurationBuilder(_configurationKeys, requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations, _configurationReporter);
         }
 
+        /// <summary>Setting the naming convention</summary>
         public ConfigurationBuilder WithNamingConventions(params NamingConvention[] namingConventions)
         {
             return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, namingConventions, _configurationSource, _configurations, _configurationReporter);
         }
 
+        /// <summary>Setting the config sources</summary>
         public ConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
             return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, configurationSource, _configurations, _configurationReporter);
         }
 
+        /// <summary>Setting the configs</summary>
         public ConfigurationBuilder WithConfigurations(IDictionary<string, string> configurations)
         {
             return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, configurations, _configurationReporter);
         }
 
+        /// <summary>Setting the config reporter</summary>
         public ConfigurationBuilder WithConfigurationReporter(ConfigurationReporter configurationReporter)
         {
             return new ConfigurationBuilder(_configurationKeys, _requiredConfigurationKeys, _namingConventions, _configurationSource, _configurations, configurationReporter);
         }
 
+        /// <summary>
+        /// Builds the config
+        /// </summary>
         public IDictionary<string, string> Build()
         {
             var configurations = FillConfiguration();

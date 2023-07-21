@@ -5,6 +5,7 @@ namespace Dafda.Configuration
     /// </summary>
     public abstract class ConfigurationSource
     {
+        /// <summary>A null config source</summary>
         public static readonly ConfigurationSource Null = new NullConfigurationSource();
 
         /// <summary>

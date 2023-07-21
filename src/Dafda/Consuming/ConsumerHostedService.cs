@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
+    /// <summary>Hosted service for the consumer</summary>
     public class ConsumerHostedService : BackgroundService
     {
         private readonly ILogger<ConsumerHostedService> _logger;
@@ -16,6 +17,7 @@ namespace Dafda.Consuming
         private readonly string _groupId;
         private readonly IConsumerErrorHandler _consumerErrorHandler;
 
+        /// <summary>Ctor</summary>
         public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IHostApplicationLifetime applicationLifetime, IConsumer consumer, string groupId, IConsumerErrorHandler consumerErrorHandler)
         {
             _logger = logger;
@@ -25,6 +27,7 @@ namespace Dafda.Consuming
             _consumerErrorHandler = consumerErrorHandler;
         }
 
+        /// <summary>Consume all messges</summary>
         public async Task ConsumeAll(CancellationToken stoppingToken)
         {
             while (true)
@@ -53,6 +56,7 @@ namespace Dafda.Consuming
             }
         }
 
+        /// <summary>Override of ExecuteAsync</summary>
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             return Task.Run(async () => { await ConsumeAll(stoppingToken); }, stoppingToken);
