@@ -23,7 +23,10 @@ namespace Dafda.Consuming
         {
         }
 
-        internal MessageHandlerContext(Metadata metadata)
+        /// <summary>
+        /// Initialize an instance of the MessageHandlerContext
+        /// </summary>
+        public MessageHandlerContext(Metadata metadata)
         {
             _metadata = metadata;
         }

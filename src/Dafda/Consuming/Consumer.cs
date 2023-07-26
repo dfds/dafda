@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 
 namespace Dafda.Consuming
 {
-    internal class Consumer
+    internal class Consumer : IConsumer
     {
         private readonly LocalMessageDispatcher _localMessageDispatcher;
         private readonly IConsumerScopeFactory _consumerScopeFactory;

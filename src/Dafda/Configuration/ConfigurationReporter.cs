@@ -5,8 +5,12 @@ using System.Text;
 
 namespace Dafda.Configuration
 {
-    internal abstract class ConfigurationReporter
+    /// <summary>
+    /// Config reporter
+    /// </summary>
+    public abstract class ConfigurationReporter
     {
+        /// <summary>NullConfigurationReporter</summary>
         public static readonly ConfigurationReporter Null = new NullConfigurationReporter();
 
         #region Null Object
@@ -33,14 +37,19 @@ namespace Dafda.Configuration
 
         #endregion
 
+        /// <summary>DefaultConfigurationReporter</summary>
         public static ConfigurationReporter CreateDefault() => new DefaultConfigurationReporter();
 
+        /// <summary>/// Add missing</summary>
         public abstract void AddMissing(string key, string source, params string[] attemptedKeys);
 
+        /// <summary>Add value</summary>
         public abstract void AddValue(string key, string source, string value, string acceptedKey);
 
+        /// <summary>Add manual</summary>
         public abstract void AddManual(string key, string value);
 
+        /// <summary>Report</summary>
         public abstract string Report();
 
         private class DefaultConfigurationReporter : ConfigurationReporter
