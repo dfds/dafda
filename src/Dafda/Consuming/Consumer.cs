@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
@@ -11,7 +12,7 @@ using OpenTelemetry.Context.Propagation;
 
 namespace Dafda.Consuming
 {
-    internal class Consumer
+    internal class Consumer : IConsumer
     {
         private readonly ILogger<Consumer> _logger;
         private readonly IConsumerScopeFactory _consumerScopeFactory;

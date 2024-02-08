@@ -37,7 +37,7 @@ namespace Dafda.Consuming
         public string MessageId
         {
             get => this[MessageEnvelopeProperties.MessageId];
-            internal init => this[MessageEnvelopeProperties.MessageId] = value;
+            init => this[MessageEnvelopeProperties.MessageId] = value;
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Dafda.Consuming
         public string Type
         {
             get => this[MessageEnvelopeProperties.Type];
-            internal init => this[MessageEnvelopeProperties.Type] = value;
+            init => this[MessageEnvelopeProperties.Type] = value;
         }
 
         /// <summary>

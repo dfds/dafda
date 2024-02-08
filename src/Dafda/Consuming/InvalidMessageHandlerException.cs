@@ -8,7 +8,8 @@ namespace Dafda.Consuming
     /// </summary>
     public sealed class InvalidMessageHandlerException : Exception
     {
-        internal InvalidMessageHandlerException(string message) : base(message)
+        /// <summary>Exception constructor</summary>
+        public InvalidMessageHandlerException(string message) : base(message)
         {
         }
     }

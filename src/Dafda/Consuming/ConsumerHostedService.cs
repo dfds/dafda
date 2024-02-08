@@ -2,20 +2,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
+using Dafda.Consuming.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
-    internal class ConsumerHostedService : BackgroundService
+    /// <summary>Hosted service for the consumer</summary>
+    public class ConsumerHostedService : BackgroundService
     {
         private readonly ILogger<ConsumerHostedService> _logger;
         private readonly IHostApplicationLifetime _applicationLifetime;
-        private readonly Consumer _consumer;
+        private readonly IConsumer _consumer;
         private readonly string _groupId;
-        private readonly ConsumerErrorHandler _consumerErrorHandler;
+        private readonly IConsumerErrorHandler _consumerErrorHandler;
 
-        public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IHostApplicationLifetime applicationLifetime, Consumer consumer, string groupId, ConsumerErrorHandler consumerErrorHandler)
+        /// <summary>Ctor</summary>
+        public ConsumerHostedService(ILogger<ConsumerHostedService> logger, IHostApplicationLifetime applicationLifetime, IConsumer consumer, string groupId, IConsumerErrorHandler consumerErrorHandler)
         {
             _logger = logger;
             _applicationLifetime = applicationLifetime;
@@ -24,6 +27,7 @@ namespace Dafda.Consuming
             _consumerErrorHandler = consumerErrorHandler;
         }
 
+        /// <summary>Consume all messges</summary>
         public async Task ConsumeAll(CancellationToken stoppingToken)
         {
             while (true)
@@ -52,6 +56,7 @@ namespace Dafda.Consuming
             }
         }
 
+        /// <summary>Override of ExecuteAsync</summary>
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             return Task.Run(async () => { await ConsumeAll(stoppingToken); }, stoppingToken);
