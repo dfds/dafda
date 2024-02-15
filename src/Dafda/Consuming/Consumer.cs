@@ -21,7 +21,7 @@ namespace Dafda.Consuming
         private readonly MessageFilter _messageFilter;
 
         public Consumer(
-            ILogger<Consumer> logger, 
+            ILogger<Consumer> logger,
             MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory unitOfWorkFactory,
             IConsumerScopeFactory consumerScopeFactory,
@@ -75,20 +75,20 @@ namespace Dafda.Consuming
 
             _logger.LogDebug("Starting new activity Consumer:{ParentActivityId}:{ActivityId}", activity?.ParentId, activity?.Id);
 
-            activity?.SetTag("messaging.system", "kafka");
-            activity?.SetTag("messaging.destination", messageResult.Topic);
-            activity?.SetTag("messaging.destination_kind", "topic");
-            activity?.SetTag("messaging.message_id", message.Metadata.MessageId);
-            activity?.SetTag("messaging.conversation_id", message.Metadata.CorrelationId);
-            //activity?.SetTag("messaging.message_payload_size_bytes", "0");
-            // consumer
-            activity?.SetTag("messaging.operation", "receive");
-            activity?.SetTag("messaging.consumer_id", $"{messageResult.GroupId} - {messageResult.ClientId}");
+            activity?.SetTag(OpenTelemetryMessagingAttributes.SYSTEM, "kafka");
+            activity?.SetTag(OpenTelemetryMessagingAttributes.DESTINATION, messageResult.Topic);
+            activity?.SetTag(OpenTelemetryMessagingAttributes.DESTINATION_KIND, "topic");
+            activity?.SetTag(OpenTelemetryMessagingAttributes.MESSAGE_ID, message.Metadata.MessageId);
+            activity?.SetTag(OpenTelemetryMessagingAttributes.CONVERSATION_ID, message.Metadata.CorrelationId);
+            activity?.SetTag(OpenTelemetryMessagingAttributes.CLIENT_ID, messageResult.ClientId);
+
             // kafka
-            activity?.SetTag("messaging.kafka.message_key", messageResult.PartitionKey);
-            activity?.SetTag("messaging.kafka.consumer_group", messageResult.GroupId);
-            activity?.SetTag("messaging.kafka.client_id", messageResult.ClientId);
-            activity?.SetTag("messaging.kafka.partition", messageResult.Partition);
+            activity?.SetTag(OpenTelemetryMessagingAttributes.KAFKA_MESSAGE_KEY, messageResult.PartitionKey);
+            activity?.SetTag(OpenTelemetryMessagingAttributes.KAFKA_PARTITION, messageResult.Partition);
+
+            // consumer
+            activity?.SetTag(OpenTelemetryMessagingAttributes.KAFKA_CONSUMER_GROUP, messageResult.GroupId);
+            activity?.SetTag(OpenTelemetryMessagingAttributes.OPERATION, "receive");
 
             if (_messageFilter.CanAcceptMessage(messageResult))
                 await _localMessageDispatcher.Dispatch(message);
@@ -109,5 +109,62 @@ namespace Dafda.Consuming
     {
         public static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
         public static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
+    }
+
+    /// <summary>
+    /// Provides the OpenTelemetry messaging attributes.
+    /// The complete list of messaging attributes specification is available here: https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/#messaging-attributes
+    /// </summary>
+    internal static class OpenTelemetryMessagingAttributes
+    {
+        /// <summary>
+        /// Message system. For Kafka, attribute value must be "kafka".
+        /// </summary>
+        public const string SYSTEM = "messaging.system";
+
+        /// <summary>
+        /// Message destination. For Kafka, attribute value must be a Kafka topic.
+        /// </summary>
+        public const string DESTINATION = "messaging.destination";
+
+        /// <summary>
+        /// Destination kind. For Kafka, attribute value must be "topic".
+        /// </summary>
+        public const string DESTINATION_KIND = "messaging.destination_kind";
+
+        /// <summary>
+        /// A value used by the messaging system as an identifier for the message, represented as a string.
+        /// </summary>
+        public const string MESSAGE_ID = "messaging.message.id";
+
+        /// <summary>
+        /// A string identifying the kind of messaging operation
+        /// </summary>
+        public const string OPERATION = "messaging.operation";
+
+        /// <summary>
+        /// The conversation ID identifying the conversation to which the message belongs, represented as a string. Sometimes called “Correlation ID”.
+        /// </summary>
+        public const string CONVERSATION_ID = "messaging.message.conversation_id";
+
+        /// <summary>
+        /// A unique identifier for the client that consumes or produces a message.
+        /// </summary>
+        public const string CLIENT_ID = "messaging.client_id";
+
+        /// <summary>
+        /// Kafka partition number.
+        /// </summary>
+        public const string KAFKA_PARTITION = "messaging.kafka.destination.partition";
+
+        /// <summary>
+        /// Kafka message key.
+        /// </summary>
+        public const string KAFKA_MESSAGE_KEY = "messaging.kafka.message_key";
+
+        /// <summary>
+        /// Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
+        /// </summary>
+        public const string KAFKA_CONSUMER_GROUP = "messaging.kafka.consumer.group";
     }
 }
