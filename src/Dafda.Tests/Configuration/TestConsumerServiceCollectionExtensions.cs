@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
+using Dafda.Diagnostics;
 using Dafda.Serializing;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
@@ -58,7 +59,7 @@ namespace Dafda.Tests.Configuration
         [Fact( /*Skip = "is this relevant for testing these extensions"*/)]
         public async Task Can_consume_message_with_activity()
         {
-            Consumer.Propagator = new CompositeTextMapPropagator(
+            ConsumerActivitySource.Propagator = new CompositeTextMapPropagator(
                 new TextMapPropagator[]
                 {
                     new TraceContextPropagator(),
@@ -140,7 +141,7 @@ namespace Dafda.Tests.Configuration
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId");
             });
-            
+
             var serviceProvider = services.BuildServiceProvider();
             var consumerHostedServices = serviceProvider
                 .GetServices<IHostedService>()
@@ -156,19 +157,19 @@ namespace Dafda.Tests.Configuration
 
             services.AddLogging();
             services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
-            
+
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId 1");
             });
-            
+
             services.AddConsumer(options =>
             {
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId 2");
             });
-            
+
             var serviceProvider = services.BuildServiceProvider();
             var consumerHostedServices = serviceProvider
                 .GetServices<IHostedService>()
