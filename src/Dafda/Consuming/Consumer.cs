@@ -4,21 +4,17 @@ using System.Threading.Tasks;
 using Dafda.Diagnostics;
 using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
-using Microsoft.Extensions.Logging;
 
 namespace Dafda.Consuming
 {
     internal class Consumer : IConsumer
     {
-        private readonly ILogger<Consumer> _logger;
         private readonly IConsumerScopeFactory _consumerScopeFactory;
         private readonly bool _isAutoCommitEnabled;
         private readonly LocalMessageDispatcher _localMessageDispatcher;
         private readonly MessageFilter _messageFilter;
 
-        public Consumer(
-            ILogger<Consumer> logger,
-            MessageHandlerRegistry messageHandlerRegistry,
+        public Consumer(MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory unitOfWorkFactory,
             IConsumerScopeFactory consumerScopeFactory,
             IUnconfiguredMessageHandlingStrategy fallbackHandler,
@@ -30,7 +26,6 @@ namespace Dafda.Consuming
                     messageHandlerRegistry,
                     unitOfWorkFactory,
                     fallbackHandler);
-            _logger = logger;
             _consumerScopeFactory =
                 consumerScopeFactory
                 ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
@@ -58,14 +53,9 @@ namespace Dafda.Consuming
         private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
         {
             var messageResult = await consumerScope.GetNext(cancellationToken);
-
-            using var scope = _logger.BeginScope("{TraceParent}", messageResult.Message.Metadata["traceparent"]);
+            using var activity = ConsumerActivitySource.StartActivity(messageResult);
 
             var message = messageResult.Message;
-            using var activity = ConsumerActivitySource.StartActivity(messageResult);
-            _logger.LogDebug("Starting new activity Consumer:{ParentActivityId}:{ActivityId}", activity?.ParentId,
-                activity?.Id);
-
             if (_messageFilter.CanAcceptMessage(messageResult))
                 await _localMessageDispatcher.Dispatch(message);
 

@@ -64,9 +64,7 @@ namespace Dafda.Configuration
             ConsumerHostedService HostedServiceFactory(IServiceProvider provider) => new ConsumerHostedService(
                 logger: provider.GetRequiredService<ILogger<ConsumerHostedService>>(),
                 applicationLifetime: provider.GetRequiredService<IHostApplicationLifetime>(),
-                consumer: new Consumer(
-                    provider.GetRequiredService<ILogger<Consumer>>(),
-                    configuration.MessageHandlerRegistry,
+                consumer: new Consumer(configuration.MessageHandlerRegistry,
                     provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
                     configuration.ConsumerScopeFactory(provider),
                     provider.GetRequiredService<IUnconfiguredMessageHandlingStrategy>(),
