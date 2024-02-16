@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Dafda.Configuration;
 using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
+using Dafda.Serializing;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -69,31 +71,14 @@ namespace Dafda.Consuming
             var parentContext = Propagator.Extract(default, message.Metadata, ExtractFromMetadata);
             Baggage.Current = parentContext.Baggage;
 
-            _logger.LogDebug("Extracted ActivityContext: {@ActivityContext}", parentContext.ActivityContext);
-
-            using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{messageResult.Topic} receive", ActivityKind.Consumer, parentContext.ActivityContext);
-
+            using var activity = DafdaActivitySource.Consumer.StartActivity(messageResult, parentContext.ActivityContext);
             _logger.LogDebug("Starting new activity Consumer:{ParentActivityId}:{ActivityId}", activity?.ParentId, activity?.Id);
-
-            activity?.SetTag(OpenTelemetryMessagingAttributes.SYSTEM, "kafka");
-            activity?.SetTag(OpenTelemetryMessagingAttributes.DESTINATION, messageResult.Topic);
-            activity?.SetTag(OpenTelemetryMessagingAttributes.DESTINATION_KIND, "topic");
-            activity?.SetTag(OpenTelemetryMessagingAttributes.MESSAGE_ID, message.Metadata.MessageId);
-            activity?.SetTag(OpenTelemetryMessagingAttributes.CONVERSATION_ID, message.Metadata.CorrelationId);
-            activity?.SetTag(OpenTelemetryMessagingAttributes.CLIENT_ID, messageResult.ClientId);
-
-            // kafka
-            activity?.SetTag(OpenTelemetryMessagingAttributes.KAFKA_MESSAGE_KEY, messageResult.PartitionKey);
-            activity?.SetTag(OpenTelemetryMessagingAttributes.KAFKA_PARTITION, messageResult.Partition);
-
-            // consumer
-            activity?.SetTag(OpenTelemetryMessagingAttributes.KAFKA_CONSUMER_GROUP, messageResult.GroupId);
-            activity?.SetTag(OpenTelemetryMessagingAttributes.OPERATION, "receive");
 
             if (_messageFilter.CanAcceptMessage(messageResult))
                 await _localMessageDispatcher.Dispatch(message);
 
-            if (!_isAutoCommitEnabled) await messageResult.Commit();
+            if (!_isAutoCommitEnabled)
+                await messageResult.Commit();
         }
 
         public static TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
@@ -109,62 +94,96 @@ namespace Dafda.Consuming
     {
         public static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
         public static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    }
 
-    /// <summary>
-    /// Provides the OpenTelemetry messaging attributes.
-    /// The complete list of messaging attributes specification is available here: https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/#messaging-attributes
-    /// </summary>
-    internal static class OpenTelemetryMessagingAttributes
-    {
-        /// <summary>
-        /// Message system. For Kafka, attribute value must be "kafka".
-        /// </summary>
-        public const string SYSTEM = "messaging.system";
+        public static readonly IActivityBuilder<MessageResult> Consumer = new ConsumerActivityBuilder();
 
-        /// <summary>
-        /// Message destination. For Kafka, attribute value must be a Kafka topic.
-        /// </summary>
-        public const string DESTINATION = "messaging.destination";
+        private const string MessagingSystem = "kafka";
+        private const string DestinationKind = "topic";
+        private const string OperationReceive = "receive";
+        private const string OperationPublish = "publish";
 
-        /// <summary>
-        /// Destination kind. For Kafka, attribute value must be "topic".
-        /// </summary>
-        public const string DESTINATION_KIND = "messaging.destination_kind";
+        internal interface IActivityBuilder<in T>
+        {
+            Activity StartActivity(T data, ActivityContext parentContext);
+        }
 
-        /// <summary>
-        /// A value used by the messaging system as an identifier for the message, represented as a string.
-        /// </summary>
-        public const string MESSAGE_ID = "messaging.message.id";
+        internal class ConsumerActivityBuilder : IActivityBuilder<MessageResult>
+        {
+            private const string ConsumerActivityNameSuffix = "receive";
 
-        /// <summary>
-        /// A string identifying the kind of messaging operation
-        /// </summary>
-        public const string OPERATION = "messaging.operation";
+            public Activity StartActivity(MessageResult data, ActivityContext parentContext)
+            {
+                return ActivitySource
+                    .StartActivity($"{data.Topic} {ConsumerActivityNameSuffix}", ActivityKind.Consumer, parentContext)
+                    .AddDefaultOpenTelemetryTags(
+                        topicName: data.Topic,
+                        messageId: data.Message.Metadata.MessageId,
+                        conversationId : data.Message.Metadata.CorrelationId,
+                        clientId: data.ClientId,
+                        partitionKey: data.PartitionKey,
+                        partition: data.Partition)
+                    .AddConsumerOpenTelemetryTags(
+                        groupId: data.GroupId);
+            }
 
-        /// <summary>
-        /// The conversation ID identifying the conversation to which the message belongs, represented as a string. Sometimes called “Correlation ID”.
-        /// </summary>
-        public const string CONVERSATION_ID = "messaging.message.conversation_id";
+        }
 
-        /// <summary>
-        /// A unique identifier for the client that consumes or produces a message.
-        /// </summary>
-        public const string CLIENT_ID = "messaging.client_id";
+        internal class ProducerActivityBuilder : IActivityBuilder<PayloadDescriptor>
+        {
+            private const string ProducerActivityNameSuffix = "send";
 
-        /// <summary>
-        /// Kafka partition number.
-        /// </summary>
-        public const string KAFKA_PARTITION = "messaging.kafka.destination.partition";
+            public Activity StartActivity(PayloadDescriptor data, ActivityContext parentContext)
+            {
+                return ActivitySource
+                    .StartActivity($"{data.TopicName} {ProducerActivityNameSuffix}", ActivityKind.Producer,
+                        parentContext)
+                    .AddDefaultOpenTelemetryTags(
+                        topicName: data.TopicName,
+                        messageId: data.MessageId,
+                        conversationId: "",
+                        clientId: data.ClientId,
+                        partitionKey: data.PartitionKey,
+                        partition: 0)
+                    .AddProducerOpenTelemetryTags();
+            }
+        }
 
-        /// <summary>
-        /// Kafka message key.
-        /// </summary>
-        public const string KAFKA_MESSAGE_KEY = "messaging.kafka.message_key";
+        private static Activity AddDefaultOpenTelemetryTags(this Activity activity,
+            string topicName,
+            string messageId,
+            string conversationId,
+            string clientId,
+            string partitionKey,
+            int partition)
+        {
+            // messaging tags
+            activity.SetTag(OpenTelemetryMessagingAttributes.SYSTEM, MessagingSystem);
+            activity.SetTag(OpenTelemetryMessagingAttributes.DESTINATION_KIND, DestinationKind);
 
-        /// <summary>
-        /// Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
-        /// </summary>
-        public const string KAFKA_CONSUMER_GROUP = "messaging.kafka.consumer.group";
+            activity.SetTag(OpenTelemetryMessagingAttributes.DESTINATION, topicName);
+            activity.SetTag(OpenTelemetryMessagingAttributes.MESSAGE_ID, messageId);
+            activity.SetTag(OpenTelemetryMessagingAttributes.CONVERSATION_ID, conversationId);
+            activity.SetTag(OpenTelemetryMessagingAttributes.CLIENT_ID, clientId);
+
+            // kafka specific tags
+            activity.SetTag(OpenTelemetryMessagingAttributes.KAFKA_MESSAGE_KEY, partitionKey);
+            activity.SetTag(OpenTelemetryMessagingAttributes.KAFKA_PARTITION, partition);
+
+            return activity;
+        }
+
+
+        public static Activity AddConsumerOpenTelemetryTags(this Activity activity, string groupId)
+        {
+            activity.SetTag(OpenTelemetryMessagingAttributes.KAFKA_CONSUMER_GROUP, groupId);
+            activity.SetTag(OpenTelemetryMessagingAttributes.OPERATION, OperationReceive);
+            return activity;
+        }
+
+        public static Activity AddProducerOpenTelemetryTags(this Activity activity)
+        {
+            activity.SetTag(OpenTelemetryMessagingAttributes.OPERATION, OperationPublish);
+            return activity;
+        }
     }
 }
