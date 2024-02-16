@@ -26,12 +26,13 @@ namespace Dafda.Producing
 
         public async Task Produce(PayloadDescriptor payloadDescriptor)
         {
-            using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{payloadDescriptor.TopicName} send", ActivityKind.Producer);
+            // TODO: Add activity source
+            // using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{payloadDescriptor.TopicName} send", ActivityKind.Producer);
 
-            _logger.LogDebug("Starting new activity Producer:{ParentActivityId}:{ActivityId}", activity?.ParentId, activity?.Id);
+            // _logger.LogDebug("Starting new activity Producer:{ParentActivityId}:{ActivityId}", activity?.ParentId, activity?.Id);
 
             var serializer = _payloadSerializerRegistry.Get(payloadDescriptor.TopicName);
-            
+
             await InternalProduce(
                 topic: payloadDescriptor.TopicName,
                 key: payloadDescriptor.PartitionKey,
