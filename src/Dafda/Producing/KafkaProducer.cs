@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Dafda.Consuming;
+using Dafda.Diagnostics;
 using Dafda.Serializing;
 using Microsoft.Extensions.Logging;
 
@@ -26,11 +27,6 @@ namespace Dafda.Producing
 
         public async Task Produce(PayloadDescriptor payloadDescriptor)
         {
-            // TODO: Add activity source
-            // using var activity = DafdaActivitySource.ActivitySource.StartActivity($"{payloadDescriptor.TopicName} send", ActivityKind.Producer);
-
-            // _logger.LogDebug("Starting new activity Producer:{ParentActivityId}:{ActivityId}", activity?.ParentId, activity?.Id);
-
             var serializer = _payloadSerializerRegistry.Get(payloadDescriptor.TopicName);
 
             await InternalProduce(
@@ -51,7 +47,7 @@ namespace Dafda.Producing
                     message: new Message<string, string>
                     {
                         Key = key,
-                        Value = value
+                        Value = value,
                     }
                 );
             }
