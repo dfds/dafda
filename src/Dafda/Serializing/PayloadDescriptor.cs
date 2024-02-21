@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dafda.Serializing
 {
@@ -9,6 +10,9 @@ namespace Dafda.Serializing
     /// </summary>
     public sealed class PayloadDescriptor
     {
+
+        private readonly IDictionary<string, string> _headers;
+
         /// <summary>
         /// Initialize an instance of the <see cref="PayloadDescriptor"/>
         /// </summary>
@@ -25,7 +29,8 @@ namespace Dafda.Serializing
             PartitionKey = partitionKey;
             MessageType = messageType;
             MessageData = messageData;
-            MessageHeaders = messageHeaders;
+
+            _headers = messageHeaders.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         /// <summary>
@@ -51,7 +56,9 @@ namespace Dafda.Serializing
         /// <summary>
         /// The list of headers
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> MessageHeaders { get; private set; }
+        public IEnumerable<KeyValuePair<string, string>> MessageHeaders => _headers
+            .ToList()
+            .AsReadOnly();
 
         /// <summary>
         /// The message
@@ -59,5 +66,10 @@ namespace Dafda.Serializing
         public object MessageData { get; private set; }
 
         internal string ClientId { get; set; }
+
+        internal void AddHeader(string key, string value)
+        {
+            _headers[key] = value;
+        }
     }
 }
