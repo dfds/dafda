@@ -22,7 +22,7 @@ namespace Dafda.Consuming
             _incomingMessageFactory = incomingMessageFactory;
             _readFromBeginning = readFromBeginning;
         }
-        
+
         public ConsumerScope CreateConsumerScope()
         {
             var consumerBuilder = new ConsumerBuilder<string, string>(_configuration);
@@ -34,7 +34,8 @@ namespace Dafda.Consuming
             var consumer = consumerBuilder.Build();
             consumer.Subscribe(_topics);
 
-            var groupId = _configuration.FirstOrDefault(x => x.Key==ConfigurationKey.GroupId).Value;
+            // at this stage, groupId must be present in the configuration
+            var groupId = _configuration.First(x => x.Key == ConfigurationKey.GroupId).Value;
             return new KafkaConsumerScope(_loggerFactory, consumer, _incomingMessageFactory, groupId);
         }
     }

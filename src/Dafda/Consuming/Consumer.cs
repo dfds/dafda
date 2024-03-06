@@ -35,19 +35,17 @@ namespace Dafda.Consuming
 
         public async Task ConsumeAll(CancellationToken cancellationToken)
         {
-            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
+            using var consumerScope = _consumerScopeFactory.CreateConsumerScope();
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (!cancellationToken.IsCancellationRequested)
-                    await ProcessNextMessage(consumerScope, cancellationToken);
+                await ProcessNextMessage(consumerScope, cancellationToken);
             }
         }
 
         public async Task ConsumeSingle(CancellationToken cancellationToken)
         {
-            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
-            {
-                await ProcessNextMessage(consumerScope, cancellationToken);
-            }
+            using var consumerScope = _consumerScopeFactory.CreateConsumerScope();
+            await ProcessNextMessage(consumerScope, cancellationToken);
         }
 
         private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
@@ -55,12 +53,15 @@ namespace Dafda.Consuming
             var messageResult = await consumerScope.GetNext(cancellationToken);
             using var activity = ConsumerActivitySource.StartActivity(messageResult);
 
-            var message = messageResult.Message;
             if (_messageFilter.CanAcceptMessage(messageResult))
-                await _localMessageDispatcher.Dispatch(message);
+            {
+                await _localMessageDispatcher.Dispatch(messageResult.Message);
+            }
 
             if (!_isAutoCommitEnabled)
+            {
                 await messageResult.Commit();
+            }
         }
     }
 }

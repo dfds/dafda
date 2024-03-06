@@ -64,7 +64,8 @@ namespace Dafda.Tests.Builders
         }
 
         public Consumer Build() =>
-            new Consumer(_registry,
+            new Consumer(
+                _registry,
                 _unitOfWorkFactory,
                 _consumerScopeFactory,
                 _unconfiguredMessageStrategy,
