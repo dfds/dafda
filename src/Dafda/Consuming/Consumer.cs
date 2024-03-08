@@ -14,7 +14,8 @@ namespace Dafda.Consuming
         private readonly LocalMessageDispatcher _localMessageDispatcher;
         private readonly MessageFilter _messageFilter;
 
-        public Consumer(MessageHandlerRegistry messageHandlerRegistry,
+        public Consumer(
+            MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory unitOfWorkFactory,
             IConsumerScopeFactory consumerScopeFactory,
             IUnconfiguredMessageHandlingStrategy fallbackHandler,
