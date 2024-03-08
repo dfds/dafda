@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using OpenTelemetry;
-using OpenTelemetry.Context.Propagation;
 
 namespace Dafda.Serializing
 {

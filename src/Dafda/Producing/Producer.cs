@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Dafda.Consuming;
 using Dafda.Diagnostics;
 
@@ -41,7 +40,7 @@ namespace Dafda.Producing
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);
             payloadDescriptor.ClientId = _kafkaProducer.ClientId;
-            
+
             using var activity = ProducerActivitySource.StartActivity(payloadDescriptor);
 
             await _kafkaProducer.Produce(payloadDescriptor);

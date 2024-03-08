@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Diagnostics;
-using Dafda.Serializing;
 using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
 using OpenTelemetry;

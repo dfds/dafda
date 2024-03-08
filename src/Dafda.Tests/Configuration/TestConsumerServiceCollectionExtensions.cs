@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
 using Dafda.Diagnostics;
-using Dafda.Serializing;
 using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;

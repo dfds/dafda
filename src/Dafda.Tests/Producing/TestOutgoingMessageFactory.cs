@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
 using Xunit;
