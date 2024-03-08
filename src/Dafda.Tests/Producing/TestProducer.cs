@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Diagnostics;
 using Dafda.Serializing;
 using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
@@ -93,7 +94,7 @@ namespace Dafda.Tests.Producing
         public async Task produces_message_with_expected_serialized_value()
         {
             var expectedValue = "foo-value";
-            
+
             var spy = new KafkaProducerSpy(new PayloadSerializerStub(expectedValue));
 
             var sut = A.Producer
@@ -200,7 +201,7 @@ namespace Dafda.Tests.Producing
                 )
                 .Build();
 
-            await sut.Produce( 
+            await sut.Produce(
                 message: new Message { Id = expectedKey },
                 headers: new Metadata
                 {
@@ -235,7 +236,7 @@ namespace Dafda.Tests.Producing
                 })
             );
 
- 
+
             var expected = @"
                             {
                             ""messageId"":""1"",
@@ -253,7 +254,7 @@ namespace Dafda.Tests.Producing
         [Fact]
         public async Task produces_expected_message_without_headers_using_default_serializer_and_activity_source()
         {
-            DefaultPayloadSerializer.Propagator = new CompositeTextMapPropagator(
+            ProducerActivitySource.Propagator = new CompositeTextMapPropagator(
                 new TextMapPropagator[]
                 {
                     new TraceContextPropagator(),
@@ -295,7 +296,7 @@ namespace Dafda.Tests.Producing
                                 ""type"":""bar"",
                                 ""causationId"":""1"",
                                 ""correlationId"":""1"",
-                                ""traceparent"":""{spy.ActivityId}"",
+                                ""traceparent"":""{spy.ProducerActivityId}"",
                                 ""baggage"":""som=der"",
                                 ""data"":{{
                                     ""id"":""dummyId""

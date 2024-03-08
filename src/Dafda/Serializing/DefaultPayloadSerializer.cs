@@ -45,7 +45,7 @@ namespace Dafda.Serializing
 
         private object ConvertToMessagePayload(PayloadDescriptor descriptor)
         {
-            // NOTE: due to a bug in system.text.json an additional conversion 
+            // NOTE: due to a bug in system.text.json an additional conversion
             // is made to have proper dictionary key casing - on envelope keys only though!
             // For reference: https://github.com/dotnet/runtime/issues/31849
 
@@ -72,35 +72,9 @@ namespace Dafda.Serializing
                 envelope.Add(MakeKeyFrom(key), value);
             }
 
-            ActivityContext context = default;
-            Activity activity = Activity.Current;
-            if (activity != null)
-            {
-                context = activity.Context;
-            }
-
-            Propagator.Inject(new PropagationContext(context, Baggage.Current), envelope, InjectMetadata);
-
-            activity?.SetTag("messaging.system", "kafka");
-            activity?.SetTag("messaging.destination", descriptor.TopicName);
-            activity?.SetTag("messaging.destination_kind", "topic");
-            activity?.SetTag("messaging.message_id", descriptor.MessageId);
-            //activity?.SetTag("messaging.message_payload_size_bytes", "0");
-            // kafka
-            activity?.SetTag("messaging.kafka.message_key", descriptor.PartitionKey);
-            activity?.SetTag("messaging.kafka.client_id", descriptor.ClientId);
-
             envelope.Add(MakeKeyFrom("Data"), descriptor.MessageData);
 
             return envelope;
         }
-
-        private static void InjectMetadata(Dictionary<string, object> headers, string key, string value)
-        {
-            headers[key] = value;
-        }
-
-
-        internal static TextMapPropagator Propagator { get; set; }= Propagators.DefaultTextMapPropagator;
     }
 }

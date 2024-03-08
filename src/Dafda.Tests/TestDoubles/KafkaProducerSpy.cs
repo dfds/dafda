@@ -31,7 +31,7 @@ namespace Dafda.Tests.TestDoubles
             Key = key;
             Value = value;
 
-            ActivityId = Activity.Current?.Id;
+            ProducerActivityId = Activity.Current?.Parent?.Id;
 
             return Task.CompletedTask;
         }
@@ -48,6 +48,6 @@ namespace Dafda.Tests.TestDoubles
         public string Key { get; private set; }
         public string Value { get; private set; }
 
-        public string ActivityId { get; private set; }
+        public string ProducerActivityId { get; private set; }
     }
 }
