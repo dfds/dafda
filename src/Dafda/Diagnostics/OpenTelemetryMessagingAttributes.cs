@@ -1,13 +1,4 @@
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using Confluent.Kafka;
-using Dafda.Consuming;
-using Dafda.Producing;
-using Dafda.Serializing;
-using OpenTelemetry;
-using OpenTelemetry.Context.Propagation;
-using Metadata = Dafda.Consuming.Metadata;
 
 namespace Dafda.Diagnostics;
 
@@ -61,71 +52,4 @@ internal static class OpenTelemetryMessagingAttributes
     /// Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
     /// </summary>
     public const string KafkaConsumerGroup = "messaging.kafka.consumer.group";
-}
-
-internal static class ConsumerActivitySource
-{
-    private const string ActivityNameSuffix = "receive";
-
-    private static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
-    private static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    public static TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
-
-    public static Activity StartActivity(MessageResult @event)
-    {
-        // Extract the context injected in the metadata by the publisher
-        var message = @event.Message;
-        var parentContext = Propagator.Extract(default, message.Metadata, ExtractFromMetadata);
-
-        // Inject extracted info into current context
-        Baggage.Current = parentContext.Baggage;
-
-        // Start the activity
-        return ActivitySource.StartActivity($"{@event.Topic} {ActivityNameSuffix}", ActivityKind.Consumer, parentContext.ActivityContext)
-            .AddDefaultOpenTelemetryTags(
-                topicName: @event.Topic,
-                messageId: @event.Message.Metadata.MessageId,
-                clientId: @event.ClientId,
-                partitionKey: @event.PartitionKey,
-                partition: @event.Partition)
-            .AddConsumerOpenTelemetryTags(
-                groupId: @event.GroupId);
-    }
-
-    private static IEnumerable<string> ExtractFromMetadata(Metadata metadata, string key)
-    {
-        yield return metadata[key];
-    }
-}
-
-internal static class ProducerActivitySource
-{
-    private const string ActivityNameSuffix = "send";
-    private static readonly AssemblyName AssemblyName = typeof(KafkaProducer).Assembly.GetName();
-    private static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    public static TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
-
-    public static Activity StartActivity(PayloadDescriptor payloadDescriptor)
-    {
-        // Extract the current activity context
-        var contextToInject = Activity.Current?.Context
-                              ?? default;
-
-        // Inject the current context into the message headers
-        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), payloadDescriptor, InjectTraceContext);
-
-        // Start the activity
-        return ActivitySource.StartActivity($"{payloadDescriptor.TopicName} {ActivityNameSuffix}", ActivityKind.Producer)
-            .AddDefaultOpenTelemetryTags(
-                topicName: payloadDescriptor.TopicName,
-                messageId: payloadDescriptor.MessageId,
-                clientId: payloadDescriptor.ClientId,
-                partitionKey: payloadDescriptor.PartitionKey)
-            .AddProducerOpenTelemetryTags();
-    }
-
-    private static void InjectTraceContext(PayloadDescriptor descriptor, string key, string value)
-    {
-        descriptor.AddHeader(key, value);
-    }
 }
