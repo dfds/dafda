@@ -28,17 +28,17 @@ internal static class OpenTelemetryActivityExtensions
             return null;
 
         // messaging tags
-        activity.SetTag(OpenTelemetryMessagingAttributes.SYSTEM, Messaging.System);
-        activity.SetTag(OpenTelemetryMessagingAttributes.DESTINATION_KIND, Messaging.DestinationKind);
+        activity.SetTag(OpenTelemetryMessagingAttributes.System, Messaging.System);
+        activity.SetTag(OpenTelemetryMessagingAttributes.DestinationKind, Messaging.DestinationKind);
 
-        activity.SetTag(OpenTelemetryMessagingAttributes.DESTINATION, topicName);
-        activity.SetTag(OpenTelemetryMessagingAttributes.MESSAGE_ID, messageId);
-        activity.SetTag(OpenTelemetryMessagingAttributes.CLIENT_ID, clientId);
+        activity.SetTag(OpenTelemetryMessagingAttributes.Destination, topicName);
+        activity.SetTag(OpenTelemetryMessagingAttributes.MessageId, messageId);
+        activity.SetTag(OpenTelemetryMessagingAttributes.ClientId, clientId);
 
         // kafka specific tags
-        activity.SetTag(OpenTelemetryMessagingAttributes.KAFKA_MESSAGE_KEY, partitionKey);
+        activity.SetTag(OpenTelemetryMessagingAttributes.KafkaMessageKey, partitionKey);
         if (partition.HasValue)
-            activity.SetTag(OpenTelemetryMessagingAttributes.KAFKA_PARTITION, partition);
+            activity.SetTag(OpenTelemetryMessagingAttributes.KafkaPartition, partition);
 
         return activity;
     }
@@ -48,8 +48,8 @@ internal static class OpenTelemetryActivityExtensions
         if (activity == null)
             return null;
 
-        activity.SetTag(OpenTelemetryMessagingAttributes.KAFKA_CONSUMER_GROUP, groupId);
-        activity.SetTag(OpenTelemetryMessagingAttributes.OPERATION, Operation.Receive);
+        activity.SetTag(OpenTelemetryMessagingAttributes.KafkaConsumerGroup, groupId);
+        activity.SetTag(OpenTelemetryMessagingAttributes.Operation, Operation.Receive);
         return activity;
     }
 
@@ -58,7 +58,7 @@ internal static class OpenTelemetryActivityExtensions
         if (activity == null)
             return null;
 
-        activity.SetTag(OpenTelemetryMessagingAttributes.OPERATION, Operation.Publish);
+        activity.SetTag(OpenTelemetryMessagingAttributes.Operation, Operation.Publish);
         return activity;
     }
 }
