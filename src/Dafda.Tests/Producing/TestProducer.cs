@@ -252,7 +252,7 @@ namespace Dafda.Tests.Producing
         }
 
         [Fact]
-        public async Task produces_expected_message_without_headers_using_default_serializer_and_activity_source()
+        public async Task produces_message_with_traceparent_and_baggage_propagation_in_header()
         {
             ProducerActivitySource.Propagator = new CompositeTextMapPropagator(
                 new TextMapPropagator[]
