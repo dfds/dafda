@@ -78,7 +78,7 @@ namespace Dafda.Consuming
                 _metadata.TryGetValue(key, out var value);
                 return value;
             }
-            private set => _metadata[key] = value;
+            internal set => _metadata[key] = value;
         }
 
         /// <summary>
