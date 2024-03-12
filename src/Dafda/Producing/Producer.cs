@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Consuming;
+using Dafda.Diagnostics;
 
 namespace Dafda.Producing
 {
@@ -20,7 +21,7 @@ namespace Dafda.Producing
         }
 
         internal string Name { get; set; } = "__Default Producer__";
-        
+
         /// <summary>
         /// Produce a <paramref name="message"/> on Kafka
         /// </summary>
@@ -38,6 +39,9 @@ namespace Dafda.Producing
         public async Task Produce(object message, Metadata headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);
+            payloadDescriptor.ClientId = _kafkaProducer.ClientId;
+            using var activity = ProducerActivitySource.StartActivity(payloadDescriptor);
+
             await _kafkaProducer.Produce(payloadDescriptor);
         }
 
@@ -71,6 +75,9 @@ namespace Dafda.Producing
         public async Task Produce(object message, MessageHandlerContext context, Dictionary<string, string> headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, context, headers);
+            payloadDescriptor.ClientId = _kafkaProducer.ClientId;
+            using var activity = ProducerActivitySource.StartActivity(payloadDescriptor);
+
             await _kafkaProducer.Produce(payloadDescriptor);
         }
     }

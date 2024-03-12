@@ -20,10 +20,12 @@ namespace Dafda.Producing
             _innerKafkaProducer = new ProducerBuilder<string, string>(configuration).Build();
         }
 
+        public string ClientId => _innerKafkaProducer.Name;
+
         public async Task Produce(PayloadDescriptor payloadDescriptor)
         {
             var serializer = _payloadSerializerRegistry.Get(payloadDescriptor.TopicName);
-            
+
             await InternalProduce(
                 topic: payloadDescriptor.TopicName,
                 key: payloadDescriptor.PartitionKey,
