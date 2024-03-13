@@ -49,3 +49,4 @@ pages:
   - consumer.md
   - producer.md
   - outbox.md
+  - tracing.md
