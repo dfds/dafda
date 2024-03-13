@@ -14,7 +14,7 @@ namespace Dafda.Tests.Builders
             _data = null;
         }
 
-        public TransportLevelMessageBuilder WithType(string type)
+        public TransportLevelMessageBuilder WithType(string type, string traceparent = null, string tracestate = null)
         {
             _metadata = new Metadata()
             {
@@ -22,6 +22,10 @@ namespace Dafda.Tests.Builders
                 CorrelationId = "foo-correlation-id",
                 Type = type
             };
+
+            _metadata["traceparent"] = traceparent;
+            _metadata["tracestate"] = tracestate;
+
             return this;
         }
 
