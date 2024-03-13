@@ -14,7 +14,7 @@ namespace Dafda.Tests.Builders
             _data = null;
         }
 
-        public TransportLevelMessageBuilder WithType(string type, string traceparent = null, string tracestate = null)
+        public TransportLevelMessageBuilder WithType(string type, string traceparent = null, string baggage = null)
         {
             _metadata = new Metadata()
             {
@@ -23,8 +23,8 @@ namespace Dafda.Tests.Builders
                 Type = type
             };
 
-            _metadata["traceparent"] = traceparent;
-            _metadata["tracestate"] = tracestate;
+            _metadata[nameof(traceparent)] = traceparent;
+            _metadata[nameof(baggage)] = baggage;
 
             return this;
         }
