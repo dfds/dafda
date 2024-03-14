@@ -55,9 +55,7 @@ namespace Dafda.Serializing
         /// <summary>
         /// The list of headers
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> MessageHeaders  => _headers
-            .ToList()
-            .AsReadOnly();
+        public IEnumerable<KeyValuePair<string, string>> MessageHeaders  => _headers;
 
         /// <summary>
         /// The message
