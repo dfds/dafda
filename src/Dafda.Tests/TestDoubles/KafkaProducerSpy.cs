@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Producing;
@@ -29,6 +30,7 @@ namespace Dafda.Tests.TestDoubles
             Topic = topic;
             Key = key;
             Value = value;
+            ProducerActivityId = Activity.Current?.Parent?.Id;
 
             return Task.CompletedTask;
         }
@@ -44,5 +46,6 @@ namespace Dafda.Tests.TestDoubles
         public string Topic { get; private set; }
         public string Key { get; private set; }
         public string Value { get; private set; }
+        public string ProducerActivityId { get; private set; }
     }
 }

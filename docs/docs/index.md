@@ -14,4 +14,5 @@ __Dafda__ is a small Kafka client library for .NET that provides some high-level
 * Consumer messages are consumed in the background using hosted services.
 * Multiple consumers supported, which can be configured independently.
 * Extendable Outbox pattern implementation.
+* Supports Tracing according to the [OpenTelemetry Messaging Semantic Convention](https://opentelemetry.io/docs/specs/semconv/messaging/kafka/)
 

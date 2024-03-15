@@ -6,6 +6,9 @@ using Dafda.Consuming;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Tester
 {
@@ -13,6 +16,16 @@ namespace Tester
     {
         public static async Task Main(string[] args)
         {
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Tester"))
+                .AddSource("Dafda")
+                .AddConsoleExporter()
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri("http://localhost:4317");
+                })
+                .Build();
+
             var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await CreateHostBuilder(args).Build().RunAsync(tokenSource.Token);
         }

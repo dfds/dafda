@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
+using Dafda.Diagnostics;
 
 namespace Dafda.Consuming
 {
@@ -55,6 +56,7 @@ namespace Dafda.Consuming
         private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
         {
             var messageResult = await consumerScope.GetNext(cancellationToken);
+            using var activity = ConsumerActivitySource.StartActivity(messageResult);
 
             if(_messageFilter.CanAcceptMessage(messageResult))
             {
