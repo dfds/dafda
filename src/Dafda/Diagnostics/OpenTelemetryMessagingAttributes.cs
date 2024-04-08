@@ -12,21 +12,6 @@ internal static class OpenTelemetryMessagingAttributes
     public const string System = "messaging.system";
 
     /// <summary>
-    /// Message destination. For Kafka, attribute value must be a Kafka topic.
-    /// </summary>
-    public const string Destination = "messaging.destination";
-
-    /// <summary>
-    /// Destination kind. For Kafka, attribute value must be "topic".
-    /// </summary>
-    public const string DestinationKind = "messaging.destination_kind";
-
-    /// <summary>
-    /// A value used by the messaging system as an identifier for the message, represented as a string.
-    /// </summary>
-    public const string MessageId = "messaging.message.id";
-
-    /// <summary>
     /// A string identifying the kind of messaging operation
     /// </summary>
     public const string Operation = "messaging.operation";
@@ -37,17 +22,33 @@ internal static class OpenTelemetryMessagingAttributes
     public const string ClientId = "messaging.client_id";
 
     /// <summary>
-    /// Kafka partition number.
+    /// A value used by the messaging system as an identifier for the message, represented as a string.
     /// </summary>
-    public const string KafkaPartition = "messaging.kafka.destination.partition";
+    public const string MessageId = "messaging.message.id";
 
     /// <summary>
-    /// Kafka message key.
+    /// Message destination. For Kafka, attribute value must be a Kafka topic.
     /// </summary>
-    public const string KafkaMessageKey = "messaging.kafka.message_key";
+    public const string DestinationName = "messaging.destination.name";
 
     /// <summary>
-    /// Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
+    /// Kafka specific attributes.
     /// </summary>
-    public const string KafkaConsumerGroup = "messaging.kafka.consumer.group";
+    internal static class Kafka
+    {
+        /// <summary>
+        /// Partition (int) the message is sent to.
+        /// </summary>
+        public const string Partition = "messaging.kafka.destination.partition";
+
+        /// <summary>
+        /// Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
+        /// </summary>
+        public const string ConsumerGroup = "messaging.kafka.consumer.group";
+
+        /// <summary>
+        /// Kafka message key. Message keys in Kafka are used for grouping alike messages to ensure they’re processed on the same partition. They differ from messaging.message.id in that they’re not unique
+        /// </summary>
+        public const string MessageKey = "messaging.kafka.message.key";
+    }
 }

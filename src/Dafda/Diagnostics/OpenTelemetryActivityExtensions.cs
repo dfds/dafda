@@ -7,7 +7,6 @@ internal static class OpenTelemetryActivityExtensions
     private static class Messaging
     {
         public const string System = "kafka";
-        public const string DestinationKind = "topic";
     }
 
     private static class Operation
@@ -17,7 +16,7 @@ internal static class OpenTelemetryActivityExtensions
     }
 
     public static Activity AddDefaultOpenTelemetryTags(this Activity activity,
-        string topicName,
+        string destinationName,
         string messageId,
         string clientId,
         string partitionKey,
@@ -29,16 +28,14 @@ internal static class OpenTelemetryActivityExtensions
 
         // messaging tags
         activity.SetTag(OpenTelemetryMessagingAttributes.System, Messaging.System);
-        activity.SetTag(OpenTelemetryMessagingAttributes.DestinationKind, Messaging.DestinationKind);
-
-        activity.SetTag(OpenTelemetryMessagingAttributes.Destination, topicName);
+        activity.SetTag(OpenTelemetryMessagingAttributes.DestinationName, destinationName);
         activity.SetTag(OpenTelemetryMessagingAttributes.MessageId, messageId);
         activity.SetTag(OpenTelemetryMessagingAttributes.ClientId, clientId);
 
         // kafka specific tags
-        activity.SetTag(OpenTelemetryMessagingAttributes.KafkaMessageKey, partitionKey);
+        activity.SetTag(OpenTelemetryMessagingAttributes.Kafka.MessageKey, partitionKey);
         if (partition.HasValue)
-            activity.SetTag(OpenTelemetryMessagingAttributes.KafkaPartition, partition);
+            activity.SetTag(OpenTelemetryMessagingAttributes.Kafka.Partition, partition);
 
         return activity;
     }
@@ -48,7 +45,7 @@ internal static class OpenTelemetryActivityExtensions
         if (activity == null)
             return null;
 
-        activity.SetTag(OpenTelemetryMessagingAttributes.KafkaConsumerGroup, groupId);
+        activity.SetTag(OpenTelemetryMessagingAttributes.Kafka.ConsumerGroup, groupId);
         activity.SetTag(OpenTelemetryMessagingAttributes.Operation, Operation.Receive);
         return activity;
     }

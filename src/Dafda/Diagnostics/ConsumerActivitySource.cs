@@ -27,7 +27,7 @@ internal static class ConsumerActivitySource
         // Start the activity
         return ActivitySource.StartActivity($"{@event.Topic} {ActivityNameSuffix}", ActivityKind.Consumer, parentContext.ActivityContext)
             .AddDefaultOpenTelemetryTags(
-                topicName: @event.Topic,
+                destinationName: @event.Topic,
                 messageId: @event.Message.Metadata.MessageId,
                 clientId: @event.ClientId,
                 partitionKey: @event.PartitionKey,

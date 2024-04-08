@@ -26,7 +26,7 @@ internal static class ProducerActivitySource
         // Start the activity
         return ActivitySource.StartActivity($"{payloadDescriptor.TopicName} {ActivityNameSuffix}", ActivityKind.Producer)
             .AddDefaultOpenTelemetryTags(
-                topicName: payloadDescriptor.TopicName,
+                destinationName: payloadDescriptor.TopicName,
                 messageId: payloadDescriptor.MessageId,
                 clientId: payloadDescriptor.ClientId,
                 partitionKey: payloadDescriptor.PartitionKey)
