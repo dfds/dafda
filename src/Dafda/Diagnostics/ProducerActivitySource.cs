@@ -23,8 +23,9 @@ internal static class ProducerActivitySource
         // Inject the current context into the message headers
         Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), payloadDescriptor, InjectTraceContext);
 
+
         // Start the activity
-        return ActivitySource.StartActivity($"{payloadDescriptor.TopicName} {ActivityNameSuffix}", ActivityKind.Producer)
+        return ActivitySource.StartActivity($"{payloadDescriptor.TopicName} {payloadDescriptor.MessageType} {ActivityNameSuffix}", ActivityKind.Producer)
             .AddDefaultOpenTelemetryTags(
                 destinationName: payloadDescriptor.TopicName,
                 messageId: payloadDescriptor.MessageId,
