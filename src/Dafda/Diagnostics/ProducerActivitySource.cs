@@ -16,22 +16,23 @@ internal static class ProducerActivitySource
 
     public static Activity StartActivity(PayloadDescriptor payloadDescriptor)
     {
-        // Extract the current activity context
-        var contextToInject = Activity.Current?.Context
-                              ?? default;
-
-        // Inject the current context into the message headers
-        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), payloadDescriptor, InjectTraceContext);
-
-
         // Start the activity
-        return ActivitySource.StartActivity($"{payloadDescriptor.TopicName} {payloadDescriptor.MessageType} {ActivityNameSuffix}", ActivityKind.Producer)
+        var activity = ActivitySource.StartActivity($"{payloadDescriptor.TopicName} {payloadDescriptor.MessageType} {ActivityNameSuffix}", ActivityKind.Producer)
             .AddDefaultOpenTelemetryTags(
                 destinationName: payloadDescriptor.TopicName,
                 messageId: payloadDescriptor.MessageId,
                 clientId: payloadDescriptor.ClientId,
                 partitionKey: payloadDescriptor.PartitionKey)
             .AddProducerOpenTelemetryTags();
+
+        // Extract the current activity context
+        var contextToInject = activity?.Context
+                              ?? default;
+
+        // Inject the current activity context into the message headers
+        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), payloadDescriptor, InjectTraceContext);
+
+        return activity;
     }
 
     private static void InjectTraceContext(PayloadDescriptor descriptor, string key, string value)

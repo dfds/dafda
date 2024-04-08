@@ -30,7 +30,7 @@ namespace Dafda.Tests.TestDoubles
             Topic = topic;
             Key = key;
             Value = value;
-            ProducerActivityId = Activity.Current?.Parent?.Id;
+            ProducerActivityId = Activity.Current?.Id;
 
             return Task.CompletedTask;
         }
