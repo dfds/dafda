@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Dafda.Tests.Producing
 {
+    [Collection("Serializing")]
     public class TestOutgoingMessageFactory
     {
         private const string DummyTopic = "dummy_topic";

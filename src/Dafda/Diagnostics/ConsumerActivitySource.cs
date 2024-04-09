@@ -25,9 +25,9 @@ internal static class ConsumerActivitySource
         Baggage.Current = parentContext.Baggage;
 
         // Start the activity
-        return ActivitySource.StartActivity($"{@event.Topic} {ActivityNameSuffix}", ActivityKind.Consumer, parentContext.ActivityContext)
+        return ActivitySource.StartActivity($"{@event.Topic} {@event.Message.Metadata.Type} {ActivityNameSuffix}", ActivityKind.Consumer, parentContext.ActivityContext)
             .AddDefaultOpenTelemetryTags(
-                topicName: @event.Topic,
+                destinationName: @event.Topic,
                 messageId: @event.Message.Metadata.MessageId,
                 clientId: @event.ClientId,
                 partitionKey: @event.PartitionKey,

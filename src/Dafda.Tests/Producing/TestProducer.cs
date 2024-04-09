@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Dafda.Tests.Producing
 {
+    [Collection("Serializing")]
     public class TestProducer
     {
         [Fact]
@@ -250,6 +251,7 @@ namespace Dafda.Tests.Producing
             AssertJson.Equal(expected, spy.Value);
         }
 
+        //[Fact(Skip = "This test has a static dependency that might break other tests")]
         [Fact]
         public async Task produces_message_with_traceparent_and_baggage_propagation_in_header()
         {
