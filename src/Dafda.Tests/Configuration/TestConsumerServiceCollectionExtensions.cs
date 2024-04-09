@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Dafda.Tests.Configuration
 {
+    [Collection("Serializing")]
     public class TestConsumerServiceCollectionExtensions
     {
         [Fact( /*Skip = "is this relevant for testing these extensions"*/)]
