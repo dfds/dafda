@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Diagnostics;
 using Dafda.Producing;
 using Dafda.Serializing;
 
@@ -61,6 +62,8 @@ namespace Dafda.Outbox
         /// </remarks>
         public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> messages, Metadata headers)
         {
+            using var activity = DafdaActivitySource.StartOutboxActivity(headers);
+
             var entries = new LinkedList<OutboxEntry>();
 
             foreach (var message in messages)

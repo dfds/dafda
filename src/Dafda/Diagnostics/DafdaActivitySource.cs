@@ -55,9 +55,29 @@ internal static class DafdaActivitySource
         return activity;
     }
 
+    public static Activity StartOutboxActivity(Metadata metadata)
+    {
+        // Start the activity
+        var activity = ActivitySource.StartActivity("Outbox message enqueue");
+
+        // Extract the current activity context
+        var contextToInject = activity?.Context
+                              ?? default;
+
+        // Inject the current activity context into the message headers
+        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), metadata, InjectTraceContextToMetadata);
+
+        return activity;
+    }
+
     private static void InjectTraceContextToPayload(PayloadDescriptor descriptor, string key, string value)
     {
         descriptor.AddHeader(key, value);
+    }
+
+    private static void InjectTraceContextToMetadata(Metadata metadata, string key, string value)
+    {
+        metadata[key] = value;
     }
 
     private static IEnumerable<string> ExtractFromMetadata(Metadata metadata, string key)
