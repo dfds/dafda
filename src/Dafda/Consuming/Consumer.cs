@@ -56,7 +56,7 @@ namespace Dafda.Consuming
         private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
         {
             var messageResult = await consumerScope.GetNext(cancellationToken);
-            using var activity = ConsumerActivitySource.StartActivity(messageResult);
+            using var activity = DafdaActivitySource.StartReceivingActivity(messageResult);
 
             if(_messageFilter.CanAcceptMessage(messageResult))
             {

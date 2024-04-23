@@ -40,7 +40,7 @@ namespace Dafda.Producing
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);
             payloadDescriptor.ClientId = _kafkaProducer.ClientId;
-            using var activity = ProducerActivitySource.StartActivity(payloadDescriptor);
+            using var activity = DafdaActivitySource.StartPublishingActivity(payloadDescriptor);
 
             await _kafkaProducer.Produce(payloadDescriptor);
         }
@@ -76,7 +76,7 @@ namespace Dafda.Producing
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, context, headers);
             payloadDescriptor.ClientId = _kafkaProducer.ClientId;
-            using var activity = ProducerActivitySource.StartActivity(payloadDescriptor);
+            using var activity = DafdaActivitySource.StartPublishingActivity(payloadDescriptor);
 
             await _kafkaProducer.Produce(payloadDescriptor);
         }

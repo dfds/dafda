@@ -59,7 +59,7 @@ namespace Dafda.Tests.Configuration
         [Fact( /*Skip = "is this relevant for testing these extensions"*/)]
         public async Task Can_consume_message_with_activity()
         {
-            ConsumerActivitySource.Propagator = new CompositeTextMapPropagator(
+            DafdaActivitySource.Propagator = new CompositeTextMapPropagator(
                 new TextMapPropagator[]
                 {
                     new TraceContextPropagator(),
