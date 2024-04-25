@@ -14,35 +14,45 @@ internal static class DafdaActivitySource
     private static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    public static Activity StartReceivingActivity(MessageResult @event)
+    /// <summary>
+    /// Starts an activity for receiving a message from a consumer.
+    /// </summary>
+    /// <param name="carrier">trace context carrier</param>
+    /// <returns></returns>
+    public static Activity StartReceivingActivity(MessageResult carrier)
     {
         // Extract the context injected in the metadata by the publisher
-        var parentContext = Propagator.Extract(default, @event.Message.Metadata, ExtractFromMetadata);
+        var parentContext = Propagator.Extract(default, carrier.Message.Metadata, ExtractContextFromMetadata);
 
         // Inject extracted info into current context
         Baggage.Current = parentContext.Baggage;
 
         // Start the activity
-        return ActivitySource.StartActivity($"{@event.Topic} {@event.Message.Metadata.Type} {OpenTelemetryMessagingOperation.Consumer.Receive}", ActivityKind.Consumer, parentContext.ActivityContext)
+        return ActivitySource.StartActivity($"{carrier.Topic} {carrier.Message.Metadata.Type} {OpenTelemetryMessagingOperation.Consumer.Receive}", ActivityKind.Consumer, parentContext.ActivityContext)
             .AddDefaultMessagingTags(
-                destinationName: @event.Topic,
-                messageId: @event.Message.Metadata.MessageId,
-                clientId: @event.ClientId,
-                partitionKey: @event.PartitionKey,
-                partition: @event.Partition)
+                destinationName: carrier.Topic,
+                messageId: carrier.Message.Metadata.MessageId,
+                clientId: carrier.ClientId,
+                partitionKey: carrier.PartitionKey,
+                partition: carrier.Partition)
             .AddConsumerMessagingTags(
-                groupId: @event.GroupId);
+                groupId: carrier.GroupId);
     }
 
-    public static Activity StartPublishingActivity(PayloadDescriptor payloadDescriptor)
+    /// <summary>
+    /// Starts an activity for publishing a message to a producer.
+    /// </summary>
+    /// <param name="carrier">trace context carrier</param>
+    /// <returns></returns>
+    public static Activity StartPublishingActivity(PayloadDescriptor carrier)
     {
         // Start the activity
-        var activity = ActivitySource.StartActivity($"{payloadDescriptor.TopicName} {payloadDescriptor.MessageType} {OpenTelemetryMessagingOperation.Producer.Publish}", ActivityKind.Producer)
+        var activity = ActivitySource.StartActivity($"{carrier.TopicName} {carrier.MessageType} {OpenTelemetryMessagingOperation.Producer.Publish}", ActivityKind.Producer)
             .AddDefaultMessagingTags(
-                destinationName: payloadDescriptor.TopicName,
-                messageId: payloadDescriptor.MessageId,
-                clientId: payloadDescriptor.ClientId,
-                partitionKey: payloadDescriptor.PartitionKey)
+                destinationName: carrier.TopicName,
+                messageId: carrier.MessageId,
+                clientId: carrier.ClientId,
+                partitionKey: carrier.PartitionKey)
             .AddProducerMessagingTags();
 
         // Extract the current activity context
@@ -50,12 +60,17 @@ internal static class DafdaActivitySource
                               ?? default;
 
         // Inject the current activity context into the message headers
-        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), payloadDescriptor, InjectTraceContextToPayload);
+        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), carrier, InjectContextToPayload);
 
         return activity;
     }
 
-    public static Activity StartOutboxActivity(Metadata metadata)
+    /// <summary>
+    /// Starts an activity for enqueuing a message to the outbox.
+    /// </summary>
+    /// <param name="carrier">trace context carrier</param>
+    /// <returns></returns>
+    public static Activity StartOutboxEnqueueingActivity(Metadata carrier)
     {
         // Start the activity
         var activity = ActivitySource.StartActivity("Outbox message enqueue");
@@ -65,22 +80,22 @@ internal static class DafdaActivitySource
                               ?? default;
 
         // Inject the current activity context into the message headers
-        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), metadata, InjectTraceContextToMetadata);
+        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), carrier, InjectContextToMetadata);
 
         return activity;
     }
 
-    private static void InjectTraceContextToPayload(PayloadDescriptor descriptor, string key, string value)
+    private static void InjectContextToPayload(PayloadDescriptor descriptor, string key, string value)
     {
         descriptor.AddHeader(key, value);
     }
 
-    private static void InjectTraceContextToMetadata(Metadata metadata, string key, string value)
+    private static void InjectContextToMetadata(Metadata metadata, string key, string value)
     {
         metadata[key] = value;
     }
 
-    private static IEnumerable<string> ExtractFromMetadata(Metadata metadata, string key)
+    private static IEnumerable<string> ExtractContextFromMetadata(Metadata metadata, string key)
     {
         yield return metadata[key];
     }

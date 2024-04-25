@@ -62,7 +62,7 @@ namespace Dafda.Outbox
         /// </remarks>
         public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> messages, Metadata headers)
         {
-            using var activity = DafdaActivitySource.StartOutboxActivity(headers);
+            using var activity = DafdaActivitySource.StartOutboxEnqueueingActivity(headers);
 
             var entries = new LinkedList<OutboxEntry>();
 
