@@ -255,7 +255,7 @@ namespace Dafda.Tests.Producing
         [Fact]
         public async Task produces_message_with_traceparent_and_baggage_propagation_in_header()
         {
-            ProducerActivitySource.Propagator = new CompositeTextMapPropagator(
+            DafdaActivitySource.Propagator = new CompositeTextMapPropagator(
                 new TextMapPropagator[]
                 {
                     new TraceContextPropagator(),

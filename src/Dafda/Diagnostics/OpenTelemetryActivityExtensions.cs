@@ -15,7 +15,7 @@ internal static class OpenTelemetryActivityExtensions
         public const string Publish = "publish";
     }
 
-    public static Activity AddDefaultOpenTelemetryTags(this Activity activity,
+    public static Activity AddDefaultMessagingTags(this Activity activity,
         string destinationName,
         string messageId,
         string clientId,
@@ -40,7 +40,7 @@ internal static class OpenTelemetryActivityExtensions
         return activity;
     }
 
-    public static Activity AddConsumerOpenTelemetryTags(this Activity activity, string groupId)
+    public static Activity AddConsumerMessagingTags(this Activity activity, string groupId)
     {
         if (activity == null)
             return null;
@@ -50,7 +50,7 @@ internal static class OpenTelemetryActivityExtensions
         return activity;
     }
 
-    public static Activity AddProducerOpenTelemetryTags(this Activity activity)
+    public static Activity AddProducerMessagingTags(this Activity activity)
     {
         if (activity == null)
             return null;
