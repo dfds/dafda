@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Dafda.Diagnostics;
 using Dafda.Outbox;
 
 namespace Dafda.Producing
@@ -21,6 +24,8 @@ namespace Dafda.Producing
         /// <param name="entry">The outbox message</param>
         public async Task Produce(OutboxEntry entry)
         {
+            using var activity = DafdaActivitySource.StartPublishingActivity(entry, _kafkaProducer.ClientId);
+
             await _kafkaProducer.InternalProduce(entry.Topic, entry.Key, entry.Payload);
         }
     }
