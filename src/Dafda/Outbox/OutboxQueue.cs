@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Diagnostics;
@@ -16,7 +18,8 @@ namespace Dafda.Outbox
         private readonly TopicPayloadSerializerRegistry _serializerRegistry;
         private readonly PayloadDescriptorFactory _payloadDescriptorFactory;
 
-        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxEntryRepository repository, IOutboxNotifier outboxNotifier, TopicPayloadSerializerRegistry serializerRegistry)
+        internal OutboxQueue(MessageIdGenerator messageIdGenerator, OutgoingMessageRegistry outgoingMessageRegistry, IOutboxEntryRepository repository, IOutboxNotifier outboxNotifier,
+            TopicPayloadSerializerRegistry serializerRegistry)
         {
             _repository = repository;
             _outboxNotifier = outboxNotifier;
@@ -62,7 +65,14 @@ namespace Dafda.Outbox
         /// </remarks>
         public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> messages, Metadata headers)
         {
-            using var activity = DafdaActivitySource.StartOutboxEnqueueingActivity(headers);
+            Activity activity = null;
+            if (messages.Any())
+            {
+                activity = DafdaActivitySource.StartOutboxEnqueueingActivity(headers);
+            }
+
+            activity?.Start();
+
 
             var entries = new LinkedList<OutboxEntry>();
 
@@ -73,13 +83,15 @@ namespace Dafda.Outbox
             }
 
             await _repository.Add(entries);
-
+            activity?.Dispose();
             return _outboxNotifier;
         }
 
         private async Task<OutboxEntry> CreateOutboxEntry(object message, Metadata metadata)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, metadata);
+
+            using var activity = DafdaActivitySource.StartOutboxEntryCreationActivity(payloadDescriptor, metadata);
 
             var messageId = Guid.Parse(payloadDescriptor.MessageId);
 
