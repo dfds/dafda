@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Tests.Helpers;
@@ -70,6 +72,47 @@ namespace Dafda.Tests.Outbox
 
 
             AssertJson.Equal(expected, spy.OutboxEntries[0].Payload );
+        }
+        
+        [Fact]
+        public async Task Creates_activity_when_enqueuing_messages()
+        {
+            // Arrange
+            var spy = new OutboxEntryRepositorySpy();
+            var sut = A.OutboxQueue
+                .With(
+                    A.OutgoingMessageRegistry
+                        .Register<Message>("foo", "bar", @event => "baz")
+                        .Build()
+                )
+                .With(spy)
+                .Build();
+
+            var metadata = new Metadata
+            {
+                MessageId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                CausationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                CorrelationId = "183388b5-a8e9-4cb4-b553-6699632461c7"
+            };
+            
+            var activities = new List<Activity>();
+
+            // Act
+            using var activityListener = new ActivityListener
+            {
+                ShouldListenTo = s => s.Name == "Dafda",
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStarted = activity => activities.Add(activity),
+                ActivityStopped = activity => activities.Add(activity)
+            };
+            ActivitySource.AddActivityListener(activityListener);
+
+            await sut.Enqueue(new[] { new Message() }, metadata);
+
+            // Assert
+            Assert.NotEmpty(spy.OutboxEntries);
+            Assert.Contains(activities, a => a.DisplayName == "Start Outbox Enqueue Messages");
+            Assert.Contains(activities, a => a.DisplayName == "Start Creating Outbox Entry foo bar");
         }
 
         public class Message

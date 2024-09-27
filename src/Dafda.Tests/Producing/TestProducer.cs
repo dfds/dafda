@@ -1,10 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Diagnostics;
+using Dafda.Outbox;
+using Dafda.Producing;
 using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
@@ -27,7 +32,7 @@ namespace Dafda.Tests.Producing
                 )
                 .Build();
 
-            await sut.Produce(new Message {Id = "dummyId"});
+            await sut.Produce(new Message { Id = "dummyId" });
 
             Assert.Equal("foo", spy.Topic);
             Assert.Equal("dummyId", spy.Key);
@@ -57,7 +62,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = "dummyId" },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -83,7 +88,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = expectedKey },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -109,7 +114,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = "dummyId" },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -168,7 +173,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = "dummyId" },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -229,7 +234,7 @@ namespace Dafda.Tests.Producing
 
             await sut.Produce(
                 message: new Message { Id = "0" },
-                context: new MessageHandlerContext( new Metadata
+                context: new MessageHandlerContext(new Metadata
                 {
                     CausationId = "my-causation",
                     CorrelationId = "my-correlation"
@@ -306,5 +311,65 @@ namespace Dafda.Tests.Producing
 
             AssertJson.Equal(expected, spy.Value);
         }
+
+        [Fact]
+        public async Task Creates_activity_when_producing_outbox_message()
+        {
+            DafdaActivitySource.Propagator = new CompositeTextMapPropagator(
+                new TextMapPropagator[]
+                {
+                    new TraceContextPropagator(),
+                    new BaggagePropagator()
+                });
+            
+            // Arrange
+            var activitySource = new ActivitySource("ActivitySourceName");
+            using var activity = activitySource.StartActivity("MethodType:/Path");
+            
+            var spy = new KafkaProducerSpy();
+            var outboxProducer = new OutboxProducer(spy);
+            var guid = Guid.NewGuid();
+            
+            var payload = $@"{{
+                                ""messageId"":""{guid.ToString()}"",
+                                ""type"":""bar"",
+                                ""causationId"":""1"",
+                                ""correlationId"":""1"",                           
+                                ""data"":{{
+                                    ""id"":""dummyId""
+                                    }}
+                                }}";
+
+
+            var outboxEntry = new OutboxEntry(
+                messageId: guid,
+                topic: "foo",
+                key: "bar",
+                payload: payload,
+                occurredUtc: DateTime.UtcNow
+            );
+
+            var activities = new List<Activity>();
+
+            // Act
+            using var activityListener = new ActivityListener
+            {
+                ShouldListenTo = s => s.Name == "Dafda",
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStarted = activity => activities.Add(activity),
+                ActivityStopped = activity => activities.Add(activity),
+            };
+            ActivitySource.AddActivityListener(activityListener);
+
+            await outboxProducer.Produce(outboxEntry);
+
+            // Assert
+            Assert.Equal("foo", spy.Topic);
+            Assert.Equal("bar", spy.Key);
+            var jsonObject = JObject.Parse(spy.Value);
+            Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
+            Assert.Contains(activities, a => a.DisplayName == $"Start Publishing Outbox Entry foo bar {OpenTelemetryMessagingOperation.Producer.Publish} outbox");
+        }
+        
     }
 }
