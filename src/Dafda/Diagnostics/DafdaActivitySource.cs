@@ -145,7 +145,7 @@ public static class DafdaActivitySource
     public static Activity StartOutboxEnqueueingActivity(Metadata carrier)
     {
         // Start the activity
-        var activity = ActivitySource.StartActivity("Start Outboxing Enqueue Messages");
+        var activity = ActivitySource.StartActivity("Start Outbox Enqueue Messages");
 
         // Extract the current activity context
         var contextToInject = activity?.Context
@@ -166,7 +166,7 @@ public static class DafdaActivitySource
     public static Activity StartOutboxEntryCreationActivity(PayloadDescriptor payloadDescriptor, Metadata metadata)
     {
         // Start the activity
-        var activity = ActivitySource.StartActivity($" Start Creating Outbox Entry {payloadDescriptor.TopicName} {payloadDescriptor.MessageType}", ActivityKind.Internal)
+        var activity = ActivitySource.StartActivity($"Start Creating Outbox Entry {payloadDescriptor.TopicName} {payloadDescriptor.MessageType}", ActivityKind.Internal)
             .AddDefaultMessagingTags(
                 destinationName: payloadDescriptor.TopicName,
                 messageId: payloadDescriptor.MessageId,
