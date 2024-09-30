@@ -19,7 +19,12 @@ public static class DafdaActivitySource
     /// <summary>
     /// Gets or sets the <see cref="TextMapPropagator"/> for injecting and extracting trace context.
     /// </summary>
-    public static TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
+    public static TextMapPropagator Propagator { get; set; } = new CompositeTextMapPropagator(
+        new TextMapPropagator[]
+        {
+            new TraceContextPropagator(),
+            new BaggagePropagator()
+        });
 
     private static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
@@ -100,26 +105,19 @@ public static class DafdaActivitySource
         {
             return null;
         }
-
-        var propagator = new CompositeTextMapPropagator(
-            new TextMapPropagator[]
-            {
-                new TraceContextPropagator(),
-                new BaggagePropagator()
-            });
-
+        
         // extract message type
         payload.TryGetValue("type", out messageType);
         payload.TryGetValue("messageId", out messageId);
 
         // Extract the context injected in the metadata by the publisher
-        parentContext = propagator.Extract(default, payload, ExtractContextFromDictionary);
+        parentContext = Propagator.Extract(default, payload, ExtractContextFromDictionary);
 
         // Inject extracted info into current context
         Baggage.Current = parentContext.Baggage;
 
         // Start the activity
-        var activityName = $"Dafda.{entry.Topic}.{messageType}.{OpenTelemetryMessagingOperation.Producer.Publish}.outbox";
+        var activityName = $"Dafda.Outbox.{entry.Topic}.{messageType}.{OpenTelemetryMessagingOperation.Producer.Publish}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer, parentContext.ActivityContext)
             .AddDefaultMessagingTags(
                 destinationName: entry.Topic,
@@ -132,7 +130,7 @@ public static class DafdaActivitySource
         var contextToInject = activity?.Context ?? default;
 
         // Inject the current activity context into the message headers
-        propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), entry, InjectContextToOutboxEntry);
+        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), entry, InjectContextToOutboxEntry);
 
         return activity;
     }
@@ -150,16 +148,9 @@ public static class DafdaActivitySource
 
         // Extract the current activity context
         var contextToInject = activity?.Context ?? default;
-        
-        var propagator = new CompositeTextMapPropagator(
-            new TextMapPropagator[]
-            {
-                new TraceContextPropagator(),
-                new BaggagePropagator()
-            });
 
         // Inject the current activity context into the message headers
-        propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), carrier, InjectContextToMetadata);
+        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), carrier, InjectContextToMetadata);
 
         return activity;
     }
@@ -173,7 +164,7 @@ public static class DafdaActivitySource
     public static Activity StartOutboxEntryCreationActivity(PayloadDescriptor payloadDescriptor, Metadata metadata)
     {
         // Start the activity
-        var activityName = $"Dafda.{payloadDescriptor.TopicName}.{payloadDescriptor.MessageType}.OutboxEntryCreation";
+        var activityName = $"Dafda.Outbox.EntryCreation.{payloadDescriptor.TopicName}.{payloadDescriptor.MessageType}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Internal)
             .AddDefaultMessagingTags(
                 destinationName: payloadDescriptor.TopicName,
@@ -185,15 +176,8 @@ public static class DafdaActivitySource
         // Extract the current activity context
         var contextToInject = activity?.Context ?? default;
         
-        var propagator = new CompositeTextMapPropagator(
-            new TextMapPropagator[]
-            {
-                new TraceContextPropagator(),
-                new BaggagePropagator()
-            });
-
         // Inject the current activity context into the message headers
-        propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), metadata, InjectContextToMetadata);
+        Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), metadata, InjectContextToMetadata);
 
         return activity;
     }
@@ -265,7 +249,7 @@ public static class DafdaActivitySource
     /// <param name="payload">The payload string to deserialize.</param>
     /// <param name="payloadDictionary">The resulting dictionary after deserialization.</param>
     /// <returns><c>true</c> if deserialization is successful; otherwise, <c>false</c>.</returns>
-    private static bool TryDeserializePayload(string payload, out Dictionary<string, string> payloadDictionary)
+    public static bool TryDeserializePayload(string payload, out Dictionary<string, string> payloadDictionary)
     {
         try
         {

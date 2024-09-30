@@ -77,12 +77,14 @@ namespace Dafda.Tests.Outbox
         [Fact]
         public async Task Creates_activity_when_enqueuing_messages()
         {
+            var topic = "foo";
+            var type = "bar";
             // Arrange
             var spy = new OutboxEntryRepositorySpy();
             var sut = A.OutboxQueue
                 .With(
                     A.OutgoingMessageRegistry
-                        .Register<Message>("foo", "bar", @event => "baz")
+                        .Register<Message>(topic, type, @event => "baz")
                         .Build()
                 )
                 .With(spy)
@@ -111,8 +113,8 @@ namespace Dafda.Tests.Outbox
 
             // Assert
             Assert.NotEmpty(spy.OutboxEntries);
-            Assert.Contains(activities, a => a.DisplayName == "Start Outbox Enqueue Messages");
-            Assert.Contains(activities, a => a.DisplayName == "Start Creating Outbox Entry foo bar");
+            Assert.Contains(activities, a => a.DisplayName == "Dafda.Outbox.Enqueue");
+            Assert.Contains(activities, a => a.DisplayName == $"Dafda.Outbox.EntryCreation.{topic}.{type}");
         }
 
         public class Message

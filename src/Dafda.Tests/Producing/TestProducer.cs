@@ -315,6 +315,8 @@ namespace Dafda.Tests.Producing
         [Fact]
         public async Task Creates_activity_when_producing_outbox_message()
         {
+            var topic = "foo";
+            var type = "bar";
             DafdaActivitySource.Propagator = new CompositeTextMapPropagator(
                 new TextMapPropagator[]
                 {
@@ -332,7 +334,7 @@ namespace Dafda.Tests.Producing
             
             var payload = $@"{{
                                 ""messageId"":""{guid.ToString()}"",
-                                ""type"":""bar"",
+                                ""type"":""{type}"",
                                 ""causationId"":""1"",
                                 ""correlationId"":""1"",                           
                                 ""data"":{{
@@ -343,8 +345,8 @@ namespace Dafda.Tests.Producing
 
             var outboxEntry = new OutboxEntry(
                 messageId: guid,
-                topic: "foo",
-                key: "bar",
+                topic: topic,
+                key: type,
                 payload: payload,
                 occurredUtc: DateTime.UtcNow
             );
@@ -368,7 +370,7 @@ namespace Dafda.Tests.Producing
             Assert.Equal("bar", spy.Key);
             var jsonObject = JObject.Parse(spy.Value);
             Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
-            Assert.Contains(activities, a => a.DisplayName == $"Start Publishing Outbox Entry foo bar {OpenTelemetryMessagingOperation.Producer.Publish} outbox");
+            Assert.Contains(activities, a => a.DisplayName == $"Dafda.Outbox.{topic}.{type}.{OpenTelemetryMessagingOperation.Producer.Publish}");
         }
         
     }
