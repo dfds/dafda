@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -12,6 +13,37 @@ using OpenTelemetry.Context.Propagation;
 namespace Dafda.Diagnostics;
 
 /// <summary>
+/// Represents the different types of activities that can be performed in Dafda.
+/// </summary>
+public enum DafdaActivityType
+{
+    /// <summary>
+    /// Represents an activity for receiving a message.
+    /// </summary>
+    Receiving,
+
+    /// <summary>
+    /// Represents an activity for publishing a message.
+    /// </summary>
+    Publishing,
+
+    /// <summary>
+    /// Represents an activity for publishing an outbox entry.
+    /// </summary>
+    OutboxPublishing,
+
+    /// <summary>
+    /// Represents an activity for enqueuing a message to the outbox.
+    /// </summary>
+    OutboxEnqueueing,
+
+    /// <summary>
+    /// Represents an activity for creating an outbox entry.
+    /// </summary>
+    OutboxEntryCreation
+}
+
+/// <summary>
 /// Provides methods to create and support OpenTelemetry activities for various Dafda operations.
 /// </summary>
 public static class DafdaActivitySource
@@ -19,12 +51,13 @@ public static class DafdaActivitySource
     /// <summary>
     /// Gets or sets the <see cref="TextMapPropagator"/> for injecting and extracting trace context.
     /// </summary>
+    //public static TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
     public static TextMapPropagator Propagator { get; set; } = new CompositeTextMapPropagator(
-        new TextMapPropagator[]
-        {
-            new TraceContextPropagator(),
+    [
+        new TraceContextPropagator(),
             new BaggagePropagator()
-        });
+    ]);
+
 
     private static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
@@ -36,6 +69,34 @@ public static class DafdaActivitySource
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
         DictionaryKeyPolicy = JsonNamingPolicy.CamelCase, // Ensures dictionary keys follow camelCase
     };
+
+    /// <summary>
+    /// Dictionary to store custom activity name functions for each activity type.
+    /// The function parameters represent:
+    /// 1. Prefix (e.g., "Dafda")
+    /// 2. Topic name
+    /// 3. Message type
+    /// 4. Operation (e.g., "Receive", "Publish")
+    /// The function returns a string representing the custom activity name.
+    /// </summary>
+    public static Dictionary<DafdaActivityType, Func<string, string, string, string, string>> CustomActivityNameFuncs = new();
+
+
+    /// <summary>
+    /// Registers a custom activity name function for a specific activity type.
+    /// </summary>
+    /// <param name="activityType">The type of activity for which to register the custom function.</param>
+    /// <param name="customFunc">The custom function to generate activity names.
+    /// The customFunc parameters represent:
+    /// 1. Prefix (e.g., "Dafda")
+    /// 2. Topic name
+    /// 3. Message type
+    /// 4. Operation (e.g., "Receive", "Publish")
+    /// The function returns a string representing the custom activity name.</param>
+    public static void RegisterCustomActivityNameFunc(DafdaActivityType activityType, Func<string, string, string, string, string> customFunc)
+    {
+        CustomActivityNameFuncs[activityType] = customFunc;
+    }
 
     /// <summary>
     /// Starts an activity for receiving a message from a consumer.
@@ -50,8 +111,12 @@ public static class DafdaActivitySource
         // Inject extracted info into current context
         Baggage.Current = parentContext.Baggage;
 
+        // Determine the activity name
+        var activityName = CustomActivityNameFuncs.TryGetValue(DafdaActivityType.Receiving, out var customFunc)
+            ? customFunc("Dafda", carrier.Topic, carrier.Message.Metadata.Type, OpenTelemetryMessagingOperation.Consumer.Receive)
+            : $"Dafda.{carrier.Topic}.{carrier.Message.Metadata.Type}.{OpenTelemetryMessagingOperation.Consumer.Receive}";
+
         // Start the activity
-        var activityName = $"Dafda.{carrier.Topic}.{carrier.Message.Metadata.Type}.{OpenTelemetryMessagingOperation.Consumer.Receive}";
         return ActivitySource.StartActivity(activityName, ActivityKind.Consumer, parentContext.ActivityContext)
             .AddDefaultMessagingTags(
                 destinationName: carrier.Topic,
@@ -70,8 +135,12 @@ public static class DafdaActivitySource
     /// <returns>The started <see cref="Activity"/> for the publishing message operation.</returns>
     public static Activity StartPublishingActivity(PayloadDescriptor carrier)
     {
+        // Determine the activity name
+        var activityName = CustomActivityNameFuncs.TryGetValue(DafdaActivityType.Publishing, out var customFunc)
+            ? customFunc("Dafda", carrier.TopicName, carrier.MessageType, OpenTelemetryMessagingOperation.Producer.Publish)
+            : $"Dafda.{carrier.TopicName}.{carrier.MessageType}.{OpenTelemetryMessagingOperation.Producer.Publish}";
+
         // Start the activity
-        var activityName = $"Dafda.{carrier.TopicName}.{carrier.MessageType}.{OpenTelemetryMessagingOperation.Producer.Publish}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer)
             .AddDefaultMessagingTags(
                 destinationName: carrier.TopicName,
@@ -105,7 +174,7 @@ public static class DafdaActivitySource
         {
             return null;
         }
-        
+
         // extract message type
         payload.TryGetValue("type", out messageType);
         payload.TryGetValue("messageId", out messageId);
@@ -116,8 +185,12 @@ public static class DafdaActivitySource
         // Inject extracted info into current context
         Baggage.Current = parentContext.Baggage;
 
+        // Determine the activity name
+        var activityName = CustomActivityNameFuncs.TryGetValue(DafdaActivityType.OutboxPublishing, out var customFunc)
+            ? customFunc("Dafda.Outbox", entry.Topic, messageType, OpenTelemetryMessagingOperation.Producer.Publish)
+            : $"Dafda.Outbox.{entry.Topic}.{messageType}.{OpenTelemetryMessagingOperation.Producer.Publish}";
+
         // Start the activity
-        var activityName = $"Dafda.Outbox.{entry.Topic}.{messageType}.{OpenTelemetryMessagingOperation.Producer.Publish}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer, parentContext.ActivityContext)
             .AddDefaultMessagingTags(
                 destinationName: entry.Topic,
@@ -142,8 +215,12 @@ public static class DafdaActivitySource
     /// <returns>The started <see cref="Activity"/> for the outbox enqueueing operation.</returns>
     public static Activity StartOutboxEnqueueingActivity(Metadata carrier)
     {
+        // Determine the activity name
+        var activityName = CustomActivityNameFuncs.TryGetValue(DafdaActivityType.OutboxEnqueueing, out var customFunc)
+            ? customFunc("Dafda.Outbox", "Enqueue", null, null)
+            : "Dafda.Outbox.Enqueue";
+
         // Start the activity
-        var activityName = "Dafda.Outbox.Enqueue";
         var activity = ActivitySource.StartActivity(activityName);
 
         // Extract the current activity context
@@ -163,8 +240,12 @@ public static class DafdaActivitySource
     /// <returns>The started <see cref="Activity"/> for the outbox entry creation operation.</returns>
     public static Activity StartOutboxEntryCreationActivity(PayloadDescriptor payloadDescriptor, Metadata metadata)
     {
+        // Determine the activity name
+        var activityName = CustomActivityNameFuncs.TryGetValue(DafdaActivityType.OutboxEntryCreation, out var customFunc)
+            ? customFunc("Dafda.Outbox.EntryCreation", payloadDescriptor.TopicName, payloadDescriptor.MessageType, null)
+            : $"Dafda.Outbox.EntryCreation.{payloadDescriptor.TopicName}.{payloadDescriptor.MessageType}";
+
         // Start the activity
-        var activityName = $"Dafda.Outbox.EntryCreation.{payloadDescriptor.TopicName}.{payloadDescriptor.MessageType}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Internal)
             .AddDefaultMessagingTags(
                 destinationName: payloadDescriptor.TopicName,
@@ -175,7 +256,7 @@ public static class DafdaActivitySource
 
         // Extract the current activity context
         var contextToInject = activity?.Context ?? default;
-        
+
         // Inject the current activity context into the message headers
         Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), metadata, InjectContextToMetadata);
 
@@ -271,6 +352,7 @@ public static class DafdaActivitySource
                         break;
                 }
             }
+
             return true;
         }
         catch
