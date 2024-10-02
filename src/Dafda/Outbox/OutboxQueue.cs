@@ -65,15 +65,13 @@ namespace Dafda.Outbox
         /// </remarks>
         public async Task<IOutboxNotifier> Enqueue(IEnumerable<object> messages, Metadata headers)
         {
-            Activity activity = null;
-            if (messages.Any())
+            // When there are no messages to enqueue, we can return the notifier immediately without starting a new activity
+            if (!messages.Any())
             {
-                activity = DafdaActivitySource.StartOutboxEnqueueingActivity(headers);
+                return _outboxNotifier;
             }
-
-            activity?.Start();
-
-
+            using var activity = DafdaActivitySource.StartOutboxEnqueueingActivity(headers);
+            
             var entries = new LinkedList<OutboxEntry>();
 
             foreach (var message in messages)
@@ -83,7 +81,6 @@ namespace Dafda.Outbox
             }
 
             await _repository.Add(entries);
-            activity?.Dispose();
             return _outboxNotifier;
         }
 
