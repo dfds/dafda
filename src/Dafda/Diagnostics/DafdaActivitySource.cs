@@ -13,7 +13,8 @@ namespace Dafda.Diagnostics;
 
 /// <summary>
 /// Provides methods to create and support OpenTelemetry activities for various Dafda operations.
-/// Activity names are based on https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/messaging/messaging-spans.md
+/// Activity names are based on https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/#span-name
+/// v 1.27.0
 /// </summary>
 internal static class DafdaActivitySource
 {
@@ -47,7 +48,7 @@ internal static class DafdaActivitySource
         Baggage.Current = parentContext.Baggage;
 
         // Start the activity
-        var activityName = $"{carrier.Topic} {carrier.Message.Metadata.Type} {OpenTelemetryMessagingOperation.Consumer.Receive}";
+        var activityName = $"{OpenTelemetryMessagingOperation.Consumer.Receive} {carrier.Topic} {carrier.Message.Metadata.Type}";
         return ActivitySource.StartActivity(activityName, ActivityKind.Consumer, parentContext.ActivityContext)
             .AddDefaultMessagingTags(
                 destinationName: carrier.Topic,
@@ -67,7 +68,7 @@ internal static class DafdaActivitySource
     public static Activity StartPublishingActivity(PayloadDescriptor carrier)
     {
         // Start the activity
-        var activityName = $"{carrier.TopicName} {carrier.MessageType} {OpenTelemetryMessagingOperation.Producer.Publish}";
+        var activityName = $"{OpenTelemetryMessagingOperation.Producer.Publish} {carrier.TopicName} {carrier.MessageType}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer)
             .AddDefaultMessagingTags(
                 destinationName: carrier.TopicName,
@@ -113,7 +114,7 @@ internal static class DafdaActivitySource
         Baggage.Current = parentContext.Baggage;
 
         // Start the activity
-        var activityName = $"{entry.Topic} {messageType} {OpenTelemetryMessagingOperation.Producer.Publish}";
+        var activityName = $"{OpenTelemetryMessagingOperation.Producer.Publish} {entry.Topic} {messageType}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer, parentContext.ActivityContext)
             .AddDefaultMessagingTags(
                 destinationName: entry.Topic,
@@ -139,7 +140,7 @@ internal static class DafdaActivitySource
     public static Activity StartOutboxEnqueueingActivity(Metadata carrier)
     {
         // Start the activity
-        var activityName = "Outbox enqueue";
+        var activityName = "enqueue outbox";
         var activity = ActivitySource.StartActivity(activityName);
 
         // Extract the current activity context
@@ -160,7 +161,7 @@ internal static class DafdaActivitySource
     public static Activity StartOutboxEntryCreationActivity(PayloadDescriptor payloadDescriptor, Metadata metadata)
     {
         // Start the activity
-        var activityName = $"{payloadDescriptor.TopicName} {payloadDescriptor.MessageType} {OpenTelemetryMessagingOperation.Producer.Create}";
+        var activityName = $"{OpenTelemetryMessagingOperation.Producer.Create} {payloadDescriptor.TopicName} {payloadDescriptor.MessageType}";
         var activity = ActivitySource.StartActivity(activityName)
             .AddDefaultMessagingTags(
                 destinationName: payloadDescriptor.TopicName,

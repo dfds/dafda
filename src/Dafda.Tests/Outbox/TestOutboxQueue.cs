@@ -134,8 +134,8 @@ namespace Dafda.Tests.Outbox
 
             // Assert
             Assert.NotEmpty(spy.OutboxEntries);
-            Assert.Contains(activities, a => a.DisplayName == "Outbox enqueue");
-            Assert.Contains(activities, a => a.DisplayName == $"{topic} {type} {OpenTelemetryMessagingOperation.Producer.Create}");
+            Assert.Contains(activities, a => a.DisplayName == "enqueue outbox");
+            Assert.Contains(activities, a => a.DisplayName == $"{OpenTelemetryMessagingOperation.Producer.Create} {topic} {type}");
         }
 
         public class Message
