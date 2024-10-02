@@ -28,9 +28,9 @@ internal static class DafdaActivitySource
     private static readonly JsonSerializerOptions DafdaJsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
-        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
     };
 
     /// <summary>
@@ -101,7 +101,7 @@ internal static class DafdaActivitySource
         {
             return null;
         }
-        
+
         // extract message type
         payload.TryGetValue("type", out messageType);
         payload.TryGetValue("messageId", out messageId);
@@ -161,7 +161,7 @@ internal static class DafdaActivitySource
     {
         // Start the activity
         var activityName = $"{payloadDescriptor.TopicName} {payloadDescriptor.MessageType} {OpenTelemetryMessagingOperation.Producer.Create}";
-        var activity = ActivitySource.StartActivity(activityName, ActivityKind.Internal)
+        var activity = ActivitySource.StartActivity(activityName)
             .AddDefaultMessagingTags(
                 destinationName: payloadDescriptor.TopicName,
                 messageId: payloadDescriptor.MessageId,
@@ -171,7 +171,7 @@ internal static class DafdaActivitySource
 
         // Extract the current activity context
         var contextToInject = activity?.Context ?? default;
-        
+
         // Inject the current activity context into the message headers
         Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), metadata, InjectContextToMetadata);
 
@@ -267,6 +267,7 @@ internal static class DafdaActivitySource
                         break;
                 }
             }
+
             return true;
         }
         catch

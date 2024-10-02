@@ -1,5 +1,9 @@
 namespace Dafda.Diagnostics;
 
+/// <summary>
+/// Tags for messaging operations.
+/// Source: https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/messaging/messaging-spans.md#operation-names
+/// </summary>
 internal static class OpenTelemetryMessagingOperation
 {
     internal static class Producer
@@ -21,11 +25,5 @@ internal static class OpenTelemetryMessagingOperation
         /// One or more messages are requested by a consumer. This operation refers to pull-based scenarios, where consumers explicitly call methods of messaging SDKs to receive messages.
         /// </summary>
         public const string Receive = "receive";
-
-
-        /// <summary>
-        /// One or more messages are passed to a consumer. This operation refers to push-based scenarios, where consumer register callbacks which get called by messaging SDKs.
-        /// </summary>
-        public const string Deliver = "deliver";
     }
 }
