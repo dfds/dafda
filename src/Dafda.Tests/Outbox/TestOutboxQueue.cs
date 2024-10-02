@@ -3,14 +3,36 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Dafda.Consuming;
+using Dafda.Diagnostics;
 using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
 using Xunit;
 
 namespace Dafda.Tests.Outbox
 {
-    public class TestOutboxQueue
+    [Collection("Serializing")]
+    public class TestOutboxQueue : IClassFixture<DafdaActivitySourceFixture>, IAsyncLifetime
     {
+        private readonly DafdaActivitySourceFixture _fixture;
+
+        public TestOutboxQueue(DafdaActivitySourceFixture fixture)
+        {
+            _fixture = fixture;
+        }
+        
+        public Task InitializeAsync()
+        {
+            // No initialization needed
+            return Task.CompletedTask;
+        }
+        
+        public async Task DisposeAsync()
+        {
+            // Reset the static state after each test
+            _fixture.ResetDafdaActivitySource();
+            await Task.CompletedTask;
+        }
+
         [Fact]
         public async Task Fails_for_unregistered_outgoing_messages()
         {
@@ -69,11 +91,10 @@ namespace Dafda.Tests.Outbox
                             ""data"":{
                                 }
                             }";
-
-
+            
             AssertJson.Equal(expected, spy.OutboxEntries[0].Payload );
         }
-        
+
         [Fact]
         public async Task Creates_activity_when_enqueuing_messages()
         {
@@ -113,8 +134,8 @@ namespace Dafda.Tests.Outbox
 
             // Assert
             Assert.NotEmpty(spy.OutboxEntries);
-            Assert.Contains(activities, a => a.DisplayName == "Dafda.Outbox.Enqueue");
-            Assert.Contains(activities, a => a.DisplayName == $"Dafda.Outbox.EntryCreation.{topic}.{type}");
+            Assert.Contains(activities, a => a.DisplayName == "Outbox enqueue");
+            Assert.Contains(activities, a => a.DisplayName == $"{topic} {type} {OpenTelemetryMessagingOperation.Producer.Create}");
         }
 
         public class Message

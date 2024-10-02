@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Dafda.Tests.Outbox;
 
+[Collection("Serializing")]
 public class TestProducer
 {
     [Fact]
@@ -93,6 +94,6 @@ public class TestProducer
         Assert.Equal("bar", spy.Key);
         var jsonObject = JObject.Parse(spy.Value);
         Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
-        Assert.Contains(activities, a => a.DisplayName == $"Dafda.Outbox.{topic}.{type}.{OpenTelemetryMessagingOperation.Producer.Publish}");
+        Assert.Contains(activities, a => a.DisplayName == $"{topic} {type} {OpenTelemetryMessagingOperation.Producer.Publish}");
     }
 }
