@@ -26,12 +26,13 @@ internal static class DafdaActivitySource
     private static readonly AssemblyName AssemblyName = typeof(KafkaConsumerScope).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private static readonly JsonSerializerOptions DafdaJsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions OutboxJsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
+        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+        IgnoreNullValues = false,
     };
 
     /// <summary>
@@ -250,7 +251,7 @@ internal static class DafdaActivitySource
     {
         try
         {
-            var intermediateResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(payload, DafdaJsonSerializerOptions);
+            var intermediateResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(payload, OutboxJsonSerializerOptions);
             payloadDictionary = new Dictionary<string, string>();
 
             foreach (var kvp in intermediateResult)
