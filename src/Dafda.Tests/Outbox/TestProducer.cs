@@ -16,12 +16,11 @@ namespace Dafda.Tests.Outbox;
 public class TestProducer
 {
     [Fact]
-    public void TryDeserializePayload_ShouldDeserializeJsonStringToDictionary()
+    public void TryDeserializePayload_should_deserialize_json_string_to_dictionary()
     {
         // Arrange
         string payload =
-            """{"messageId":"1b13a5e1-742e-45fb-ab7a-76d547e4e327","type":"userdisabled","traceparent":"00-1f2c12212e50621b49c80175a064d193-35a6133087d5e877-01","causationId":"1b13a5e1-742e-45fb-ab7a-76d547e4e327","correlationId":"1b13a5e1-742e-45fb-ab7a-76d547e4e327","data":{"dfdsUserId":"8cfb2d2d-9113-48c8-8c8d-41ade8d7998a"}}""";
-
+            "{\"messageId\":\"1b13a5e1-742e-45fb-ab7a-76d547e4e327\",\"type\":\"userdisabled\",\"traceparent\":\"00-1f2c12212e50621b49c80175a064d193-35a6133087d5e877-01\",\"causationId\":\"1b13a5e1-742e-45fb-ab7a-76d547e4e327\",\"correlationId\":\"1b13a5e1-742e-45fb-ab7a-76d547e4e327\",\"data\":{\"dfdsUserId\":\"8cfb2d2d-9113-48c8-8c8d-41ade8d7998a\"}}";
         // Act
         bool result = DafdaActivitySource.TryDeserializePayload(payload, out var payloadDictionary);
 
