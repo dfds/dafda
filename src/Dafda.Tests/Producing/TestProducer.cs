@@ -1,10 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Diagnostics;
+using Dafda.Outbox;
+using Dafda.Producing;
 using Dafda.Tests.Helpers;
 using Dafda.Tests.TestDoubles;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
@@ -27,7 +32,7 @@ namespace Dafda.Tests.Producing
                 )
                 .Build();
 
-            await sut.Produce(new Message {Id = "dummyId"});
+            await sut.Produce(new Message { Id = "dummyId" });
 
             Assert.Equal("foo", spy.Topic);
             Assert.Equal("dummyId", spy.Key);
@@ -57,7 +62,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = "dummyId" },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -83,7 +88,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = expectedKey },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -109,7 +114,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = "dummyId" },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -168,7 +173,7 @@ namespace Dafda.Tests.Producing
                 message: new Message { Id = "dummyId" },
                 headers: new Dictionary<string, object>
                 {
-                    {"foo-key", "foo-value"}
+                    { "foo-key", "foo-value" }
                 }
             );
 
@@ -229,7 +234,7 @@ namespace Dafda.Tests.Producing
 
             await sut.Produce(
                 message: new Message { Id = "0" },
-                context: new MessageHandlerContext( new Metadata
+                context: new MessageHandlerContext(new Metadata
                 {
                     CausationId = "my-causation",
                     CorrelationId = "my-correlation"

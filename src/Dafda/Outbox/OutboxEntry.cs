@@ -53,7 +53,7 @@ namespace Dafda.Outbox
         /// <summary>
         /// The serialized payload
         /// </summary>
-        public string Payload { get; private set; }
+        public string Payload { get; internal set; }
 
         /// <summary>
         /// UTC datetime of when the message was generated
