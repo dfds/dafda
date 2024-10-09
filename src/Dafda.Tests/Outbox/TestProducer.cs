@@ -45,7 +45,7 @@ public class TestProducer
     {
         // Arrange
         string payload =
-            "{\"messageId\":\"0b8db195-62bd-43ee-9123-70b64adf9fff\",\"type\":\"AssociateAccessRelationsChanged\",\"data\":{\"freightPayerId\":22937,\"externalAssociates\":[{\"associateId\":75900,\"accessToFreightPayer\":1},{\"associateId\":51147,\"accessToFreightPayer\":1}],\"changedBy\":\"b3bef642-e347-417c-9bec-2660f4376ggg\"},\"correlationId\":null,\"causationId\":\"fecb6bee0a799cbd\",\"tenantId\":\"Production\"}";
+            "{\"messageId\":\"0b8db195-62bd-43ee-9123-70b64adf9fff\",\"type\":\"AssociateAccessRelationsChanged\",\"data\":{\"freightPayerId\":22937,\"externalAssociates\":[{\"associateId\":75900,\"accessToFreightPayer\":1},{\"associateId\":51147,\"accessToFreightPayer\":1}],\"changedBy\":\"b3bef642-e347-417c-9bec-2660f4376ggg\"},\"correlationId\":null,\"causationId\":\"fecb6bee0a799cbd\",\"tenantId\":\"Test\"}";
 
         // Act
         bool result = DafdaActivitySource.TryDeserializePayload(payload, out var payloadDictionary);
@@ -64,7 +64,7 @@ public class TestProducer
 
         //Assert.Empty(payloadDictionary["correlationId"]);
         Assert.Equal("fecb6bee0a799cbd", payloadDictionary["causationId"]);
-        Assert.Equal("Production", payloadDictionary["tenantId"]);
+        Assert.Equal("Test", payloadDictionary["tenantId"]);
     }
 
     [Fact]
@@ -130,7 +130,98 @@ public class TestProducer
         // Deserialize the data field to ensure it's a JSON object
         var dataObject = JObject.Parse(jsonObject["data"].ToString());
         Assert.Equal("dummyId", dataObject["id"]);
-        
+
+        // Check that the serialized JSON does not contain unwanted escaped characters
+        Assert.DoesNotContain("\\u0022", spy.Value);
+        Assert.DoesNotContain("\\", spy.Value);
+    }
+
+    [Fact]
+    public async Task Creates_activity_when_producing_outbox_message_with_complex_payload()
+    {
+        var topic = "foo";
+        var type = "bar";
+        DafdaActivitySource.Propagator = new CompositeTextMapPropagator(
+            new TextMapPropagator[]
+            {
+                new TraceContextPropagator(),
+                new BaggagePropagator()
+            });
+
+        // Arrange
+        var activitySource = new ActivitySource("ActivitySourceName");
+        using var activity = activitySource.StartActivity("MethodType:/Path");
+
+        var spy = new KafkaProducerSpy();
+        var outboxProducer = new OutboxProducer(spy);
+        var guid = Guid.NewGuid();
+
+        var payload = $@"{{
+                            ""messageId"":""{guid.ToString()}"",
+                            ""type"":""{type}"",
+                            ""causationId"":""1"",
+                            ""correlationId"":""1"",                           
+                            ""data"":{{
+                                ""id"":""dummyId"",
+                                ""details"":{{
+                                    ""name"":""John Doe"",
+                                    ""age"":30,
+                                    ""address"":{{
+                                        ""street"":""123 Main St"",
+                                        ""city"":""Anytown"",
+                                        ""zip"":""12345""
+                                    }},
+                                    ""phones"":[""123-456-7890"", ""987-654-3210""]
+                                }}
+                            }}
+                        }}";
+
+        var outboxEntry = new OutboxEntry(
+            messageId: guid,
+            topic: topic,
+            key: type,
+            payload: payload,
+            occurredUtc: DateTime.UtcNow
+        );
+
+        var activities = new List<Activity>();
+
+        // Act
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = s => s.Name == "Dafda",
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = activity => activities.Add(activity),
+            ActivityStopped = activity => activities.Add(activity),
+        };
+        ActivitySource.AddActivityListener(activityListener);
+
+        await outboxProducer.Produce(outboxEntry);
+
+        // Assert
+        Assert.Equal("foo", spy.Topic);
+        Assert.Equal("bar", spy.Key);
+        var jsonObject = JObject.Parse(spy.Value);
+        Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
+        Assert.Contains(activities, a => a.DisplayName == $"{OpenTelemetryMessagingOperation.Producer.Publish} {topic} {type}");
+
+        // Deserialize the data field to ensure it's a JSON object
+        var dataObject = jsonObject["data"] as JObject;
+        Assert.Equal("dummyId", dataObject["id"].ToString());
+
+        var detailsObject = dataObject["details"] as JObject;
+        Assert.Equal("John Doe", detailsObject["name"].ToString());
+        Assert.Equal(30, detailsObject["age"].ToObject<int>());
+
+        var addressObject = detailsObject["address"] as JObject;
+        Assert.Equal("123 Main St", addressObject["street"].ToString());
+        Assert.Equal("Anytown", addressObject["city"].ToString());
+        Assert.Equal("12345", addressObject["zip"].ToString());
+
+        var phonesArray = detailsObject["phones"] as JArray;
+        Assert.Equal("123-456-7890", phonesArray[0].ToString());
+        Assert.Equal("987-654-3210", phonesArray[1].ToString());
+
         // Check that the serialized JSON does not contain unwanted escaped characters
         Assert.DoesNotContain("\\u0022", spy.Value);
         Assert.DoesNotContain("\\", spy.Value);
