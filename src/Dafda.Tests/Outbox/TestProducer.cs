@@ -35,9 +35,9 @@ public class TestProducer
         Assert.Equal("1b13a5e1-742e-45fb-ab7a-76d547e4e327", payloadDictionary["correlationId"]);
 
         // Deserialize the data field to ensure it's a JSON object
-        var dataObject = JObject.Parse(payloadDictionary["data"]);
+        var dataObject = JObject.Parse(payloadDictionary["data"].ToString());
         Assert.Equal("8cfb2d2d-9113-48c8-8c8d-41ade8d79989", dataObject["dfdsUserId"]);
-        Assert.Equal("{\"dfdsUserId\":\"8cfb2d2d-9113-48c8-8c8d-41ade8d79989\"}", payloadDictionary["data"]);
+        Assert.Equal("{\"dfdsUserId\":\"8cfb2d2d-9113-48c8-8c8d-41ade8d79989\"}", payloadDictionary["data"].ToString());
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class TestProducer
         Assert.Equal("AssociateAccessRelationsChanged", payloadDictionary["type"]);
 
         // Deserialize the data field to ensure it's a JSON object
-        var dataObject = JObject.Parse(payloadDictionary["data"]);
+        var dataObject = JObject.Parse(payloadDictionary["data"].ToString());
         Assert.Equal(22937, dataObject["freightPayerId"]);
         Assert.Equal("b3bef642-e347-417c-9bec-2660f4376ggg", dataObject["changedBy"]);
         Assert.Equal(2, dataObject["externalAssociates"].Count());
