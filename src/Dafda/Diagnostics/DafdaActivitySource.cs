@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Dafda.Consuming;
@@ -8,6 +10,7 @@ using Dafda.Outbox;
 using Dafda.Serializing;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Dafda.Diagnostics;
 
@@ -33,7 +36,9 @@ internal static class DafdaActivitySource
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
         IgnoreNullValues = false,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
+
 
     /// <summary>
     /// Starts an activity for receiving a message from a consumer.
@@ -189,9 +194,11 @@ internal static class DafdaActivitySource
     private static void InjectContextToOutboxEntry(OutboxEntry outboxEntry, string key, string value)
     {
         if (!TryDeserializePayload(outboxEntry.Payload, out var payload)) return;
-
         payload[key] = value;
-        outboxEntry.Payload = JsonSerializer.Serialize(payload);
+        
+        outboxEntry.Payload = JsonSerializer.Serialize(payload, OutboxJsonSerializerOptions);
+        //Console.WriteLine(outboxEntry);
+        //Console.WriteLine(outboxEntry.Payload);
     }
 
     /// <summary>
@@ -263,6 +270,17 @@ internal static class DafdaActivitySource
                         break;
                     case JsonValueKind.Number:
                         payloadDictionary[kvp.Key] = kvp.Value.GetRawText(); // Keeps the original number representation as a string
+                        break;
+                    case JsonValueKind.Object:
+                    case JsonValueKind.Array:
+                        payloadDictionary[kvp.Key] = kvp.Value.GetRawText(); // Keeps the original JSON representation
+                        break;
+                    case JsonValueKind.True:
+                    case JsonValueKind.False:
+                        payloadDictionary[kvp.Key] = kvp.Value.GetBoolean().ToString();
+                        break;
+                    case JsonValueKind.Null:
+                        payloadDictionary[kvp.Key] = null;
                         break;
                     default:
                         payloadDictionary[kvp.Key] = kvp.Value.ToString();
