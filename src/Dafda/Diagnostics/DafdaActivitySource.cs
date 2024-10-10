@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Dafda.Consuming;
@@ -8,6 +9,7 @@ using Dafda.Outbox;
 using Dafda.Serializing;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Dafda.Diagnostics;
 
@@ -33,7 +35,9 @@ internal static class DafdaActivitySource
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
         IgnoreNullValues = false,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
+
 
     /// <summary>
     /// Starts an activity for receiving a message from a consumer.
@@ -96,8 +100,6 @@ internal static class DafdaActivitySource
     public static Activity StartPublishingActivity(OutboxEntry entry, string clientId)
     {
         PropagationContext parentContext = default;
-        var messageType = string.Empty;
-        var messageId = string.Empty;
 
         if (!TryDeserializePayload(entry.Payload, out var payload))
         {
@@ -105,8 +107,11 @@ internal static class DafdaActivitySource
         }
 
         // extract message type
-        payload.TryGetValue("type", out messageType);
-        payload.TryGetValue("messageId", out messageId);
+        // extract message type and id
+        payload.TryGetValue("type", out var messageTypeToken);
+        payload.TryGetValue("messageId", out var messageIdToken);
+        var messageType = messageTypeToken?.ToString();
+        var messageId = messageIdToken?.ToString();
 
         // Extract the context injected in the metadata by the publisher
         parentContext = Propagator.Extract(default, payload, ExtractContextFromDictionary);
@@ -115,11 +120,11 @@ internal static class DafdaActivitySource
         Baggage.Current = parentContext.Baggage;
 
         // Start the activity
-        var activityName = $"{OpenTelemetryMessagingOperation.Producer.Publish} {entry.Topic} {messageType}";
+        var activityName = $"{OpenTelemetryMessagingOperation.Producer.Publish} {entry.Topic} {messageType as string}";
         var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer, parentContext.ActivityContext)
             .AddDefaultMessagingTags(
                 destinationName: entry.Topic,
-                messageId: messageId,
+                messageId: messageId as string,
                 clientId: clientId,
                 partitionKey: entry.Key)
             .AddProducerMessagingTags();
@@ -189,9 +194,8 @@ internal static class DafdaActivitySource
     private static void InjectContextToOutboxEntry(OutboxEntry outboxEntry, string key, string value)
     {
         if (!TryDeserializePayload(outboxEntry.Payload, out var payload)) return;
-
         payload[key] = value;
-        outboxEntry.Payload = JsonSerializer.Serialize(payload);
+        outboxEntry.Payload = JsonSerializer.Serialize(payload, OutboxJsonSerializerOptions);
     }
 
     /// <summary>
@@ -233,11 +237,11 @@ internal static class DafdaActivitySource
     /// <param name="dictionary">The dictionary containing the trace context.</param>
     /// <param name="key">The key for the trace context.</param>
     /// <returns>An enumerable collection of trace context values.</returns>
-    private static IEnumerable<string> ExtractContextFromDictionary(IDictionary<string, string> dictionary, string key)
+    private static IEnumerable<string> ExtractContextFromDictionary(IDictionary<string, object> dictionary, string key)
     {
         if (dictionary.TryGetValue(key, out var value))
         {
-            yield return value;
+            yield return value?.ToString();
         }
     }
 
@@ -247,12 +251,12 @@ internal static class DafdaActivitySource
     /// <param name="payload">The payload string to deserialize.</param>
     /// <param name="payloadDictionary">The resulting dictionary after deserialization.</param>
     /// <returns><c>true</c> if deserialization is successful; otherwise, <c>false</c>.</returns>
-    public static bool TryDeserializePayload(string payload, out Dictionary<string, string> payloadDictionary)
+    public static bool TryDeserializePayload(string payload, out Dictionary<string, object> payloadDictionary)
     {
         try
         {
             var intermediateResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(payload, OutboxJsonSerializerOptions);
-            payloadDictionary = new Dictionary<string, string>();
+            payloadDictionary = new Dictionary<string, object>();
 
             foreach (var kvp in intermediateResult)
             {
@@ -263,6 +267,17 @@ internal static class DafdaActivitySource
                         break;
                     case JsonValueKind.Number:
                         payloadDictionary[kvp.Key] = kvp.Value.GetRawText(); // Keeps the original number representation as a string
+                        break;
+                    case JsonValueKind.Object:
+                    case JsonValueKind.Array:
+                        payloadDictionary[kvp.Key] = JsonSerializer.Deserialize<object>(kvp.Value.GetRawText(), OutboxJsonSerializerOptions); // Deserialize to object
+                        break;
+                    case JsonValueKind.True:
+                    case JsonValueKind.False:
+                        payloadDictionary[kvp.Key] = kvp.Value.GetBoolean();
+                        break;
+                    case JsonValueKind.Null:
+                        payloadDictionary[kvp.Key] = null;
                         break;
                     default:
                         payloadDictionary[kvp.Key] = kvp.Value.ToString();
