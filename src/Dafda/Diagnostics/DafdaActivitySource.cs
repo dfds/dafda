@@ -100,8 +100,6 @@ internal static class DafdaActivitySource
     public static Activity StartPublishingActivity(OutboxEntry entry, string clientId)
     {
         PropagationContext parentContext = default;
-        object messageType = string.Empty;
-        object messageId = string.Empty;
 
         if (!TryDeserializePayload(entry.Payload, out var payload))
         {
@@ -109,8 +107,11 @@ internal static class DafdaActivitySource
         }
 
         // extract message type
-        payload.TryGetValue("type", out messageType);
-        payload.TryGetValue("messageId", out messageId);
+        // extract message type and id
+        payload.TryGetValue("type", out var messageTypeToken);
+        payload.TryGetValue("messageId", out var messageIdToken);
+        var messageType = messageTypeToken?.ToString();
+        var messageId = messageIdToken?.ToString();
 
         // Extract the context injected in the metadata by the publisher
         parentContext = Propagator.Extract(default, payload, ExtractContextFromDictionary);

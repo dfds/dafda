@@ -62,7 +62,7 @@ public class TestProducer
         Assert.Equal("b3bef642-e347-417c-9bec-2660f4376ggg", dataObject["changedBy"]);
         Assert.Equal(2, dataObject["externalAssociates"].Count());
 
-        //Assert.Empty(payloadDictionary["correlationId"]);
+        Assert.Null(payloadDictionary["correlationId"]);
         Assert.Equal("fecb6bee0a799cbd", payloadDictionary["causationId"]);
         Assert.Equal("Test", payloadDictionary["tenantId"]);
     }
@@ -208,6 +208,109 @@ public class TestProducer
         // Deserialize the data field to ensure it's a JSON object
         var dataObject = jsonObject["data"] as JObject;
         Assert.Equal("dummyId", dataObject["id"].ToString());
+
+        var detailsObject = dataObject["details"] as JObject;
+        Assert.Equal("John Doe", detailsObject["name"].ToString());
+        Assert.Equal(30, detailsObject["age"].ToObject<int>());
+
+        var addressObject = detailsObject["address"] as JObject;
+        Assert.Equal("123 Main St", addressObject["street"].ToString());
+        Assert.Equal("Anytown", addressObject["city"].ToString());
+        Assert.Equal("12345", addressObject["zip"].ToString());
+
+        var phonesArray = detailsObject["phones"] as JArray;
+        Assert.Equal("123-456-7890", phonesArray[0].ToString());
+        Assert.Equal("987-654-3210", phonesArray[1].ToString());
+
+        // Check that the serialized JSON does not contain unwanted escaped characters
+        Assert.DoesNotContain("\\u0022", spy.Value);
+        Assert.DoesNotContain("\\", spy.Value);
+    }
+
+    [Fact]
+    public async Task Creates_activity_when_producing_outbox_message_with_various_json_types()
+    {
+        var topic = "foo";
+        var type = "bar";
+        DafdaActivitySource.Propagator = new CompositeTextMapPropagator(
+            new TextMapPropagator[]
+            {
+                new TraceContextPropagator(),
+                new BaggagePropagator()
+            });
+
+        // Arrange
+        var activitySource = new ActivitySource("ActivitySourceName");
+        using var activity = activitySource.StartActivity("MethodType:/Path");
+
+        var spy = new KafkaProducerSpy();
+        var outboxProducer = new OutboxProducer(spy);
+        var guid = Guid.NewGuid();
+
+        var payload = $@"{{
+                            ""messageId"":""{guid.ToString()}"",
+                            ""type"":""{type}"",
+                            ""causationId"":""1"",
+                            ""correlationId"":""1"",                           
+                            ""data"":{{
+                                ""id"":""dummyId"",
+                                ""isActive"":true,
+                                ""count"":42,
+                                ""tags"":[""tag1"", ""tag2"", ""tag3""],
+                                ""details"":{{
+                                    ""name"":""John Doe"",
+                                    ""age"":30,
+                                    ""address"":{{
+                                        ""street"":""123 Main St"",
+                                        ""city"":""Anytown"",
+                                        ""zip"":""12345""
+                                    }},
+                                    ""phones"":[""123-456-7890"", ""987-654-3210""]
+                                }},
+                                ""metadata"":null
+                            }}
+                        }}";
+
+        var outboxEntry = new OutboxEntry(
+            messageId: guid,
+            topic: topic,
+            key: type,
+            payload: payload,
+            occurredUtc: DateTime.UtcNow
+        );
+
+        var activities = new List<Activity>();
+
+        // Act
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = s => s.Name == "Dafda",
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = activity => activities.Add(activity),
+            ActivityStopped = activity => activities.Add(activity),
+        };
+        ActivitySource.AddActivityListener(activityListener);
+
+        await outboxProducer.Produce(outboxEntry);
+
+        // Assert
+        Assert.Equal("foo", spy.Topic);
+        Assert.Equal("bar", spy.Key);
+        var jsonObject = JObject.Parse(spy.Value);
+        Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
+        Assert.Contains(activities, a => a.DisplayName == $"{OpenTelemetryMessagingOperation.Producer.Publish} {topic} {type}");
+
+        // Deserialize the data field to ensure it's a JSON object
+        var dataObject = jsonObject["data"] as JObject;
+        Assert.Equal("dummyId", dataObject["id"].ToString());
+        Assert.True((bool)dataObject["isActive"]);
+        Assert.Equal(42, (int)dataObject["count"]);
+        Assert.Null(dataObject["metadata"] as JObject);
+
+        var tagsArray = dataObject["tags"] as JArray;
+        Assert.Equal("tag1", tagsArray[0].ToString());
+        Assert.Equal("tag2", tagsArray[1].ToString());
+        Assert.Equal("tag3", tagsArray[2].ToString());
 
         var detailsObject = dataObject["details"] as JObject;
         Assert.Equal("John Doe", detailsObject["name"].ToString());
