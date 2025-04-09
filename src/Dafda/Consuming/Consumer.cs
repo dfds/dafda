@@ -60,7 +60,7 @@ namespace Dafda.Consuming
 
             if(_messageFilter.CanAcceptMessage(messageResult))
             {
-                await _localMessageDispatcher.Dispatch(messageResult.Message);
+                await _localMessageDispatcher.Dispatch(messageResult);
             }
 
             if (!_isAutoCommitEnabled)
