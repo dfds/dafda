@@ -16,6 +16,7 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public async Task Has_expected_number_of_creations_and_disposals_when_transient()
         {
+            const string dummyTopic = "dummyTopic";
             var dummyMessage = new DummyMessage();
             var messageStub = new TransportLevelMessageBuilder()
                 .WithType(nameof(DummyMessage))
@@ -23,6 +24,7 @@ namespace Dafda.Tests.Configuration
                 .Build();
             var messageResult = new MessageResultBuilder()
                 .WithTransportLevelMessage(messageStub)
+                .WithTopic(dummyTopic)
                 .Build();
 
             var services = new ServiceCollection();
@@ -41,7 +43,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -62,6 +64,7 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public async Task Has_expected_number_of_creations_and_disposals_when_singleton()
         {
+            const string dummyTopic = "dummyTopic";
             var dummyMessage = new DummyMessage();
             var messageStub = new TransportLevelMessageBuilder()
                 .WithType(nameof(DummyMessage))
@@ -69,6 +72,7 @@ namespace Dafda.Tests.Configuration
                 .Build();
             var messageResult = new MessageResultBuilder()
                 .WithTransportLevelMessage(messageStub)
+                .WithTopic(dummyTopic)
                 .Build();
 
             var services = new ServiceCollection();
@@ -87,7 +91,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -108,6 +112,7 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public async Task Has_expected_number_of_creations_and_disposals_when_scoped()
         {
+            const string dummyTopic = "dummyTopic";
             var dummyMessage = new DummyMessage();
             var messageStub = new TransportLevelMessageBuilder()
                 .WithType(nameof(DummyMessage))
@@ -115,6 +120,7 @@ namespace Dafda.Tests.Configuration
                 .Build();
             var messageResult = new MessageResultBuilder()
                 .WithTransportLevelMessage(messageStub)
+                .WithTopic(dummyTopic)
                 .Build();
 
             var services = new ServiceCollection();
@@ -133,7 +139,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
@@ -154,6 +160,7 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public async Task Has_expected_number_of_creations_and_disposals_when_scoped_2()
         {
+            const string dummyTopic = "dummyTopic";
             var dummyMessage = new DummyMessage();
             var messageStub = new TransportLevelMessageBuilder()
                 .WithType(nameof(DummyMessage))
@@ -161,6 +168,7 @@ namespace Dafda.Tests.Configuration
                 .Build();
             var messageResult = new MessageResultBuilder()
                 .WithTransportLevelMessage(messageStub)
+                .WithTopic(dummyTopic)
                 .Build();
 
             var services = new ServiceCollection();
@@ -179,7 +187,7 @@ namespace Dafda.Tests.Configuration
             var consumerConfiguration = new ConsumerConfigurationBuilder()
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
                 .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
                 .Build();
 
