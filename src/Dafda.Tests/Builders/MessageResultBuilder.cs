@@ -8,6 +8,7 @@ namespace Dafda.Tests.Builders
     {
         private TransportLevelMessage _message = new TransportLevelMessageBuilder().WithType("foo").Build();
         private Func<Task> _onCommit;
+        private string _topic = string.Empty;
 
         public MessageResultBuilder()
         {
@@ -26,9 +27,18 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public MessageResultBuilder WithTopic(string topic)
+        {
+            _topic = topic;
+            return this;
+        }
+
         public MessageResult Build()
         {
-            return new MessageResult(_message, _onCommit);
+            return new MessageResult(_message, _onCommit)
+            {
+                Topic = _topic ?? string.Empty
+            };
         }
     }
 }

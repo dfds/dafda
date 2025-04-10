@@ -64,13 +64,16 @@ namespace Dafda.Tests.Configuration
         [Fact]
         public void Can_register_message_handler()
         {
+            const string topic = "dummyTopic";
+            const string messageType = nameof(DummyMessage);
+
             var configuration = new ConsumerConfigurationBuilder()
                 .WithGroupId("foo")
                 .WithBootstrapServers("bar")
-                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>("dummyTopic", nameof(DummyMessage))
+                .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(topic, messageType)
                 .Build();
 
-            var registration = configuration.MessageHandlerRegistry.GetRegistrationFor(nameof(DummyMessage));
+            var registration = configuration.MessageHandlerRegistry.GetRegistrationFor(topic, messageType);
 
             Assert.Equal(typeof(DummyMessageHandler), registration.HandlerInstanceType);
         }

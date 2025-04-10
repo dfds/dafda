@@ -8,8 +8,8 @@ namespace Dafda.Consuming
     {
         private readonly List<MessageRegistration> _registrations = new List<MessageRegistration>();
 
-        public void Register<TMessage, THandler>(string topic, string messageType) 
-            where THandler : IMessageHandler<TMessage> 
+        public void Register<TMessage, THandler>(string topic, string messageType)
+            where THandler : IMessageHandler<TMessage>
         {
             Register(
                 handlerInstanceType: typeof(THandler),
@@ -42,9 +42,9 @@ namespace Dafda.Consuming
 
         public IEnumerable<MessageRegistration> Registrations => _registrations;
 
-        public MessageRegistration GetRegistrationFor(string messageType)
+        public MessageRegistration GetRegistrationFor(string topic, string messageType)
         {
-            return _registrations.SingleOrDefault(x => x.MessageType == messageType);
+            return _registrations.SingleOrDefault(x => x.MessageType == messageType && x.Topic == topic);
         }
     }
 }
