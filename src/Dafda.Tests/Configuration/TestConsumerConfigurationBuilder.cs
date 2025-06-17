@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Configuration;
 using Dafda.Consuming;
@@ -112,7 +113,7 @@ namespace Dafda.Tests.Configuration
         // ReSharper disable once MemberCanBePrivate.Global
         private class DummyMessageHandler : IMessageHandler<DummyMessage>
         {
-            public Task Handle(DummyMessage message, MessageHandlerContext context)
+            public Task Handle(DummyMessage message, MessageHandlerContext context, CancellationToken cancellationToken = default)
             {
                 LastHandledMessage = message;
 

@@ -58,9 +58,9 @@ namespace Dafda.Consuming
             var messageResult = await consumerScope.GetNext(cancellationToken);
             using var activity = DafdaActivitySource.StartReceivingActivity(messageResult);
 
-            if(_messageFilter.CanAcceptMessage(messageResult))
+            if (_messageFilter.CanAcceptMessage(messageResult))
             {
-                await _localMessageDispatcher.Dispatch(messageResult);
+                await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
             }
 
             if (!_isAutoCommitEnabled)

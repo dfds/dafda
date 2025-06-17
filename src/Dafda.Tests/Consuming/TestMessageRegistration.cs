@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Tests.Builders;
@@ -51,7 +52,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public void throws_for_null_topic()
         {
-            Assert.Throws<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() =>
                 new MessageRegistrationBuilder()
                 .WithTopic(null)
                 .Build());
@@ -100,7 +101,7 @@ namespace Dafda.Tests.Consuming
 
         private class FooHandler : IMessageHandler<FooMessage>
         {
-            public Task Handle(FooMessage message, MessageHandlerContext context)
+            public Task Handle(FooMessage message, MessageHandlerContext context, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }

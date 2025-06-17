@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 
@@ -13,7 +14,7 @@ namespace Dafda.Tests.TestDoubles
             _onHandle = onHandle;
         }
 
-        public Task Handle(TMessage message, MessageHandlerContext context)
+        public Task Handle(TMessage message, MessageHandlerContext context, CancellationToken cancellationToken = default)
         {
             _onHandle?.Invoke();
             return Task.CompletedTask;

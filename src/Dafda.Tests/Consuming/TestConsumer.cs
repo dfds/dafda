@@ -36,7 +36,7 @@ namespace Dafda.Tests.Consuming
 
             await sut.ConsumeSingle(CancellationToken.None);
 
-            handlerMock.Verify(x => x.Handle(It.IsAny<FooMessage>(), It.IsAny<MessageHandlerContext>()), Times.Once);
+            handlerMock.Verify(x => x.Handle(It.IsAny<FooMessage>(), It.IsAny<MessageHandlerContext>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace Dafda.Tests.Consuming
 
             await sut.ConsumeSingle(CancellationToken.None);
 
-            Assert.Equal(new[] {"before", "during", "after"}, orderOfInvocation);
+            Assert.Equal(new[] { "before", "during", "after" }, orderOfInvocation);
         }
 
         [Fact]
