@@ -45,8 +45,7 @@ namespace Dafda.Consuming
             var message = messageResult.Message;
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
             var context = new MessageHandlerContext(message.Metadata);
-
-            await unitOfWork.Run(async handler =>
+            await unitOfWork.Run(async (handler ,cancellationToken) =>
             {
                 if (handler == null)
                 {
@@ -56,7 +55,7 @@ namespace Dafda.Consuming
                 // TODO -- verify that the handler is in fact an implementation of IMessageHandler<registration.MessageInstanceType> to provider sane error messages.
 
                 await ExecuteHandler((dynamic)messageInstance, (dynamic)handler, context, cancellationToken);
-            });
+            }, cancellationToken);
         }
 
         private static Task ExecuteHandler<TMessage>(

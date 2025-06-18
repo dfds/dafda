@@ -109,7 +109,7 @@ namespace Dafda.Tests.Consuming
             var wasCalled = false;
 
             var resultSpy = new MessageResultBuilder()
-                .WithOnCommit(() =>
+                .WithOnCommit((_) =>
                 {
                     wasCalled = true;
                     return Task.CompletedTask;
@@ -149,7 +149,7 @@ namespace Dafda.Tests.Consuming
 
             var resultSpy = new MessageResultBuilder()
                 .WithTopic("topic")
-                .WithOnCommit(() =>
+                .WithOnCommit((_) =>
                 {
                     wasCalled = true;
                     return Task.CompletedTask;
@@ -337,6 +337,32 @@ namespace Dafda.Tests.Consuming
             }
         }
 
+        [Fact]
+        public async Task throws_when_task_is_canceled()
+        {
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            var handlerMock = new Mock<IMessageHandler<FooMessage>>();
+            var handlerStub = handlerMock.Object;
+
+            var messageRegistrationStub = new MessageRegistrationBuilder()
+                .WithHandlerInstanceType(handlerStub.GetType())
+                .WithMessageInstanceType(typeof(FooMessage))
+                .WithMessageType("foo")
+                .WithTopic("")
+                .Build();
+
+            var registry = new MessageHandlerRegistry();
+            registry.Register(messageRegistrationStub);
+
+            var sut = new ConsumerBuilder()
+                .WithUnitOfWork(new UnitOfWorkStub(handlerStub))
+                .WithMessageHandlerRegistry(registry)
+                .Build();
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => sut.ConsumeSingle(cts.Token));
+        }
         #region helper classes
 
         private class ConsumerScopeDecoratorWithHooks : ConsumerScope
@@ -388,6 +414,7 @@ namespace Dafda.Tests.Consuming
 
         public override Task<MessageResult> GetNext(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             _onGetNext?.Invoke();
 
             return Task.FromResult(_messageResult);

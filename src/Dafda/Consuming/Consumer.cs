@@ -65,7 +65,7 @@ namespace Dafda.Consuming
 
             if (!_isAutoCommitEnabled)
             {
-                await messageResult.Commit();
+                await messageResult.Commit(cancellationToken);
             }
         }
     }

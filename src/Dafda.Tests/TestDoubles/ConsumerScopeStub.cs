@@ -15,6 +15,7 @@ namespace Dafda.Tests.TestDoubles
 
         public override Task<MessageResult> GetNext(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(_result);
         }
 
