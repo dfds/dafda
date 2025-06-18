@@ -38,7 +38,6 @@ namespace Dafda.Consuming
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var handlerInstance = scope.ServiceProvider.GetRequiredService(_handlerType);
-                    // Check for cancellation before executing
                     await handlingAction(handlerInstance, cancellationToken);
                 }
             }
