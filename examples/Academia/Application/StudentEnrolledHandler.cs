@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Academia.Domain;
 using Dafda.Consuming;
@@ -16,7 +17,7 @@ namespace Academia.Application
             _stats = stats;
         }
 
-        public Task Handle(StudentEnrolled message, MessageHandlerContext context)
+        public Task Handle(StudentEnrolled message, MessageHandlerContext context, CancellationToken cancellationToken)
         {
             _logger.LogDebug($@"{this.GetType().Name} handled: {{@Message}}", message);
 
