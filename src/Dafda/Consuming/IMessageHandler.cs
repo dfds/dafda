@@ -19,6 +19,6 @@ namespace Dafda.Consuming
         /// <param name="context">The message context</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns><see cref="Task"/></returns>
-        Task Handle(T message, MessageHandlerContext context, CancellationToken cancellationToken = default);
+        Task Handle(T message, MessageHandlerContext context, CancellationToken cancellationToken);
     }
 }
