@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Dafda.Consuming;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Consuming;
 
 namespace Dafda.Tests.Builders
 {
