@@ -7,7 +7,7 @@
     <Description>A small client for Kafka</Description>
     <RepositoryUrl>https://github.com/dfds/dafda</RepositoryUrl>
     <PackageProjectUrl>https://github.com/dfds/dafda</PackageProjectUrl>
-    <Version>0.13.0</Version>
+    <Version>0.12.6</Version>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -15,7 +15,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\Debug\Dafda.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
