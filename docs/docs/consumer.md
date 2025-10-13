@@ -69,7 +69,7 @@ public class TestHandler : IMessageHandler<Test>
         _logger = logger;
     }
 
-    public Task Handle(Test message, MessageHandlerContext context)
+    public Task Handle(Test message, MessageHandlerContext context, CancellationToken cancellationToken)
     {
         _logger.LogInformation(@"Handled: {@Message}", message);
 

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -32,13 +33,12 @@ namespace Dafda.Consuming
                 _handlerType = handlerType;
             }
 
-            public async Task Run(Func<object, Task> handlingAction)
+            public async Task Run(Func<object, CancellationToken, Task> handlingAction, CancellationToken cancellationToken)
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var handlerInstance = scope.ServiceProvider.GetRequiredService(_handlerType);
-
-                    await handlingAction(handlerInstance);
+                    await handlingAction(handlerInstance, cancellationToken);
                 }
             }
         }

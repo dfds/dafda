@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dafda.Consuming
@@ -9,13 +10,13 @@ namespace Dafda.Consuming
     /// </summary>
     public class MessageResult
     {
-        private static readonly Func<Task> EmptyCommitAction = () => Task.CompletedTask;
-        private readonly Func<Task> _onCommit;
+        private static readonly Func<CancellationToken, Task> EmptyCommitAction = (_) => Task.CompletedTask;
+        private readonly Func<CancellationToken, Task> _onCommit;
 
         /// <summary>
         /// Resulting Message contaning Transport Level Message
         /// </summary>
-        public MessageResult(TransportLevelMessage message, Func<Task> onCommit = null)
+        public MessageResult(TransportLevelMessage message, Func<CancellationToken, Task> onCommit = null)
         {
             Message = message;
             _onCommit = onCommit ?? EmptyCommitAction;
@@ -39,9 +40,9 @@ namespace Dafda.Consuming
         /// <summary>
         /// Commit message to handlers
         /// </summary>
-        public async Task Commit()
+        public async Task Commit(CancellationToken cancellationToken)
         {
-            await _onCommit();
+            await _onCommit(cancellationToken);
         }
     }
 }

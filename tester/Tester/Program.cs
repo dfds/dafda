@@ -87,7 +87,7 @@ namespace Tester
 
     public class MessageHandler : IMessageHandler<PositionMessage>
     {
-        public Task Handle(PositionMessage message, MessageHandlerContext context)
+        public Task Handle(PositionMessage message, MessageHandlerContext context, CancellationToken cancellationToken)
         {
             Console.WriteLine($"{DateTime.Now.TimeOfDay}> {message}");
             return Task.CompletedTask;

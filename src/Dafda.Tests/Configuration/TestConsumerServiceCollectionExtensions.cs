@@ -269,7 +269,7 @@ namespace Dafda.Tests.Configuration
 
         public class DummyMessageHandler : IMessageHandler<DummyMessage>
         {
-            public Task Handle(DummyMessage message, MessageHandlerContext context)
+            public Task Handle(DummyMessage message, MessageHandlerContext context, CancellationToken cancellationToken = default)
             {
                 LastHandledMessage = message;
                 LastActivityParentId = Activity.Current?.ParentId;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 
@@ -62,7 +63,7 @@ namespace Dafda.Tests.Builders
 
         private class FooHandler : IMessageHandler<FooMessage>
         {
-            public Task Handle(FooMessage message, MessageHandlerContext context)
+            public Task Handle(FooMessage message, MessageHandlerContext context, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }

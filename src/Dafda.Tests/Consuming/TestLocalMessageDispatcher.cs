@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Tests.Builders;
@@ -13,6 +14,7 @@ namespace Dafda.Tests.Consuming
         [Fact]
         public async Task throws_expected_exception_when_dispatching_and_no_handler_has_been_registered()
         {
+            using var cts = new CancellationTokenSource();
             var messageResultStub = new MessageResultBuilder().Build();
             var emptyMessageHandlerRegistryStub = new MessageHandlerRegistry();
             var dummyFactory = new HandlerUnitOfWorkFactoryStub(null);
@@ -22,12 +24,13 @@ namespace Dafda.Tests.Consuming
                 .WithHandlerUnitOfWorkFactory(dummyFactory)
                 .Build();
 
-            await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.Dispatch(messageResultStub));
+            await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.Dispatch(messageResultStub, cts.Token));
         }
 
         [Fact]
         public async Task throws_expected_exception_when_dispatching_and_unable_to_resolve_handler_instance()
         {
+            using var cts = new CancellationTokenSource();
             var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
             var messageResultStub = new MessageResultBuilder().WithTopic("topic").WithTransportLevelMessage(transportMessageDummy).Build();
             var messageRegistrationStub = new MessageRegistrationBuilder().WithTopic("topic").WithMessageType("foo").Build();
@@ -39,12 +42,13 @@ namespace Dafda.Tests.Consuming
                 .WithHandlerUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(null))
                 .Build();
 
-            await Assert.ThrowsAsync<UnableToResolveUnitOfWorkForHandlerException>(() => sut.Dispatch(messageResultStub));
+            await Assert.ThrowsAsync<UnableToResolveUnitOfWorkForHandlerException>(() => sut.Dispatch(messageResultStub, cts.Token));
         }
 
         [Fact]
         public async Task throws_expected_exception_when_dispatching_and_unable_to_resolve_handler_instance2()
         {
+            using var cts = new CancellationTokenSource();
             var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
             var messageResultStub = new MessageResultBuilder().WithTopic("topic").WithTransportLevelMessage(transportMessageDummy).Build();
             var messageRegistrationStub = new MessageRegistrationBuilder().WithTopic("topic-other").WithMessageType("foo").Build();
@@ -56,12 +60,13 @@ namespace Dafda.Tests.Consuming
                 .WithHandlerUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(null))
                 .Build();
 
-            await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.Dispatch(messageResultStub));
+            await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.Dispatch(messageResultStub, cts.Token));
         }
 
         [Fact]
         public async Task handler_is_invoked_as_expected_when_dispatching()
         {
+            using var cts = new CancellationTokenSource();
             var mock = new Mock<IMessageHandler<object>>();
 
             var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
@@ -75,14 +80,15 @@ namespace Dafda.Tests.Consuming
                 .WithHandlerUnitOfWork(new UnitOfWorkStub(mock.Object))
                 .Build();
 
-            await sut.Dispatch(messageResultStub);
+            await sut.Dispatch(messageResultStub, cts.Token);
 
-            mock.Verify(x => x.Handle(It.IsAny<object>(), It.IsAny<MessageHandlerContext>()), Times.Once);
+            mock.Verify(x => x.Handle(It.IsAny<object>(), It.IsAny<MessageHandlerContext>(), cts.Token), Times.Once);
         }
 
         [Fact]
         public async Task handler_exceptions_are_thrown_as_expected()
         {
+            using var cts = new CancellationTokenSource();
             var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
             var messageResultStub = new MessageResultBuilder().WithTopic("topic").WithTransportLevelMessage(transportMessageDummy).Build();
             var registrationDummy = new MessageRegistrationBuilder().WithTopic("topic").WithMessageType("foo").Build();
@@ -94,7 +100,7 @@ namespace Dafda.Tests.Consuming
                 .WithHandlerUnitOfWork(new UnitOfWorkStub(new ErroneusHandler()))
                 .Build();
 
-            await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(messageResultStub));
+            await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(messageResultStub, cts.Token));
         }
 
         #region private helper classes
@@ -106,7 +112,7 @@ namespace Dafda.Tests.Consuming
 
         private class ErroneusHandler : IMessageHandler<object>
         {
-            public Task Handle(object message, MessageHandlerContext context)
+            public Task Handle(object message, MessageHandlerContext context, CancellationToken cancellationToken = default)
             {
                 throw new ExpectedException();
             }

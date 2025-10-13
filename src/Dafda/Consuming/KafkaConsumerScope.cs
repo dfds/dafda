@@ -27,7 +27,7 @@ namespace Dafda.Consuming
             _logger.LogDebug("Received message {Key}: {RawMessage}", innerResult.Message?.Key, innerResult.Message?.Value);
             var result = new MessageResult(
                 message: _incomingMessageFactory.Create(innerResult.Message.Value),
-                onCommit: () =>
+                onCommit: (CancellationToken cancellationToken) =>
                 {
                     _innerKafkaConsumer.Commit(innerResult);
                     return Task.CompletedTask;

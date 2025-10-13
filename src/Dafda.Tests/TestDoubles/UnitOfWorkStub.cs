@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 
@@ -13,9 +14,9 @@ namespace Dafda.Tests.TestDoubles
             _handlerInstance = handlerInstance;
         }
 
-        public async Task Run(Func<object, Task> handlingAction)
+        public async Task Run(Func<object, CancellationToken, Task> handlingAction, CancellationToken cancellationToken)
         {
-            await handlingAction(_handlerInstance);
+            await handlingAction(_handlerInstance, cancellationToken);
         }
     }
 }

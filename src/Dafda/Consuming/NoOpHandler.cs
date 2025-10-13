@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dafda.Consuming
@@ -24,7 +25,7 @@ namespace Dafda.Consuming
         /// <summary>
         /// Logs a debug message with the Id and Type from the provided <paramref name="context"/>, and returns a completed task
         /// </summary>
-        public Task Handle(object _, MessageHandlerContext context)
+        public Task Handle(object _, MessageHandlerContext context, CancellationToken cancellationToken = default)
         {
             Logger.LogInformation(
                 "Dafda is ignoring a message of type {messageType} with id {messageId}",

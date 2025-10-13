@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dafda.Consuming
@@ -31,7 +32,7 @@ namespace Dafda.Consuming
             ?? _fallbackHandler.GetFallback(messageResult.Message.Metadata.Type);
         }
 
-        public async Task Dispatch(MessageResult messageResult)
+        public async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
         {
             var registration = GetMessageRegistrationFor(messageResult);
 
@@ -44,8 +45,7 @@ namespace Dafda.Consuming
             var message = messageResult.Message;
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
             var context = new MessageHandlerContext(message.Metadata);
-
-            await unitOfWork.Run(async handler =>
+            await unitOfWork.Run(async (handler ,cancellationToken) =>
             {
                 if (handler == null)
                 {
@@ -54,16 +54,17 @@ namespace Dafda.Consuming
 
                 // TODO -- verify that the handler is in fact an implementation of IMessageHandler<registration.MessageInstanceType> to provider sane error messages.
 
-                await ExecuteHandler((dynamic) messageInstance, (dynamic) handler, context);
-            });
+                await ExecuteHandler((dynamic)messageInstance, (dynamic)handler, context, cancellationToken);
+            }, cancellationToken);
         }
 
         private static Task ExecuteHandler<TMessage>(
             TMessage message,
             IMessageHandler<TMessage> handler,
-            MessageHandlerContext context)
+            MessageHandlerContext context,
+            CancellationToken cancellationToken)
         {
-            return handler.Handle(message, context);
+            return handler.Handle(message, context, cancellationToken);
         }
     }
 }

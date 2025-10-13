@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Academia.Domain;
 using Dafda.Consuming;
@@ -14,7 +15,7 @@ namespace Academia.Application
             _logger = logger;
         }
 
-        public Task Handle(StudentChangedEmail message, MessageHandlerContext context)
+        public Task Handle(StudentChangedEmail message, MessageHandlerContext context, CancellationToken cancellationToken)
         {
             _logger.LogDebug($@"{this.GetType().Name} handled: {{@Message}}", message);
 

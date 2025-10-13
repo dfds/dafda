@@ -1,18 +1,19 @@
-﻿using System;
+﻿using Dafda.Consuming;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Consuming;
 
 namespace Dafda.Tests.Builders
 {
     internal class MessageResultBuilder
     {
         private TransportLevelMessage _message = new TransportLevelMessageBuilder().WithType("foo").Build();
-        private Func<Task> _onCommit;
+        private Func<CancellationToken, Task> _onCommit;
         private string _topic = string.Empty;
 
         public MessageResultBuilder()
         {
-            _onCommit = () => Task.CompletedTask;
+            _onCommit = (_) => Task.CompletedTask;
         }
 
         public MessageResultBuilder WithTransportLevelMessage(TransportLevelMessage message)
@@ -21,7 +22,7 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
-        public MessageResultBuilder WithOnCommit(Func<Task> onCommit)
+        public MessageResultBuilder WithOnCommit(Func<CancellationToken, Task> onCommit)
         {
             _onCommit = onCommit;
             return this;

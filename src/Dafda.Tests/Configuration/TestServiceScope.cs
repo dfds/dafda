@@ -220,10 +220,10 @@ namespace Dafda.Tests.Configuration
                 _repository = repository;
             }
 
-            public async Task Handle(DummyMessage message, MessageHandlerContext context)
+            public async Task Handle(DummyMessage message, MessageHandlerContext context, CancellationToken cancellationToken = default)
             {
-                await _scopeSpy.DoSomethingAsync();
-                await _repository.PerformActionAsync();
+                await _scopeSpy.DoSomethingAsync(cancellationToken);
+                await _repository.PerformActionAsync(cancellationToken);
             }
         }
 
@@ -236,9 +236,9 @@ namespace Dafda.Tests.Configuration
                 _scopeSpy = scopeSpy;
             }
 
-            public async Task PerformActionAsync()
+            public async Task PerformActionAsync(CancellationToken cancellationToken)
             {
-                await _scopeSpy.DoSomethingAsync();
+                await _scopeSpy.DoSomethingAsync(cancellationToken);
             }
         }
 
@@ -263,14 +263,14 @@ namespace Dafda.Tests.Configuration
                 _onDispose?.Invoke();
             }
 
-            public async Task DoSomethingAsync()
+            public async Task DoSomethingAsync(CancellationToken cancellationToken)
             {
                 if (_diposed)
                 {
                     throw new ObjectDisposedException(nameof(ScopeSpy), "Ups, already disposed!");
                 }
 
-                await Task.Delay(10);
+                await Task.Delay(10, cancellationToken);
             }
         }
     }

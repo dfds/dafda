@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dafda.Consuming
@@ -16,7 +17,8 @@ namespace Dafda.Consuming
         /// of the <see cref="IHandlerUnitOfWork"/> implementation.
         /// </summary>
         /// <param name="handlingAction">The action to run.</param>
+        /// <param name="cancellationToken">The cancellation token</param>
         /// <returns><see cref="Task"/></returns>
-        Task Run(Func<object, Task> handlingAction);
+        Task Run(Func<object, CancellationToken, Task> handlingAction, CancellationToken cancellationToken);
     }
 }
