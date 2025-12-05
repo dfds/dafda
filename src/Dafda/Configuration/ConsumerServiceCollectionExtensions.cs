@@ -36,6 +36,7 @@ namespace Dafda.Configuration
             var consumerOptions = new ConsumerOptions(configurationBuilder, services);
             consumerOptions.WithUnitOfWorkFactory<ServiceProviderUnitOfWorkFactory>();
             consumerOptions.WithUnconfiguredMessageHandlingStrategy<RequireExplicitHandlers>();
+            consumerOptions.WithConsumerExecutionStrategyFactory(_ => new SimpleConsumerExecutionStrategy());
             options?.Invoke(consumerOptions);
             var configuration = configurationBuilder.Build();
 
@@ -70,6 +71,7 @@ namespace Dafda.Configuration
                     configuration.ConsumerScopeFactory(provider),
                     provider.GetRequiredService<IUnconfiguredMessageHandlingStrategy>(),
                     configuration.MessageFilter,
+                    configuration.ExecutionStrategyFactory(provider),
                     configuration.EnableAutoCommit
                 ),
                 configuration.GroupId,

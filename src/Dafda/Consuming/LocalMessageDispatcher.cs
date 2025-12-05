@@ -9,11 +9,13 @@ namespace Dafda.Consuming
         private readonly MessageHandlerRegistry _messageHandlerRegistry;
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private readonly IUnconfiguredMessageHandlingStrategy _fallbackHandler;
+        private readonly IConsumerExecutionStrategy _consumerExecutionStrategy;
 
         public LocalMessageDispatcher(
             MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory,
-            IUnconfiguredMessageHandlingStrategy fallbackHandler)
+            IUnconfiguredMessageHandlingStrategy fallbackHandler,
+            IConsumerExecutionStrategy consumerExecutionStrategy)
         {
             _messageHandlerRegistry =
                 messageHandlerRegistry
@@ -24,6 +26,8 @@ namespace Dafda.Consuming
             _fallbackHandler =
                 fallbackHandler
                 ?? throw new ArgumentNullException(nameof(fallbackHandler));
+            _consumerExecutionStrategy = consumerExecutionStrategy
+                ?? throw new ArgumentNullException(nameof(consumerExecutionStrategy));
         }
 
         private MessageRegistration GetMessageRegistrationFor(MessageResult messageResult)
@@ -54,7 +58,7 @@ namespace Dafda.Consuming
 
                 // TODO -- verify that the handler is in fact an implementation of IMessageHandler<registration.MessageInstanceType> to provider sane error messages.
 
-                await ExecuteHandler((dynamic)messageInstance, (dynamic)handler, context, cancellationToken);
+                await _consumerExecutionStrategy.Execute(() => ExecuteHandler((dynamic)messageInstance, (dynamic)handler, context, cancellationToken));
             }, cancellationToken);
         }
 

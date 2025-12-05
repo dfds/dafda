@@ -7,10 +7,12 @@ namespace Dafda.Tests.Builders
     {
         private MessageHandlerRegistry _messageHandlerRegistry;
         private IHandlerUnitOfWorkFactory _handlerUnitOfWorkFactory;
+        private IConsumerExecutionStrategy _consumerExecutionStrategy;
 
         public LocalMessageDispatcherBuilder()
         {
             _messageHandlerRegistry = new MessageHandlerRegistry();
+            _consumerExecutionStrategy = new SimpleConsumerExecutionStrategy();
         }
 
         public LocalMessageDispatcherBuilder WithMessageHandlerRegistry(MessageHandlerRegistry messageHandlerRegistry)
@@ -25,6 +27,12 @@ namespace Dafda.Tests.Builders
             return this;
         }
 
+        public LocalMessageDispatcherBuilder WithConsumerExecutionStrategy(IConsumerExecutionStrategy consumerExecutionStrategy)
+        {
+            _consumerExecutionStrategy = consumerExecutionStrategy;
+            return this;
+        }
+
         public LocalMessageDispatcherBuilder WithHandlerUnitOfWork(IHandlerUnitOfWork unitOfWork)
         {
             return WithHandlerUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
@@ -35,7 +43,8 @@ namespace Dafda.Tests.Builders
             return new LocalMessageDispatcher(
                 _messageHandlerRegistry,
                 _handlerUnitOfWorkFactory,
-                new RequireExplicitHandlers());
+                new RequireExplicitHandlers(),
+                _consumerExecutionStrategy);
         }
     }
 }

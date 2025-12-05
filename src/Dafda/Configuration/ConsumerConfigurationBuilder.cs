@@ -40,6 +40,7 @@ namespace Dafda.Configuration
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
         private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
+        private Func<IServiceProvider, IConsumerExecutionStrategy> _executionStrategyFactory;
         private bool _readFromBeginning;
 
         private MessageFilter _messageFilter = MessageFilter.Default;
@@ -143,6 +144,12 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder WithExecutionStrategyFactory(Func<IServiceProvider, IConsumerExecutionStrategy> factory)
+        {
+            _executionStrategyFactory = factory;
+            return this;
+        }
+
         internal ConsumerConfiguration Build()
         {
             var configurations = new ConfigurationBuilder()
@@ -177,7 +184,8 @@ namespace Dafda.Configuration
                 consumerScopeFactory: _consumerScopeFactory,
                 incomingMessageFactory: _incomingMessageFactory, 
                 messageFilter: _messageFilter,
-                consumerErrorHandler: _consumerErrorHandler
+                consumerErrorHandler: _consumerErrorHandler,
+                executionStrategyFactory: _executionStrategyFactory
             );
         }
     }

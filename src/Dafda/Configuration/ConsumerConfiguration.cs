@@ -14,16 +14,19 @@ namespace Dafda.Configuration
             Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory,
             Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory,
             MessageFilter messageFilter,
-            IConsumerErrorHandler consumerErrorHandler) : base(configuration, unitOfWorkFactory, consumerErrorHandler)
+            IConsumerErrorHandler consumerErrorHandler,
+            Func<IServiceProvider, IConsumerExecutionStrategy> executionStrategyFactory) : base(configuration, unitOfWorkFactory, consumerErrorHandler)
         {
             MessageHandlerRegistry = messageHandlerRegistry;
             ConsumerScopeFactory = consumerScopeFactory;
             MessageFilter = messageFilter;
             IncomingMessageFactory = incomingMessageFactory;
+            ExecutionStrategyFactory = executionStrategyFactory;
         }
 
         public Func<IServiceProvider, IConsumerScopeFactory> ConsumerScopeFactory { get; }
         public Func<IServiceProvider, IIncomingMessageFactory> IncomingMessageFactory { get; }
+        public Func<IServiceProvider, IConsumerExecutionStrategy> ExecutionStrategyFactory { get; }
         public MessageHandlerRegistry MessageHandlerRegistry { get; }
         public MessageFilter MessageFilter { get; }
     }

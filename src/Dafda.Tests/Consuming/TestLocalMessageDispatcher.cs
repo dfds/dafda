@@ -103,6 +103,30 @@ namespace Dafda.Tests.Consuming
             await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(messageResultStub, cts.Token));
         }
 
+        [Fact]
+        public async Task handler_is_executed_in_consumer_execution_strategy()
+        {
+            using var cts = new CancellationTokenSource();
+            var mock = new Mock<IMessageHandler<object>>();
+            var consumerExecutionStrategyMock = new Mock<IConsumerExecutionStrategy>();
+
+            var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
+            var messageResultStub = new MessageResultBuilder().WithTopic("topic").WithTransportLevelMessage(transportMessageDummy).Build();
+            var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").WithTopic("topic").Build();
+            var registry = new MessageHandlerRegistry();
+            registry.Register(registrationDummy);
+
+            var sut = new LocalMessageDispatcherBuilder()
+                .WithMessageHandlerRegistry(registry)
+                .WithHandlerUnitOfWork(new UnitOfWorkStub(mock.Object))
+                .WithConsumerExecutionStrategy(consumerExecutionStrategyMock.Object)
+                .Build();
+
+            await sut.Dispatch(messageResultStub, cts.Token);
+
+            consumerExecutionStrategyMock.Verify(x => x.Execute(It.IsAny<Func<Task>>()), Times.Once);
+        }
+
         #region private helper classes
 
         private class ExpectedException : Exception

@@ -213,7 +213,17 @@ namespace Dafda.Configuration
         public void WithConsumerErrorHandler(Func<Exception, Task<ConsumerFailureStrategy>> failureEvaluation)
         {
             _builder.WithConsumerErrorHandler(failureEvaluation);
-        } 
+        }
+
+        /// <summary>
+        /// Configures the consumer execution strategy using the specified factory function. The strategy has the lifetime of the hosted consumer.
+        /// </summary>
+        /// <param name="factory">A function that takes an <see cref="IServiceProvider"/> and returns an <see
+        /// cref="IConsumerExecutionStrategy"/>. This function is used to create the execution strategy for the consumer.</param>
+        public void WithConsumerExecutionStrategyFactory(Func<IServiceProvider, IConsumerExecutionStrategy> factory)
+        {
+            _builder.WithExecutionStrategyFactory(factory);
+        }
 
         private class DefaultConfigurationSource : ConfigurationSource
         {

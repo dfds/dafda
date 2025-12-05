@@ -173,7 +173,31 @@ It is possible to override the default Unit of Work behavior for each consumed m
 
 [^1]: The message type is part of the [Message Envelope](/messages/#message-envelope)
 
-#### Unit of Work Factory
+### Consumer Execution Strategy
+
+It is possible to override the defualt execution strategy used by the consumer, by providing a custom implementation of `IConsumerExecutionStrategy`.
+The consumer execution strategy has the same lifetime as the consumer itself (singleton).
+
+This could for instance allow to execute the message handling inside a resilience pipeline for the given consumer.
+
+Example:
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddConsumer(options =>
+    {
+        options.WithConsumerExecutionStrategyFactory(sp =>
+        {
+            return new ResilienceExecutionStrategy(
+                "some-pipeline-name", 
+                sp.GetRequiredService<ResiliencePipelineProvider<string>>());
+        });
+    });
+}
+```
+
+
+#### Read from beginning
 
 When a consumer starts  Dafda continues consuming from the last committed offset on each topic, if a committed offset exists. 
 To read all topics from the beginning of all partitions, use `ReadFromBeginning`: 
