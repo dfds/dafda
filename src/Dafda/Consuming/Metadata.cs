@@ -50,8 +50,12 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
+        /// The message identification in a tracing system.
+        /// Only used if tracing is enabled. Set automatically by Dafda.
         /// </summary>
+        public string TraceParent
         {
+            get => this[MessageEnvelopeProperties.TraceParent];
         }
 
         /// <summary>
@@ -69,7 +73,7 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
-        /// Creates an enumerable of headers
+        /// Creates an enumerable from headers
         /// </summary>
         /// <returns>Headers</returns>
         public IEnumerable<KeyValuePair<string, string>> AsEnumerable()
@@ -78,4 +82,3 @@ namespace Dafda.Consuming
         }
     }
 }
-
