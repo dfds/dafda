@@ -50,21 +50,8 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
-        /// The correlation identifier.
         /// </summary>
-        public string CorrelationId
         {
-            get => this[MessageEnvelopeProperties.CorrelationId];
-            init => this[MessageEnvelopeProperties.CorrelationId] = value;
-        }
-
-        /// <summary>
-        /// The causation identifier.
-        /// </summary>
-        public string CausationId
-        {
-            get => this[MessageEnvelopeProperties.CausationId];
-            init => this[MessageEnvelopeProperties.CausationId] = value;
         }
 
         /// <summary>

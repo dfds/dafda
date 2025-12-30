@@ -42,14 +42,7 @@ namespace Dafda.Consuming
         public virtual string MessageType => _metadata.Type;
 
         /// <summary>
-        /// The message correlation identifier.
         /// </summary>
-        public virtual string CorrelationId => _metadata.CorrelationId;
-
-        /// <summary>
-        /// The message causation identifier.
-        /// </summary>
-        public virtual string CausationId => _metadata.CausationId;
 
         /// <summary>
         /// Access to message metadata values.
