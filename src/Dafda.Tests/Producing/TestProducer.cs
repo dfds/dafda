@@ -145,8 +145,6 @@ namespace Dafda.Tests.Producing
             var expected = @"{
                                 ""messageId"":""1"",
                                 ""type"":""bar"",
-                                ""causationId"":""1"",
-                                ""correlationId"":""1"",
                                 ""data"":{
                                     ""id"":""dummyId""
                                     }
@@ -181,8 +179,6 @@ namespace Dafda.Tests.Producing
                                 ""messageId"":""1"",
                                 ""type"":""bar"",
                                 ""foo-key"":""foo-value"",
-                                ""causationId"":""1"",
-                                ""correlationId"":""1"",
                                 ""data"":{
                                     ""id"":""dummyId""
                                     }
@@ -208,11 +204,7 @@ namespace Dafda.Tests.Producing
 
             await sut.Produce(
                 message: new Message { Id = expectedKey },
-                headers: new Metadata
-                {
-                    CausationId = "my-causation",
-                    CorrelationId = "my-correlation"
-                }
+                headers: new Metadata ()
             );
 
             Assert.Equal(expectedKey, spy.Key);
@@ -234,11 +226,7 @@ namespace Dafda.Tests.Producing
 
             await sut.Produce(
                 message: new Message { Id = "0" },
-                context: new MessageHandlerContext(new Metadata
-                {
-                    CausationId = "my-causation",
-                    CorrelationId = "my-correlation"
-                })
+                context: new MessageHandlerContext(new Metadata())
             );
 
 
@@ -246,8 +234,6 @@ namespace Dafda.Tests.Producing
                             {
                             ""messageId"":""1"",
                             ""type"":""bar"",
-                            ""correlationId"":""my-correlation"",
-                            ""causationId"":""1"",
                             ""data"":{
                                 ""id"":""0""
                                 }
@@ -300,8 +286,6 @@ namespace Dafda.Tests.Producing
             var expected = $@"{{
                                 ""messageId"":""1"",
                                 ""type"":""bar"",
-                                ""causationId"":""1"",
-                                ""correlationId"":""1"",
                                 ""traceparent"":""{spy.ProducerActivityId}"",
                                 ""baggage"":""som=der"",
                                 ""data"":{{
