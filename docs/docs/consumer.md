@@ -173,10 +173,10 @@ It is possible to override the default Unit of Work behavior for each consumed m
 
 [^1]: The message type is part of the [Message Envelope](/messages/#message-envelope)
 
-### Consumer Execution Strategy
+#### Message Handler Execution Strategy
 
-It is possible to override the defualt execution strategy used by the consumer, by providing a custom implementation of `IConsumerExecutionStrategy`.
-The consumer execution strategy has the same lifetime as the consumer itself (singleton).
+It is possible to override the default execution strategy used by the consumer to execute message handlers, by providing a custom implementation of `IMessageHandlerExecutionStrategy`.
+The message handler execution strategy has the same lifetime as the consumer itself (singleton).
 
 This could for instance allow to execute the message handling inside a resilience pipeline for the given consumer.
 
@@ -186,15 +186,15 @@ public void ConfigureServices(IServiceCollection services)
 {
     services.AddConsumer(options =>
     {
-        options.WithConsumerExecutionStrategyFactory(sp =>
+        options.WithMessageHandlerExecutionStrategyFactory(sp =>
         {
-            return new ResilienceExecutionStrategy(
-                "some-pipeline-name", 
-                sp.GetRequiredService<ResiliencePipelineProvider<string>>());
+            return new MyResilientExecutionStrategy();
         });
     });
 }
 ```
+
+Here the `MyResilientExecutionStrategy` is a custom implementation of `IMessageHandlerExecutionStrategy`. The `sp` parameter is the service provider, which can be used to resolve dependencies needed by the execution strategy.
 
 
 #### Read from beginning

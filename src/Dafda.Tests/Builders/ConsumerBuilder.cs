@@ -10,7 +10,7 @@ namespace Dafda.Tests.Builders
         private IConsumerScopeFactory _consumerScopeFactory;
         private MessageHandlerRegistry _registry;
         private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
-        private IConsumerExecutionStrategy _consumerExecutionStrategy;
+        private IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy;
 
         private bool _enableAutoCommit;
         private MessageFilter _messageFilter = MessageFilter.Default;
@@ -21,7 +21,7 @@ namespace Dafda.Tests.Builders
             _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
             _registry = new MessageHandlerRegistry();
             _unconfiguredMessageStrategy = new RequireExplicitHandlers();
-            _consumerExecutionStrategy = new SimpleConsumerExecutionStrategy();
+            _messageHandlerExecutionStrategy = new DirectMessageHandlerExecutionStrategy();
         }
 
         public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
@@ -72,7 +72,7 @@ namespace Dafda.Tests.Builders
                 _consumerScopeFactory,
                 _unconfiguredMessageStrategy,
                 _messageFilter,
-                _consumerExecutionStrategy,
+                _messageHandlerExecutionStrategy,
                 _enableAutoCommit);
     }
 }

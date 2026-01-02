@@ -104,11 +104,11 @@ namespace Dafda.Tests.Consuming
         }
 
         [Fact]
-        public async Task handler_is_executed_in_consumer_execution_strategy()
+        public async Task handler_is_executed_in_message_handler_execution_strategy()
         {
             using var cts = new CancellationTokenSource();
             var mock = new Mock<IMessageHandler<object>>();
-            var consumerExecutionStrategyMock = new Mock<IConsumerExecutionStrategy>();
+            var messageHandlerExecutionStrategyMock = new Mock<IMessageHandlerExecutionStrategy>();
 
             var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
             var messageResultStub = new MessageResultBuilder().WithTopic("topic").WithTransportLevelMessage(transportMessageDummy).Build();
@@ -119,12 +119,12 @@ namespace Dafda.Tests.Consuming
             var sut = new LocalMessageDispatcherBuilder()
                 .WithMessageHandlerRegistry(registry)
                 .WithHandlerUnitOfWork(new UnitOfWorkStub(mock.Object))
-                .WithConsumerExecutionStrategy(consumerExecutionStrategyMock.Object)
+                .WithMessageHandlerExecutionStrategy(messageHandlerExecutionStrategyMock.Object)
                 .Build();
 
             await sut.Dispatch(messageResultStub, cts.Token);
 
-            consumerExecutionStrategyMock.Verify(x => x.Execute(It.IsAny<Func<Task>>()), Times.Once);
+            messageHandlerExecutionStrategyMock.Verify(x => x.Execute(It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<MessageExecutionContext>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         #region private helper classes

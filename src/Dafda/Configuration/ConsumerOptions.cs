@@ -216,13 +216,13 @@ namespace Dafda.Configuration
         }
 
         /// <summary>
-        /// Configures the consumer execution strategy using the specified factory function. The strategy has the lifetime of the hosted consumer.
+        /// Configures the message handler execution strategy using the specified factory function. The strategy has the lifetime of the hosted consumer.
         /// </summary>
         /// <param name="factory">A function that takes an <see cref="IServiceProvider"/> and returns an <see
-        /// cref="IConsumerExecutionStrategy"/>. This function is used to create the execution strategy for the consumer.</param>
-        public void WithConsumerExecutionStrategyFactory(Func<IServiceProvider, IConsumerExecutionStrategy> factory)
+        /// cref="IMessageHandlerExecutionStrategy"/>. This function is used to create the execution strategy for the consumer.</param>
+        public void WithMessageHandlerExecutionStrategyFactory(Func<IServiceProvider, IMessageHandlerExecutionStrategy> factory)
         {
-            _builder.WithExecutionStrategyFactory(factory);
+            _builder.WithMessageHandlerExecutionStrategyFactory(factory);
         }
 
         private class DefaultConfigurationSource : ConfigurationSource

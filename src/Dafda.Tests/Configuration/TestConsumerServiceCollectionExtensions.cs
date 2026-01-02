@@ -279,15 +279,15 @@ namespace Dafda.Tests.Configuration
                 .WithTopic(dummyTopic)
                 .Build();
 
-            var executionStrategyMock = new Mock<IInnerConsumerExecutionStrategy>();
+            var executionStrategyMock = new Mock<IInnerMessageHandlerExecutionStrategy>();
 
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
-            services.AddTransient<IInnerConsumerExecutionStrategy>(_ => executionStrategyMock.Object);
+            services.AddTransient<IInnerMessageHandlerExecutionStrategy>(_ => executionStrategyMock.Object);
             services.AddConsumer(options =>
             {
-                options.WithConsumerExecutionStrategyFactory(sp => new ConsumerExecutionStrategyStub(sp.GetRequiredService<IInnerConsumerExecutionStrategy>()));
+                options.WithMessageHandlerExecutionStrategyFactory(sp => new MessageHandlerExecutionStrategyStub(sp.GetRequiredService<IInnerMessageHandlerExecutionStrategy>()));
                 options.WithBootstrapServers("dummyBootstrapServer");
                 options.WithGroupId("dummyGroupId");
                 options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage));
@@ -305,7 +305,7 @@ namespace Dafda.Tests.Configuration
                 await consumerHostedService.ConsumeAll(cts.Token);
             }
 
-            executionStrategyMock.Verify(m => m.InnerExecute(It.IsAny<Func<Task>>()), Times.AtLeastOnce);
+            executionStrategyMock.Verify(m => m.InnerExecute(It.IsAny<Func<CancellationToken, Task>>()), Times.AtLeastOnce);
         }
         public class DummyMessage
         {
