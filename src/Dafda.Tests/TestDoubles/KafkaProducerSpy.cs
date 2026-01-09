@@ -10,6 +10,9 @@ namespace Dafda.Tests.TestDoubles
 {
     internal class KafkaProducerSpy : KafkaProducer
     {
+        private readonly List<string> _keys = new List<string>();
+        private readonly List<ProducedMessage> _producedMessages = new List<ProducedMessage>();
+
         public KafkaProducerSpy()
             : this(Enumerable.Empty<KeyValuePair<string, string>>(), new DefaultPayloadSerializer())
         {
@@ -31,6 +34,15 @@ namespace Dafda.Tests.TestDoubles
             Key = key;
             Value = value;
             ProducerActivityId = Activity.Current?.Id;
+            ProduceCallCount++;
+            _keys.Add(key);
+            _producedMessages.Add(new ProducedMessage
+            {
+                Topic = topic,
+                Key = key,
+                Value = value,
+                Order = ProduceCallCount
+            });
 
             return Task.CompletedTask;
         }
@@ -47,5 +59,16 @@ namespace Dafda.Tests.TestDoubles
         public string Key { get; private set; }
         public string Value { get; private set; }
         public string ProducerActivityId { get; private set; }
+        public int ProduceCallCount { get; private set; }
+        public IReadOnlyList<string> AllKeys => _keys;
+        public IReadOnlyList<ProducedMessage> ProducedMessages => _producedMessages;
+
+        public class ProducedMessage
+        {
+            public string Topic { get; set; }
+            public string Key { get; set; }
+            public string Value { get; set; }
+            public int Order { get; set; }
+        }
     }
 }
