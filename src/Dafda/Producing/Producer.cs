@@ -23,6 +23,61 @@ namespace Dafda.Producing
         internal string Name { get; set; } = "__Default Producer__";
 
         /// <summary>
+        /// Produce multiple <paramref name="messages"/> on Kafka. The messages will be produced in the order of the IEnumerable provided.
+        /// </summary>
+        /// <param name="messages">The messages</param>
+        public async Task Produce(IEnumerable<object> messages)
+        {
+            var produceTasks = messages.Select(Produce);
+            await Task.WhenAll(produceTasks);
+        }
+
+        /// <summary>
+        /// Produce multiple <paramref name="messages"/> on Kafka including <paramref name="headers"/>. The messages will be produced in the order of the IEnumerable provided.
+        /// </summary>
+        /// <param name="messages">The messages</param>
+        /// <param name="headers">The message headers</param>
+        public async Task Produce(IEnumerable<object> messages, Metadata headers)
+        {
+            var produceTasks = messages.Select(message => Produce(message, headers));
+            await Task.WhenAll(produceTasks);
+        }
+
+        /// <summary>
+        /// Produce multiple <paramref name="messages"/> on Kafka including <paramref name="headers"/>. The messages will be produced in the order of the IEnumerable provided.
+        /// </summary>
+        /// <param name="messages">The messages</param>
+        /// <param name="headers">The message headers</param>
+        public async Task Produce(IEnumerable<object> messages, Dictionary<string, object> headers)
+        {
+            var produceTasks = messages.Select(message => Produce(message, headers));
+            await Task.WhenAll(produceTasks);
+        }
+
+        /// <summary>
+        /// Produce multiple <paramref name="messages"/> on Kafka. The messages will be produced in the order of the IEnumerable provided.
+        /// </summary>
+        /// <param name="messages">The messages</param>
+        /// <param name="context">Context from the consumer. Supply this to get correlation and causation id on the new messages</param>
+        public async Task Produce(IEnumerable<object> messages, MessageHandlerContext context)
+        {
+            var produceTasks = messages.Select(message => Produce(message, context));
+            await Task.WhenAll(produceTasks);
+        }
+
+        /// <summary>
+        /// Produce multiple <paramref name="messages"/> on Kafka. The messages will be produced in the order of the IEnumerable provided.
+        /// </summary>
+        /// <param name="messages">The messages</param>
+        /// <param name="context">Context from the consumer. Supply this to get correlation and causation id on the new messages</param>
+        /// <param name="headers">Additional message headers</param>
+        public async Task Produce(IEnumerable<object> messages, MessageHandlerContext context, Dictionary<string, string> headers)
+        {
+            var produceTasks = messages.Select(message => Produce(message, context, headers));
+            await Task.WhenAll(produceTasks);
+        }
+
+        /// <summary>
         /// Produce a <paramref name="message"/> on Kafka
         /// </summary>
         /// <param name="message">The message</param>
