@@ -42,14 +42,10 @@ namespace Dafda.Consuming
         public virtual string MessageType => _metadata.Type;
 
         /// <summary>
-        /// The message correlation identifier.
+        /// The message identification in a tracing system.
+        /// Only used if tracing is enabled. Set automatically by Dafda.
         /// </summary>
-        public virtual string CorrelationId => _metadata.CorrelationId;
-
-        /// <summary>
-        /// The message causation identifier.
-        /// </summary>
-        public virtual string CausationId => _metadata.CausationId;
+        public virtual string TraceParent => _metadata.TraceParent;
 
         /// <summary>
         /// Access to message metadata values.

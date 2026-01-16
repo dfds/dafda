@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Dafda.Consuming;
 using Dafda.Diagnostics;
 using Dafda.Outbox;
 using Dafda.Producing;
@@ -21,7 +22,7 @@ public class TestProducer
     {
         // Arrange
         string payload =
-            "{\"messageId\":\"1b13a5e1-742e-45fb-ab7a-76d547e4e327\",\"type\":\"userdisabled\",\"traceparent\":\"00-1f2c12212e50621b49c80175a064d193-35a6133087d5e877-01\",\"causationId\":\"1b13a5e1-742e-45fb-ab7a-76d547e4e327\",\"correlationId\":\"1b13a5e1-742e-45fb-ab7a-76d547e4e327\",\"data\":{\"dfdsUserId\":\"8cfb2d2d-9113-48c8-8c8d-41ade8d79989\"}}";
+            "{\"messageId\":\"1b13a5e1-742e-45fb-ab7a-76d547e4e327\",\"type\":\"userdisabled\",\"traceparent\":\"00-1f2c12212e50621b49c80175a064d193-35a6133087d5e877-01\",\"data\":{\"dfdsUserId\":\"8cfb2d2d-9113-48c8-8c8d-41ade8d79989\"}}";
         // Act
         bool result = DafdaActivitySource.TryDeserializePayload(payload, out var payloadDictionary);
 
@@ -31,8 +32,6 @@ public class TestProducer
         Assert.Equal("1b13a5e1-742e-45fb-ab7a-76d547e4e327", payloadDictionary["messageId"]);
         Assert.Equal("userdisabled", payloadDictionary["type"]);
         Assert.Equal("00-1f2c12212e50621b49c80175a064d193-35a6133087d5e877-01", payloadDictionary["traceparent"]);
-        Assert.Equal("1b13a5e1-742e-45fb-ab7a-76d547e4e327", payloadDictionary["causationId"]);
-        Assert.Equal("1b13a5e1-742e-45fb-ab7a-76d547e4e327", payloadDictionary["correlationId"]);
 
         // Deserialize the data field to ensure it's a JSON object
         var dataObject = JObject.Parse(payloadDictionary["data"].ToString());
@@ -45,7 +44,7 @@ public class TestProducer
     {
         // Arrange
         string payload =
-            "{\"messageId\":\"0b8db195-62bd-43ee-9123-70b64adf9fff\",\"type\":\"AssociateAccessRelationsChanged\",\"data\":{\"freightPayerId\":22937,\"externalAssociates\":[{\"associateId\":75900,\"accessToFreightPayer\":1},{\"associateId\":51147,\"accessToFreightPayer\":1}],\"changedBy\":\"b3bef642-e347-417c-9bec-2660f4376ggg\"},\"correlationId\":null,\"causationId\":\"fecb6bee0a799cbd\",\"tenantId\":\"Test\"}";
+            "{\"messageId\":\"0b8db195-62bd-43ee-9123-70b64adf9fff\",\"type\":\"AssociateAccessRelationsChanged\",\"data\":{\"freightPayerId\":22937,\"externalAssociates\":[{\"associateId\":75900,\"accessToFreightPayer\":1},{\"associateId\":51147,\"accessToFreightPayer\":1}],\"changedBy\":\"b3bef642-e347-417c-9bec-2660f4376ggg\"},\"tenantId\":\"Test\"}";
 
         // Act
         bool result = DafdaActivitySource.TryDeserializePayload(payload, out var payloadDictionary);
@@ -62,8 +61,6 @@ public class TestProducer
         Assert.Equal("b3bef642-e347-417c-9bec-2660f4376ggg", dataObject["changedBy"]);
         Assert.Equal(2, dataObject["externalAssociates"].Count());
 
-        Assert.Null(payloadDictionary["correlationId"]);
-        Assert.Equal("fecb6bee0a799cbd", payloadDictionary["causationId"]);
         Assert.Equal("Test", payloadDictionary["tenantId"]);
     }
 
@@ -90,8 +87,6 @@ public class TestProducer
         var payload = $@"{{
                                 ""messageId"":""{guid.ToString()}"",
                                 ""type"":""{type}"",
-                                ""causationId"":""1"",
-                                ""correlationId"":""1"",                           
                                 ""data"":{{
                                     ""id"":""dummyId""
                                     }}
@@ -124,7 +119,7 @@ public class TestProducer
         Assert.Equal("foo", spy.Topic);
         Assert.Equal("bar", spy.Key);
         var jsonObject = JObject.Parse(spy.Value);
-        Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
+        Assert.True(jsonObject[MessageEnvelopeProperties.TraceParent] != null, "The JSON does not contain the traceparent element.");
         Assert.Contains(activities, a => a.DisplayName == $"{OpenTelemetryMessagingOperation.Producer.Publish} {topic} {type}");
 
         // Deserialize the data field to ensure it's a JSON object
@@ -159,8 +154,6 @@ public class TestProducer
         var payload = $@"{{
                             ""messageId"":""{guid.ToString()}"",
                             ""type"":""{type}"",
-                            ""causationId"":""1"",
-                            ""correlationId"":""1"",                           
                             ""data"":{{
                                 ""id"":""dummyId"",
                                 ""details"":{{
@@ -202,7 +195,7 @@ public class TestProducer
         Assert.Equal("foo", spy.Topic);
         Assert.Equal("bar", spy.Key);
         var jsonObject = JObject.Parse(spy.Value);
-        Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
+        Assert.True(jsonObject[MessageEnvelopeProperties.TraceParent] != null, "The JSON does not contain the traceparent element.");
         Assert.Contains(activities, a => a.DisplayName == $"{OpenTelemetryMessagingOperation.Producer.Publish} {topic} {type}");
 
         // Deserialize the data field to ensure it's a JSON object
@@ -250,8 +243,6 @@ public class TestProducer
         var payload = $@"{{
                             ""messageId"":""{guid.ToString()}"",
                             ""type"":""{type}"",
-                            ""causationId"":""1"",
-                            ""correlationId"":""1"",                           
                             ""data"":{{
                                 ""id"":""dummyId"",
                                 ""isActive"":true,
@@ -297,7 +288,7 @@ public class TestProducer
         Assert.Equal("foo", spy.Topic);
         Assert.Equal("bar", spy.Key);
         var jsonObject = JObject.Parse(spy.Value);
-        Assert.True(jsonObject["traceparent"] != null, "The JSON does not contain the traceparent element.");
+        Assert.True(jsonObject[MessageEnvelopeProperties.TraceParent] != null, "The JSON does not contain the traceparent element.");
         Assert.Contains(activities, a => a.DisplayName == $"{OpenTelemetryMessagingOperation.Producer.Publish} {topic} {type}");
 
         // Deserialize the data field to ensure it's a JSON object

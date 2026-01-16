@@ -26,11 +26,8 @@ namespace Dafda.Producing
             }
 
             var messageId = string.IsNullOrEmpty(headers.MessageId) ? _messageIdGenerator.NextMessageId() : headers.MessageId;
-            var metadata = new Metadata( headers.AsEnumerable().ToDictionary( k => k.Key, v => v.Value ) )
-            {
-                CausationId = string.IsNullOrEmpty(headers.CausationId) ? messageId : headers.CausationId,
-                CorrelationId = string.IsNullOrEmpty(headers.CorrelationId) ? messageId : headers.CorrelationId,
-            };
+            var metadata = new Metadata(headers.AsEnumerable().ToDictionary(k => k.Key, v => v.Value));
+
 
             return new PayloadDescriptor(
                 messageId: messageId,
@@ -44,11 +41,8 @@ namespace Dafda.Producing
 
         public PayloadDescriptor Create(object message, MessageHandlerContext context, Dictionary<string, string> headers)
         {
-            var metadata = new Metadata(headers)
-            {
-                CorrelationId = context.CorrelationId,
-                CausationId = context.MessageId
-            };
+            var metadata = new Metadata(headers);
+
             return Create(message, metadata);
         }
     }

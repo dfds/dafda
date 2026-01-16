@@ -33,8 +33,6 @@ namespace Dafda.Tests.Producing
             var expected = $@"{{
                                 ""messageId"":""{dummyMessageId}"",
                                 ""type"":""{DummyType}"",
-                                ""causationId"":""foo_id"",
-                                ""correlationId"":""foo_id"",
                                 ""data"":{{
                                     ""aggregateId"":""{dummyAggregateId}""
                                     }}

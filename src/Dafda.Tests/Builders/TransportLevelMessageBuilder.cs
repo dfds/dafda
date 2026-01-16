@@ -19,7 +19,6 @@ namespace Dafda.Tests.Builders
             _metadata = new Metadata()
             {
                 MessageId = "foo-message-id",
-                CorrelationId = "foo-correlation-id",
                 Type = type
             };
 

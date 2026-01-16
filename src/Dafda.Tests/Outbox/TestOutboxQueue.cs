@@ -19,13 +19,13 @@ namespace Dafda.Tests.Outbox
         {
             _fixture = fixture;
         }
-        
+
         public Task InitializeAsync()
         {
             // No initialization needed
             return Task.CompletedTask;
         }
-        
+
         public async Task DisposeAsync()
         {
             // Reset the static state after each test
@@ -77,8 +77,6 @@ namespace Dafda.Tests.Outbox
             var metadata = new Metadata()
             {
                 MessageId = "183388b5-a8e9-4cb4-b553-6699632461c7",
-                CausationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
-                CorrelationId = "183388b5-a8e9-4cb4-b553-6699632461c7"
             };
 
             await sut.Enqueue(new[] { new Message() }, metadata);
@@ -86,12 +84,10 @@ namespace Dafda.Tests.Outbox
             var expected = @"{
                             ""messageId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
                             ""type"":""bar"",
-                            ""causationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
-                            ""correlationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
                             ""data"":{
                                 }
                             }";
-            
+
             AssertJson.Equal(expected, spy.OutboxEntries[0].Payload );
         }
 
@@ -114,10 +110,8 @@ namespace Dafda.Tests.Outbox
             var metadata = new Metadata
             {
                 MessageId = "183388b5-a8e9-4cb4-b553-6699632461c7",
-                CausationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
-                CorrelationId = "183388b5-a8e9-4cb4-b553-6699632461c7"
             };
-            
+
             var activities = new List<Activity>();
 
             // Act

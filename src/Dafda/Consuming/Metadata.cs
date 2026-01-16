@@ -50,21 +50,12 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
-        /// The correlation identifier.
+        /// The message identification in a tracing system.
+        /// Only used if tracing is enabled. Set automatically by Dafda.
         /// </summary>
-        public string CorrelationId
+        public string TraceParent
         {
-            get => this[MessageEnvelopeProperties.CorrelationId];
-            init => this[MessageEnvelopeProperties.CorrelationId] = value;
-        }
-
-        /// <summary>
-        /// The causation identifier.
-        /// </summary>
-        public string CausationId
-        {
-            get => this[MessageEnvelopeProperties.CausationId];
-            init => this[MessageEnvelopeProperties.CausationId] = value;
+            get => this[MessageEnvelopeProperties.TraceParent];
         }
 
         /// <summary>
@@ -82,7 +73,7 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
-        /// Creates an enumerable of headers
+        /// Creates an enumerable from headers
         /// </summary>
         /// <returns>Headers</returns>
         public IEnumerable<KeyValuePair<string, string>> AsEnumerable()
@@ -91,4 +82,3 @@ namespace Dafda.Consuming
         }
     }
 }
-
