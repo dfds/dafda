@@ -32,7 +32,8 @@ namespace Dafda.Configuration
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
         private Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
-        private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => new DefaultPayloadSerializer());
+        private static readonly IPayloadSerializer _defaultPayloadSerializer = new DefaultPayloadSerializer();
+        private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => _defaultPayloadSerializer);
 
         public ProducerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
