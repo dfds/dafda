@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 using Dafda.Producing;
 using Dafda.Serializing;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -28,7 +29,7 @@ namespace Dafda.Tests.TestDoubles
         {
         }
 
-        internal override Task InternalProduce(string topic, string key, string value)
+        internal override Task<DeliveryResult<string, string>> InternalProduce(string topic, string key, string value)
         {
             Topic = topic;
             Key = key;
@@ -44,7 +45,19 @@ namespace Dafda.Tests.TestDoubles
                 Order = ProduceCallCount
             });
 
-            return Task.CompletedTask;
+            var deliveryResult = new DeliveryResult<string, string>
+            {
+                Topic = topic,
+                Partition = new Partition(0),
+                Offset = new Offset(ProduceCallCount - 1),
+                Message = new Message<string, string>
+                {
+                    Key = key,
+                    Value = value
+                }
+            };
+
+            return Task.FromResult(deliveryResult);
         }
 
         public override void Dispose()
