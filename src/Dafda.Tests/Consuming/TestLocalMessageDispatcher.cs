@@ -103,6 +103,30 @@ namespace Dafda.Tests.Consuming
             await Assert.ThrowsAsync<ExpectedException>(() => sut.Dispatch(messageResultStub, cts.Token));
         }
 
+        [Fact]
+        public async Task handler_is_executed_in_message_handler_execution_strategy()
+        {
+            using var cts = new CancellationTokenSource();
+            var mock = new Mock<IMessageHandler<object>>();
+            var messageHandlerExecutionStrategyMock = new Mock<IMessageHandlerExecutionStrategy>();
+
+            var transportMessageDummy = new TransportLevelMessageBuilder().WithType("foo").Build();
+            var messageResultStub = new MessageResultBuilder().WithTopic("topic").WithTransportLevelMessage(transportMessageDummy).Build();
+            var registrationDummy = new MessageRegistrationBuilder().WithMessageType("foo").WithTopic("topic").Build();
+            var registry = new MessageHandlerRegistry();
+            registry.Register(registrationDummy);
+
+            var sut = new LocalMessageDispatcherBuilder()
+                .WithMessageHandlerRegistry(registry)
+                .WithHandlerUnitOfWork(new UnitOfWorkStub(mock.Object))
+                .WithMessageHandlerExecutionStrategy(messageHandlerExecutionStrategyMock.Object)
+                .Build();
+
+            await sut.Dispatch(messageResultStub, cts.Token);
+
+            messageHandlerExecutionStrategyMock.Verify(x => x.Execute(It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<MessageExecutionContext>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         #region private helper classes
 
         private class ExpectedException : Exception
