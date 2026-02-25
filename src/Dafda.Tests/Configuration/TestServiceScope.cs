@@ -44,7 +44,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
-                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .WithUnitOfWorkFactory(sp => new ServiceProviderUnitOfWorkFactory(sp))
                 .Build();
 
             var consumer = new ConsumerBuilder()
@@ -92,7 +92,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
-                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .WithUnitOfWorkFactory(sp => new ServiceProviderUnitOfWorkFactory(sp))
                 .Build();
 
             var consumer = new ConsumerBuilder()
@@ -140,7 +140,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
-                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .WithUnitOfWorkFactory(sp => new ServiceProviderUnitOfWorkFactory(sp))
                 .Build();
 
             var consumer = new ConsumerBuilder()
@@ -188,7 +188,7 @@ namespace Dafda.Tests.Configuration
                 .WithGroupId("dummy")
                 .WithBootstrapServers("dummy")
                 .RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage))
-                .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+                .WithUnitOfWorkFactory(sp => new ServiceProviderUnitOfWorkFactory(sp))
                 .Build();
 
             var consumer = new ConsumerBuilder()

@@ -171,7 +171,6 @@ namespace Dafda.Configuration
             where TMessageHandler : class, IMessageHandler<TMessage>
         {
             _builder.RegisterMessageHandler<TMessage, TMessageHandler>(topic, messageType);
-            _services.AddTransient<TMessageHandler>();
         }
 
         /// <summary>

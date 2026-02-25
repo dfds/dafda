@@ -37,7 +37,8 @@ namespace Dafda.Configuration
         private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
-        private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
+        private Func<IServiceProvider, IHandlerUnitOfWorkFactory> _handlerUnitOfWorkFactory;
+        private Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> _unconfiguredMessageHandlingStrategy;
         private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
         private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
         private bool _readFromBeginning;
@@ -91,9 +92,9 @@ namespace Dafda.Configuration
             return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
         }
 
-        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
+        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(Func<IServiceProvider, IHandlerUnitOfWorkFactory> handlerUnitOfWorkFactory)
         {
-            _unitOfWorkFactory = unitOfWorkFactory;
+            _handlerUnitOfWorkFactory = handlerUnitOfWorkFactory;
             return this;
         }
 
@@ -103,6 +104,12 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder WithUnconfiguredMessageHandlingStrategy(Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> unconfiguredMessageHandlingStrategy)
+        {
+            _unconfiguredMessageHandlingStrategy = unconfiguredMessageHandlingStrategy;
+            return this;
+        }
+        
         public ConsumerConfigurationBuilder ReadFromBeginning()
         {
             _readFromBeginning = true;
@@ -173,7 +180,8 @@ namespace Dafda.Configuration
             return new ConsumerConfiguration(
                 configuration: configurations,
                 messageHandlerRegistry: _messageHandlerRegistry,
-                unitOfWorkFactory: _unitOfWorkFactory,
+                unitOfWorkFactory: _handlerUnitOfWorkFactory ?? (sp => ActivatorUtilities.CreateInstance<ServiceProviderUnitOfWorkFactory>(sp)),
+                unconfiguredMessageHandlingStrategy: _unconfiguredMessageHandlingStrategy ?? (sp => ActivatorUtilities.CreateInstance<RequireExplicitHandlers>(sp)),
                 consumerScopeFactory: _consumerScopeFactory,
                 incomingMessageFactory: _incomingMessageFactory, 
                 messageFilter: _messageFilter,

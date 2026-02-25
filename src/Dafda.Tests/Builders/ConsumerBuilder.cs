@@ -4,9 +4,11 @@ using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
+    using System;
+
     internal class ConsumerBuilder
     {
-        private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
+        private Func<IServiceProvider, IHandlerUnitOfWorkFactory> _unitOfWorkFactory;
         private IConsumerScopeFactory _consumerScopeFactory;
         private MessageHandlerRegistry _registry;
         private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
@@ -16,7 +18,7 @@ namespace Dafda.Tests.Builders
 
         public ConsumerBuilder()
         {
-            _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
+            _unitOfWorkFactory = sp => new HandlerUnitOfWorkFactoryStub(null);
             _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
             _registry = new MessageHandlerRegistry();
             _unconfiguredMessageStrategy = new RequireExplicitHandlers();
@@ -24,12 +26,12 @@ namespace Dafda.Tests.Builders
 
         public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
         {
-            return WithUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
+            return WithUnitOfWorkFactory(sp => new HandlerUnitOfWorkFactoryStub(unitOfWork));
         }
 
-        public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitofWorkFactory)
+        public ConsumerBuilder WithUnitOfWorkFactory(Func<IServiceProvider, IHandlerUnitOfWorkFactory> unitOfWorkFactory)
         {
-            _unitOfWorkFactory = unitofWorkFactory;
+            _unitOfWorkFactory = unitOfWorkFactory;
             return this;
         }
 

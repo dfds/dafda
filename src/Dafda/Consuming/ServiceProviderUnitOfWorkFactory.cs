@@ -3,44 +3,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Dafda.Consuming
+namespace Dafda.Consuming;
+
+/// <summary>Default IHandlerUnitOfWorkFactory implemtation</summary>
+public class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
 {
-    /// <summary>Default IHandlerUnitOfWorkFactory implemtation</summary>
-    public class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
+    private readonly IServiceProvider _serviceProvider;
+
+    /// <summary>Constructor</summary>
+    public ServiceProviderUnitOfWorkFactory(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider _serviceProvider;
+        _serviceProvider = serviceProvider;
+    }
 
-        /// <summary>Constructor</summary>
-        public ServiceProviderUnitOfWorkFactory(IServiceProvider serviceProvider)
+    /// <summary>Returns new ServiceScopedUnitOfWork for handler type</summary>
+    public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
+    {
+        return new ServiceScopedUnitOfWork(_serviceProvider, handlerType);
+    }
+
+    private class ServiceScopedUnitOfWork(IServiceProvider serviceProvider, Type handlerType) : IHandlerUnitOfWork
+    {
+        public async Task Run(Func<object, CancellationToken, Task> handlingAction, CancellationToken cancellationToken)
         {
-            _serviceProvider = serviceProvider;
-        }
-
-        /// <summary>Returns new ServiceScopedUnitOfWork for handler type</summary>
-        public IHandlerUnitOfWork CreateForHandlerType(Type handlerType)
-        {
-            return new ServiceScopedUnitOfWork(_serviceProvider, handlerType);
-        }
-
-        private class ServiceScopedUnitOfWork : IHandlerUnitOfWork
-        {
-            private readonly IServiceProvider _serviceProvider;
-            private readonly Type _handlerType;
-
-            public ServiceScopedUnitOfWork(IServiceProvider serviceProvider, Type handlerType)
-            {
-                _serviceProvider = serviceProvider;
-                _handlerType = handlerType;
-            }
-
-            public async Task Run(Func<object, CancellationToken, Task> handlingAction, CancellationToken cancellationToken)
-            {
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    var handlerInstance = scope.ServiceProvider.GetRequiredService(_handlerType);
-                    await handlingAction(handlerInstance, cancellationToken);
-                }
-            }
+            using var scope = serviceProvider.CreateScope();
+            var handlerInstance = ActivatorUtilities.CreateInstance(scope.ServiceProvider, handlerType);
+            await handlingAction(handlerInstance, cancellationToken);
         }
     }
 }

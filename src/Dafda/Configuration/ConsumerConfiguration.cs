@@ -4,27 +4,22 @@ using Dafda.Consuming;
 using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 
-namespace Dafda.Configuration
-{
-    internal class ConsumerConfiguration : ConsumerConfigurationBase
-    {
-        public ConsumerConfiguration(IDictionary<string, string> configuration,
-            MessageHandlerRegistry messageHandlerRegistry,
-            IHandlerUnitOfWorkFactory unitOfWorkFactory,
-            Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory,
-            Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory,
-            MessageFilter messageFilter,
-            IConsumerErrorHandler consumerErrorHandler) : base(configuration, unitOfWorkFactory, consumerErrorHandler)
-        {
-            MessageHandlerRegistry = messageHandlerRegistry;
-            ConsumerScopeFactory = consumerScopeFactory;
-            MessageFilter = messageFilter;
-            IncomingMessageFactory = incomingMessageFactory;
-        }
+namespace Dafda.Configuration;
 
-        public Func<IServiceProvider, IConsumerScopeFactory> ConsumerScopeFactory { get; }
-        public Func<IServiceProvider, IIncomingMessageFactory> IncomingMessageFactory { get; }
-        public MessageHandlerRegistry MessageHandlerRegistry { get; }
-        public MessageFilter MessageFilter { get; }
-    }
+internal class ConsumerConfiguration(
+    IDictionary<string, string> configuration,
+    MessageHandlerRegistry messageHandlerRegistry,
+    Func<IServiceProvider, IHandlerUnitOfWorkFactory> unitOfWorkFactory,
+    Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> unconfiguredMessageHandlingStrategy,
+    Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory,
+    Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory,
+    MessageFilter messageFilter,
+    IConsumerErrorHandler consumerErrorHandler)
+    : ConsumerConfigurationBase(configuration, unitOfWorkFactory, consumerErrorHandler)
+{
+    public Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> UnconfiguredMessageHandlingStrategy { get; } = unconfiguredMessageHandlingStrategy;
+    public Func<IServiceProvider, IConsumerScopeFactory> ConsumerScopeFactory { get; } = consumerScopeFactory;
+    public Func<IServiceProvider, IIncomingMessageFactory> IncomingMessageFactory { get; } = incomingMessageFactory;
+    public MessageHandlerRegistry MessageHandlerRegistry { get; } = messageHandlerRegistry;
+    public MessageFilter MessageFilter { get; } = messageFilter;
 }
