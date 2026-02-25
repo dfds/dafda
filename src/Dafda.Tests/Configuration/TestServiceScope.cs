@@ -49,7 +49,7 @@ namespace Dafda.Tests.Configuration
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
-                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory(serviceProvider))
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();
@@ -97,7 +97,7 @@ namespace Dafda.Tests.Configuration
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
-                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory(serviceProvider))
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();
@@ -145,7 +145,7 @@ namespace Dafda.Tests.Configuration
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
-                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory(serviceProvider))
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();
@@ -193,7 +193,7 @@ namespace Dafda.Tests.Configuration
 
             var consumer = new ConsumerBuilder()
                 .WithMessageHandlerRegistry(consumerConfiguration.MessageHandlerRegistry)
-                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory)
+                .WithUnitOfWorkFactory(consumerConfiguration.UnitOfWorkFactory(serviceProvider))
                 .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
                 .WithEnableAutoCommit(consumerConfiguration.EnableAutoCommit)
                 .Build();

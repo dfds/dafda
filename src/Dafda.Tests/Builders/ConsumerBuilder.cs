@@ -8,7 +8,7 @@ namespace Dafda.Tests.Builders
 
     internal class ConsumerBuilder
     {
-        private Func<IServiceProvider, IHandlerUnitOfWorkFactory> _unitOfWorkFactory;
+        private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private IConsumerScopeFactory _consumerScopeFactory;
         private MessageHandlerRegistry _registry;
         private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
@@ -18,7 +18,7 @@ namespace Dafda.Tests.Builders
 
         public ConsumerBuilder()
         {
-            _unitOfWorkFactory = sp => new HandlerUnitOfWorkFactoryStub(null);
+            _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
             _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
             _registry = new MessageHandlerRegistry();
             _unconfiguredMessageStrategy = new RequireExplicitHandlers();
@@ -26,10 +26,10 @@ namespace Dafda.Tests.Builders
 
         public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
         {
-            return WithUnitOfWorkFactory(sp => new HandlerUnitOfWorkFactoryStub(unitOfWork));
+            return WithUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
         }
 
-        public ConsumerBuilder WithUnitOfWorkFactory(Func<IServiceProvider, IHandlerUnitOfWorkFactory> unitOfWorkFactory)
+        public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
             return this;
