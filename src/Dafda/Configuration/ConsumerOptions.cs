@@ -13,12 +13,13 @@ public sealed class ConsumerOptions
 {
     // <summary>/ The <see cref="ConsumerConfigurationBuilder"/> used to build the final configuration for the consumer. </summary>
     internal readonly ConsumerConfigurationBuilder Builder;
-    
+
     /// <summary>Constructor</summary>
     public ConsumerOptions()
     {
         Builder = new ConsumerConfigurationBuilder();
     }
+
     /// <summary>
     /// Sets the partion offset for all subscribed topics to the beginning
     /// </summary>
@@ -108,7 +109,8 @@ public sealed class ConsumerOptions
     /// <typeparam name="T">A custom implementation of <see cref="IHandlerUnitOfWorkFactory"/>.</typeparam>
     public void WithUnitOfWorkFactory<T>() where T : class, IHandlerUnitOfWorkFactory
     {
-        Builder.WithUnitOfWorkFactory(sp => (IHandlerUnitOfWorkFactory)ActivatorUtilities.CreateInstance(sp, typeof(T)));
+        Builder.WithUnitOfWorkFactory(sp =>
+            (IHandlerUnitOfWorkFactory)ActivatorUtilities.CreateInstance(sp, typeof(T)));
     }
 
     /// <summary>
@@ -176,62 +178,63 @@ public sealed class ConsumerOptions
     /// Register a strategy for handling messages that are not explicitly configured with handlers
     /// </summary>
     public void WithUnconfiguredMessageHandlingStrategy<T>()
-        where T: class, IUnconfiguredMessageHandlingStrategy
+        where T : class, IUnconfiguredMessageHandlingStrategy
     {
-        Builder.WithUnconfiguredMessageHandlingStrategy(sp => (IUnconfiguredMessageHandlingStrategy)ActivatorUtilities.CreateInstance(sp, typeof(T)));
+        Builder.WithUnconfiguredMessageHandlingStrategy(sp =>
+            (IUnconfiguredMessageHandlingStrategy)ActivatorUtilities.CreateInstance(sp, typeof(T)));
     }
 
 
-        /// <summary>
-        /// Use the <paramref name="failureEvaluation"></paramref> evaluation method to return the desired
-        /// <see cref="ConsumerFailureStrategy"/>.
-        ///
-        /// <para>
-        ///     Failure Strategies:
-        ///     <list type="table">
-        ///         <listheader>
-        ///             <term>Strategy</term>
-        ///             <description>description</description>
-        ///         </listheader>
-        ///         <item>
-        ///             <term><see cref="ConsumerFailureStrategy.Default"/></term>
-        ///             <description><inheritdoc cref="ConsumerFailureStrategy.Default"/></description>
-        ///         </item>
-        ///         <item>
-        ///             <term><see cref="ConsumerFailureStrategy.RestartConsumer"/></term>
-        ///             <description>
-        ///                 <inheritdoc cref="ConsumerFailureStrategy.RestartConsumer"/>
-        ///                 Evaluation, including restart backoff strategies can be supplied here.
-        ///             </description>
-        ///         </item>
-        ///     </list>
-        /// </para>
-        /// 
-        /// </summary>
-        /// <param name="failureEvaluation">An evaluation function that must return a
-        /// <see cref="ConsumerFailureStrategy"/>.</param>
-        public void WithConsumerErrorHandler(Func<Exception, Task<ConsumerFailureStrategy>> failureEvaluation)
-        {
-            Builder.WithConsumerErrorHandler(failureEvaluation);
-        }
+    /// <summary>
+    /// Use the <paramref name="failureEvaluation"></paramref> evaluation method to return the desired
+    /// <see cref="ConsumerFailureStrategy"/>.
+    ///
+    /// <para>
+    ///     Failure Strategies:
+    ///     <list type="table">
+    ///         <listheader>
+    ///             <term>Strategy</term>
+    ///             <description>description</description>
+    ///         </listheader>
+    ///         <item>
+    ///             <term><see cref="ConsumerFailureStrategy.Default"/></term>
+    ///             <description><inheritdoc cref="ConsumerFailureStrategy.Default"/></description>
+    ///         </item>
+    ///         <item>
+    ///             <term><see cref="ConsumerFailureStrategy.RestartConsumer"/></term>
+    ///             <description>
+    ///                 <inheritdoc cref="ConsumerFailureStrategy.RestartConsumer"/>
+    ///                 Evaluation, including restart backoff strategies can be supplied here.
+    ///             </description>
+    ///         </item>
+    ///     </list>
+    /// </para>
+    /// 
+    /// </summary>
+    /// <param name="failureEvaluation">An evaluation function that must return a
+    /// <see cref="ConsumerFailureStrategy"/>.</param>
+    public void WithConsumerErrorHandler(Func<Exception, Task<ConsumerFailureStrategy>> failureEvaluation)
+    {
+        Builder.WithConsumerErrorHandler(failureEvaluation);
+    }
 
-        /// <summary>
-        /// Configures the message handler execution strategy using the specified factory function. The strategy has the lifetime of the hosted consumer.
-        /// </summary>
-        /// <param name="factory">A function that takes an <see cref="IServiceProvider"/> and returns an <see
-        /// cref="IMessageHandlerExecutionStrategy"/>. This function is used to create the execution strategy for the consumer.</param>
-        public void WithMessageHandlerExecutionStrategyFactory(Func<IServiceProvider, IMessageHandlerExecutionStrategy> factory)
-        {
-            Builder.WithMessageHandlerExecutionStrategyFactory(factory);
-        }
+    /// <summary>
+    /// Configures the message handler execution strategy using the specified factory function. The strategy has the lifetime of the hosted consumer.
+    /// </summary>
+    /// <param name="factory">A function that takes an <see cref="IServiceProvider"/> and returns an <see
+    /// cref="IMessageHandlerExecutionStrategy"/>. This function is used to create the execution strategy for the consumer.</param>
+    public void WithMessageHandlerExecutionStrategyFactory(
+        Func<IServiceProvider, IMessageHandlerExecutionStrategy> factory)
+    {
+        Builder.WithMessageHandlerExecutionStrategyFactory(factory);
+    }
 
-        private class DefaultConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration)
-            : ConfigurationSource
+    private class DefaultConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration)
+        : ConfigurationSource
+    {
+        public override string GetByKey(string key)
         {
-            public override string GetByKey(string key)
-            {
-                return configuration[key];
-            }
+            return configuration[key];
         }
     }
 }

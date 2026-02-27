@@ -191,7 +191,7 @@ namespace Dafda.Configuration
                 unconfiguredMessageHandlingStrategy: _unconfiguredMessageHandlingStrategy ?? (sp => ActivatorUtilities.CreateInstance<RequireExplicitHandlers>(sp)),
                 consumerScopeFactory: _consumerScopeFactory,
                 incomingMessageFactory: _incomingMessageFactory,
-                messageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory,
+                messageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory?? (sp => ActivatorUtilities.CreateInstance<DirectMessageHandlerExecutionStrategy>(sp)),
                 messageFilter: _messageFilter,
                 consumerErrorHandler: _consumerErrorHandler);
         }
