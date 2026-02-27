@@ -4,8 +4,6 @@ using Dafda.Tests.TestDoubles;
 
 namespace Dafda.Tests.Builders
 {
-    using System;
-
     internal class ConsumerBuilder
     {
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
@@ -29,9 +27,9 @@ namespace Dafda.Tests.Builders
             return WithUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
         }
 
-        public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitOfWorkFactory)
+        public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitofWorkFactory)
         {
-            _unitOfWorkFactory = unitOfWorkFactory;
+            _unitOfWorkFactory = unitofWorkFactory;
             return this;
         }
 
