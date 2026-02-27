@@ -55,14 +55,14 @@ namespace Dafda.Configuration
         /// It is possible to configure multi consumers.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> used in <c>Startup</c>.</param>
-        /// <param name="consumerOptions2Factory">Use this action to override Dafda and underlying Kafka configuration.</param>
-        public static void AddConsumer(this IServiceCollection services, Func<IServiceProvider, ConsumerOptions> consumerOptions2Factory)
+        /// <param name="consumerOptionsFactory">Use this action to override Dafda and underlying Kafka configuration.</param>
+        public static void AddConsumer(this IServiceCollection services, Func<IServiceProvider, ConsumerOptions> consumerOptionsFactory)
         {
             AddConsumerGroupIdRepositoryIfNeeded(services);
             
             services.AddSingleton<IHostedService, ConsumerHostedService>(provider =>
             {
-                var consumerOptions2 = consumerOptions2Factory.Invoke(provider);
+                var consumerOptions2 = consumerOptionsFactory.Invoke(provider);
                 var configuration = consumerOptions2.Builder.Build();
                 
                 EnsureGroupIdIsNotDuplicate(services, configuration.GroupId);
