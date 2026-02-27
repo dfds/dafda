@@ -176,7 +176,7 @@ namespace Dafda.Configuration
                     );
                 };
             }
-            
+
             return new ConsumerConfiguration(
                 configuration: configurations,
                 messageHandlerRegistry: _messageHandlerRegistry,

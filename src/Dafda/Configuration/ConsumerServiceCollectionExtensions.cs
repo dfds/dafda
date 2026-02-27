@@ -13,12 +13,7 @@ namespace Dafda.Configuration
     {
         private class ConsumerGroupIdRepository
         {
-            private readonly ISet<string> _ids;
-
-            public ConsumerGroupIdRepository()
-            {
-                _ids = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            }
+            private readonly ISet<string> _ids = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
             public void Add(string newId) => _ids.Add(newId);
             public bool Contains(string id) => _ids.Contains(id);
@@ -32,12 +27,9 @@ namespace Dafda.Configuration
         /// <param name="options">Use this action to override Dafda and underlying Kafka configuration.</param>
         public static void AddConsumer(this IServiceCollection services, Action<ConsumerOptions> options = null)
         {
-            var configurationBuilder = new ConsumerConfigurationBuilder();
-            var consumerOptions = new ConsumerOptions(configurationBuilder, services);
-            consumerOptions.WithUnitOfWorkFactory<ServiceProviderUnitOfWorkFactory>();
-            consumerOptions.WithUnconfiguredMessageHandlingStrategy<RequireExplicitHandlers>();
+            var consumerOptions = new ConsumerOptions();
             options?.Invoke(consumerOptions);
-            var configuration = configurationBuilder.Build();
+            var configuration = consumerOptions.Builder.Build();
 
             AddConsumerGroupIdRepositoryIfNeeded(services);
             EnsureGroupIdIsNotDuplicate(services, configuration.GroupId);
@@ -64,7 +56,7 @@ namespace Dafda.Configuration
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> used in <c>Startup</c>.</param>
         /// <param name="consumerOptions2Factory">Use this action to override Dafda and underlying Kafka configuration.</param>
-        public static void AddConsumer(this IServiceCollection services, Func<IServiceProvider, ConsumerOptions2> consumerOptions2Factory)
+        public static void AddConsumer(this IServiceCollection services, Func<IServiceProvider, ConsumerOptions> consumerOptions2Factory)
         {
             AddConsumerGroupIdRepositoryIfNeeded(services);
             
