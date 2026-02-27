@@ -63,8 +63,8 @@ public static class ConsumerServiceCollectionExtensions
             
         services.AddSingleton<IHostedService, ConsumerHostedService>(provider =>
         {
-            var consumerOptions2 = consumerOptionsFactory.Invoke(provider);
-            var configuration = consumerOptions2.Builder.Build();
+            var consumerOptions = consumerOptionsFactory.Invoke(provider);
+            var configuration = consumerOptions.Builder.Build();
                 
             EnsureGroupIdIsNotDuplicate(services, configuration.GroupId);
                 
