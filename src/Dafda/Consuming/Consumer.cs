@@ -20,13 +20,15 @@ namespace Dafda.Consuming
             IConsumerScopeFactory consumerScopeFactory,
             IUnconfiguredMessageHandlingStrategy fallbackHandler,
             MessageFilter messageFilter,
+            IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
             bool isAutoCommitEnabled = false)
         {
             _localMessageDispatcher =
                 new LocalMessageDispatcher(
                     messageHandlerRegistry,
                     unitOfWorkFactory,
-                    fallbackHandler);
+                    fallbackHandler,
+                    messageHandlerExecutionStrategy);
             _consumerScopeFactory =
                 consumerScopeFactory
                 ?? throw new ArgumentNullException(nameof(consumerScopeFactory));

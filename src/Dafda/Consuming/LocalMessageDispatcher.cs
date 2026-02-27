@@ -9,11 +9,13 @@ namespace Dafda.Consuming
         private readonly MessageHandlerRegistry _messageHandlerRegistry;
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private readonly IUnconfiguredMessageHandlingStrategy _fallbackHandler;
+        private readonly IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy;
 
         public LocalMessageDispatcher(
             MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory,
-            IUnconfiguredMessageHandlingStrategy fallbackHandler)
+            IUnconfiguredMessageHandlingStrategy fallbackHandler,
+            IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy)
         {
             _messageHandlerRegistry =
                 messageHandlerRegistry
@@ -24,6 +26,8 @@ namespace Dafda.Consuming
             _fallbackHandler =
                 fallbackHandler
                 ?? throw new ArgumentNullException(nameof(fallbackHandler));
+            _messageHandlerExecutionStrategy = messageHandlerExecutionStrategy
+                ?? throw new ArgumentNullException(nameof(messageHandlerExecutionStrategy));
         }
 
         private MessageRegistration GetMessageRegistrationFor(MessageResult messageResult)
@@ -44,17 +48,19 @@ namespace Dafda.Consuming
 
             var message = messageResult.Message;
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
-            var context = new MessageHandlerContext(message.Metadata);
-            await unitOfWork.Run(async (handler ,cancellationToken) =>
+            var handlerContext = new MessageHandlerContext(message.Metadata);
+            var executionContext = new MessageExecutionContext(messageInstance, message.Metadata, registration.MessageInstanceType);
+            await unitOfWork.Run(async (handler, cancellationToken) =>
             {
                 if (handler == null)
                 {
                     throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
                 }
 
-                // TODO -- verify that the handler is in fact an implementation of IMessageHandler<registration.MessageInstanceType> to provider sane error messages.
-
-                await ExecuteHandler((dynamic)messageInstance, (dynamic)handler, context, cancellationToken);
+                await _messageHandlerExecutionStrategy.Execute(
+                    ct => ExecuteHandler((dynamic)messageInstance, (dynamic)handler, handlerContext, ct),
+                    executionContext,
+                    cancellationToken);
             }, cancellationToken);
         }
 

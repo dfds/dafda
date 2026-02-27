@@ -43,6 +43,7 @@ namespace Dafda.Configuration
                     configuration.ConsumerScopeFactory(provider),
                     provider.GetRequiredService<IUnconfiguredMessageHandlingStrategy>(),
                     configuration.MessageFilter,
+                    configuration.MessageHandlerExecutionStrategyFactory(provider),
                     configuration.EnableAutoCommit
                 ),
                 configuration.GroupId,

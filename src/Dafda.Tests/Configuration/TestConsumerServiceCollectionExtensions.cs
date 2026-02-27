@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Dafda.Tests.Builders;
 using Dafda.Tests.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Moq;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
@@ -263,6 +265,48 @@ namespace Dafda.Tests.Configuration
             Assert.Equal(failuresBeforeQuitting + 1, count);
         }
 
+        [Fact]
+        public async Task configured_execution_strategy_is_used()
+        {
+            const string dummyTopic = "dummyTopic";
+            var dummyMessage = new DummyMessage();
+            var messageStub = new TransportLevelMessageBuilder()
+                .WithType(nameof(DummyMessage))
+                .WithData(dummyMessage)
+                .Build();
+            var messageResult = new MessageResultBuilder()
+                .WithTransportLevelMessage(messageStub)
+                .WithTopic(dummyTopic)
+                .Build();
+
+            var executionStrategyMock = new Mock<IInnerMessageHandlerExecutionStrategy>();
+
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddSingleton<IHostApplicationLifetime, DummyApplicationLifetime>();
+            services.AddTransient<IInnerMessageHandlerExecutionStrategy>(_ => executionStrategyMock.Object);
+            services.AddConsumer(options =>
+            {
+                options.WithMessageHandlerExecutionStrategyFactory(sp => new MessageHandlerExecutionStrategyStub(sp.GetRequiredService<IInnerMessageHandlerExecutionStrategy>()));
+                options.WithBootstrapServers("dummyBootstrapServer");
+                options.WithGroupId("dummyGroupId");
+                options.RegisterMessageHandler<DummyMessage, DummyMessageHandler>(dummyTopic, nameof(DummyMessage));
+
+                options.WithConsumerScopeFactory(_ => new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)));
+            });
+            var serviceProvider = services.BuildServiceProvider();
+
+            var consumerHostedService = serviceProvider.GetServices<IHostedService>()
+                .OfType<ConsumerHostedService>()
+                .First();
+
+            using (var cts = new CancellationTokenSource(10))
+            {
+                await consumerHostedService.ConsumeAll(cts.Token);
+            }
+
+            executionStrategyMock.Verify(m => m.InnerExecute(It.IsAny<Func<CancellationToken, Task>>()), Times.AtLeastOnce);
+        }
         public class DummyMessage
         {
         }

@@ -41,6 +41,7 @@ namespace Dafda.Configuration
         private Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> _unconfiguredMessageHandlingStrategy;
         private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
         private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
+        private Func<IServiceProvider, IMessageHandlerExecutionStrategy> _messageHandlerExecutionStrategyFactory;
         private bool _readFromBeginning;
 
         private MessageFilter _messageFilter = MessageFilter.Default;
@@ -150,6 +151,12 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public ConsumerConfigurationBuilder WithMessageHandlerExecutionStrategyFactory(Func<IServiceProvider, IMessageHandlerExecutionStrategy> factory)
+        {
+            _messageHandlerExecutionStrategyFactory = factory;
+            return this;
+        }
+
         internal ConsumerConfiguration Build()
         {
             var configurations = new ConfigurationBuilder()
@@ -183,10 +190,10 @@ namespace Dafda.Configuration
                 unitOfWorkFactory: _handlerUnitOfWorkFactory ?? (sp => ActivatorUtilities.CreateInstance<ServiceProviderUnitOfWorkFactory>(sp)),
                 unconfiguredMessageHandlingStrategy: _unconfiguredMessageHandlingStrategy ?? (sp => ActivatorUtilities.CreateInstance<RequireExplicitHandlers>(sp)),
                 consumerScopeFactory: _consumerScopeFactory,
-                incomingMessageFactory: _incomingMessageFactory, 
+                incomingMessageFactory: _incomingMessageFactory,
+                messageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory,
                 messageFilter: _messageFilter,
-                consumerErrorHandler: _consumerErrorHandler
-            );
+                consumerErrorHandler: _consumerErrorHandler);
         }
     }
 }
