@@ -48,7 +48,7 @@ namespace Dafda.Tests.Consuming
                 .AddLogging()
                 .BuildServiceProvider();
 
-            var incomingMessageFactory = configuration.IncomingMessageFactory(provider);
+            var incomingMessageFactory = configuration.Factories.IncomingMessageFactory(provider);
 
             Assert.IsType<PoisonAwareIncomingMessageFactory>(incomingMessageFactory);
         }

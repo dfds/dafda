@@ -37,15 +37,37 @@ namespace Dafda.Configuration
         private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
+
         private Func<IServiceProvider, IHandlerUnitOfWorkFactory> _handlerUnitOfWorkFactory;
+
         private Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> _unconfiguredMessageHandlingStrategy;
         private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
         private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
+
         private Func<IServiceProvider, IMessageHandlerExecutionStrategy> _messageHandlerExecutionStrategyFactory;
         private bool _readFromBeginning;
 
         private MessageFilter _messageFilter = MessageFilter.Default;
         private ConsumerErrorHandler _consumerErrorHandler = ConsumerErrorHandler.Default;
+
+        private void ApplyDefaults(IDictionary<string, string> configurations)
+        {
+            _handlerUnitOfWorkFactory ??= sp => ActivatorUtilities.CreateInstance<ServiceProviderUnitOfWorkFactory>(sp);
+            _unconfiguredMessageHandlingStrategy ??= sp => ActivatorUtilities.CreateInstance<RequireExplicitHandlers>(sp);
+            _messageHandlerExecutionStrategyFactory ??= sp => ActivatorUtilities.CreateInstance<DirectMessageHandlerExecutionStrategy>(sp);
+            _consumerScopeFactory ??= provider =>
+            {
+                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+
+                return new KafkaBasedConsumerScopeFactory(
+                    loggerFactory: loggerFactory,
+                    configuration: configurations,
+                    topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
+                    incomingMessageFactory: _incomingMessageFactory(provider),
+                    readFromBeginning: _readFromBeginning
+                );
+            };
+        }
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -166,32 +188,20 @@ namespace Dafda.Configuration
                 .WithConfigurationSource(_configurationSource)
                 .WithConfigurations(_configurations)
                 .Build();
+            
+            ApplyDefaults(configurations);
 
-
-            if (_consumerScopeFactory == null)
-            {
-                _consumerScopeFactory = provider =>
-                {
-                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-
-                    return new KafkaBasedConsumerScopeFactory(
-                        loggerFactory: loggerFactory,
-                        configuration: configurations,
-                        topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
-                        incomingMessageFactory: _incomingMessageFactory(provider),
-                        readFromBeginning: _readFromBeginning
-                    );
-                };
-            }
-
+            var consumerConfigurationFactories = new ConsumerConfigurationFactories(
+                UnitOfWorkFactory: _handlerUnitOfWorkFactory,
+                UnconfiguredMessageHandlingStrategy: _unconfiguredMessageHandlingStrategy,
+                ConsumerScopeFactory: _consumerScopeFactory,
+                IncomingMessageFactory: _incomingMessageFactory,
+                MessageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory);
+            
             return new ConsumerConfiguration(
                 configuration: configurations,
                 messageHandlerRegistry: _messageHandlerRegistry,
-                unitOfWorkFactory: _handlerUnitOfWorkFactory ?? (sp => ActivatorUtilities.CreateInstance<ServiceProviderUnitOfWorkFactory>(sp)),
-                unconfiguredMessageHandlingStrategy: _unconfiguredMessageHandlingStrategy ?? (sp => ActivatorUtilities.CreateInstance<RequireExplicitHandlers>(sp)),
-                consumerScopeFactory: _consumerScopeFactory,
-                incomingMessageFactory: _incomingMessageFactory,
-                messageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory?? (sp => ActivatorUtilities.CreateInstance<DirectMessageHandlerExecutionStrategy>(sp)),
+                factories: consumerConfigurationFactories,
                 messageFilter: _messageFilter,
                 consumerErrorHandler: _consumerErrorHandler);
         }

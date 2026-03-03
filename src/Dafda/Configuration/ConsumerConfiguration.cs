@@ -9,21 +9,12 @@ namespace Dafda.Configuration;
 internal class ConsumerConfiguration(
     IDictionary<string, string> configuration,
     MessageHandlerRegistry messageHandlerRegistry,
-    Func<IServiceProvider, IHandlerUnitOfWorkFactory> unitOfWorkFactory,
-    Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> unconfiguredMessageHandlingStrategy,
-    Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory,
-    Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory,
-    Func<IServiceProvider, IMessageHandlerExecutionStrategy> messageHandlerExecutionStrategyFactory,
+    ConsumerConfigurationFactories factories,
     MessageFilter messageFilter,
     IConsumerErrorHandler consumerErrorHandler)
-    : ConsumerConfigurationBase(configuration, unitOfWorkFactory, consumerErrorHandler)
+    : ConsumerConfigurationBase(configuration, factories.UnitOfWorkFactory, consumerErrorHandler)
 {
-    public Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> UnconfiguredMessageHandlingStrategy { get; } = unconfiguredMessageHandlingStrategy;
-    public Func<IServiceProvider, IConsumerScopeFactory> ConsumerScopeFactory { get; } = consumerScopeFactory;
-    public Func<IServiceProvider, IIncomingMessageFactory> IncomingMessageFactory { get; } = incomingMessageFactory;
-
-    public Func<IServiceProvider, IMessageHandlerExecutionStrategy> MessageHandlerExecutionStrategyFactory { get; } =
-        messageHandlerExecutionStrategyFactory;
+    public ConsumerConfigurationFactories Factories { get; } = factories;
     public MessageHandlerRegistry MessageHandlerRegistry { get; } = messageHandlerRegistry;
     public MessageFilter MessageFilter { get; } = messageFilter;
 }

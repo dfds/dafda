@@ -40,10 +40,10 @@ public static class ConsumerServiceCollectionExtensions
             consumer: new Consumer(
                 configuration.MessageHandlerRegistry,
                 configuration.UnitOfWorkFactory(provider),
-                configuration.ConsumerScopeFactory(provider),
-                configuration.UnconfiguredMessageHandlingStrategy(provider),
+                configuration.Factories.ConsumerScopeFactory(provider),
+                configuration.Factories.UnconfiguredMessageHandlingStrategy(provider),
                 configuration.MessageFilter,
-                configuration.MessageHandlerExecutionStrategyFactory(provider),
+                configuration.Factories.MessageHandlerExecutionStrategyFactory(provider),
                 configuration.EnableAutoCommit
             ),
             configuration.GroupId,
@@ -74,10 +74,10 @@ public static class ConsumerServiceCollectionExtensions
                 consumer: new Consumer(
                     configuration.MessageHandlerRegistry,
                     configuration.UnitOfWorkFactory(provider),
-                    configuration.ConsumerScopeFactory(provider),
-                    configuration.UnconfiguredMessageHandlingStrategy(provider),
+                    configuration.Factories.ConsumerScopeFactory(provider),
+                    configuration.Factories.UnconfiguredMessageHandlingStrategy(provider),
                     configuration.MessageFilter,
-                    configuration.MessageHandlerExecutionStrategyFactory(provider),
+                    configuration.Factories.MessageHandlerExecutionStrategyFactory(provider),
                     configuration.EnableAutoCommit
                 ),
                 configuration.GroupId,
