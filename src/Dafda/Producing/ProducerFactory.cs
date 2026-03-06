@@ -3,105 +3,106 @@ using System.Collections.Generic;
 using Dafda.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Dafda.Producing;
-
-internal sealed class ProducerFactory : IDisposable
+namespace Dafda.Producing
 {
-    private readonly Dictionary<string, ProducerBuilder> _producerBuilders = new Dictionary<string, ProducerBuilder>();
-
-    internal void ConfigureProducer(string producerName, ProducerConfiguration configuration, OutgoingMessageRegistry outgoingMessageRegistry)
+    internal sealed class ProducerFactory : IDisposable
     {
-        if (_producerBuilders.ContainsKey(producerName))
+        private readonly Dictionary<string, ProducerBuilder> _producerBuilders = new Dictionary<string, ProducerBuilder>();
+
+        internal void ConfigureProducer(string producerName, ProducerConfiguration configuration, OutgoingMessageRegistry outgoingMessageRegistry)
         {
-            throw new ProducerFactoryException($"A producer with the name \"{producerName}\" has already been configured. Producer names should be unique.");
+            if (_producerBuilders.ContainsKey(producerName))
+            {
+                throw new ProducerFactoryException($"A producer with the name \"{producerName}\" has already been configured. Producer names should be unique.");
+            }
+
+            _producerBuilders.Add(producerName, new ProducerBuilder(
+                    producerName: producerName,
+                    configuration: configuration, 
+                    messageRegistry: outgoingMessageRegistry
+                ));
         }
 
-        _producerBuilders.Add(producerName, new ProducerBuilder(
-            producerName: producerName,
-            configuration: configuration, 
-            messageRegistry: outgoingMessageRegistry
-        ));
-    }
+        internal static string GetKeyNameOf<TClient>() => $"__INTERNAL__FOR_CLIENT__{typeof(TClient).FullName}";
 
-    internal static string GetKeyNameOf<TClient>() => $"__INTERNAL__FOR_CLIENT__{typeof(TClient).FullName}";
-
-    internal void ConfigureProducerFor<TClient>(ProducerConfiguration configuration, OutgoingMessageRegistry outgoingMessageRegistry)
-    {
-        var producerName = GetKeyNameOf<TClient>();
-        ConfigureProducer(producerName, configuration, outgoingMessageRegistry);
-    }
+        internal void ConfigureProducerFor<TClient>(ProducerConfiguration configuration, OutgoingMessageRegistry outgoingMessageRegistry)
+        {
+            var producerName = GetKeyNameOf<TClient>();
+            ConfigureProducer(producerName, configuration, outgoingMessageRegistry);
+        }
         
-    internal bool IsConfigured<TClient>()
-    {
-        var producerName = GetKeyNameOf<TClient>();
+        internal bool IsConfigured<TClient>()
+        {
+            var producerName = GetKeyNameOf<TClient>();
             
-        return _producerBuilders.ContainsKey(producerName);
-    }
-
-    public Producer Get(string producerName, ILoggerFactory loggerFactory) 
-    {
-        if (_producerBuilders.TryGetValue(producerName, out var builder))
-        {
-            return builder.Build(loggerFactory);
+            return _producerBuilders.ContainsKey(producerName);
         }
 
-        return null;
-    }
-
-    public Producer GetFor<TClient>(ILoggerFactory loggerFactory)
-    {
-        var producerName = GetKeyNameOf<TClient>();
-        return Get(producerName, loggerFactory);
-    }
-
-    public void Dispose()
-    {
-        if (_producerBuilders != null)
+        public Producer Get(string producerName, ILoggerFactory loggerFactory) 
         {
-            foreach (var registration in _producerBuilders.Values)
+            if (_producerBuilders.TryGetValue(producerName, out var builder))
             {
-                registration.Dispose();
-            }
-        }
-    }
-
-    private class ProducerBuilder : IDisposable
-    {
-        private readonly OutgoingMessageRegistry _messageRegistry;
-        private readonly Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
-        private readonly MessageIdGenerator _messageIdGenerator;
-        private readonly string _producerName;
-        private KafkaProducer _kafkaProducer;
-
-        public ProducerBuilder(string producerName, ProducerConfiguration configuration, OutgoingMessageRegistry messageRegistry)
-        {
-            _messageRegistry = messageRegistry;
-            _producerName = producerName;
-            _kafkaProducerFactory = configuration.KafkaProducerFactory;
-            _messageIdGenerator = configuration.MessageIdGenerator;
-        }
-
-        public Producer Build(ILoggerFactory loggerFactory)
-        {
-            if (_kafkaProducer is null)
-            {
-                _kafkaProducer = _kafkaProducerFactory(loggerFactory);
+                return builder.Build(loggerFactory);
             }
 
-            var producer = new Producer(
-                kafkaProducer: _kafkaProducer,
-                outgoingMessageRegistry: _messageRegistry,
-                messageIdGenerator: _messageIdGenerator
-            );
+            return null;
+        }
 
-            producer.Name = _producerName;
-
-            return producer;
+        public Producer GetFor<TClient>(ILoggerFactory loggerFactory)
+        {
+            var producerName = GetKeyNameOf<TClient>();
+            return Get(producerName, loggerFactory);
         }
 
         public void Dispose()
         {
-            _kafkaProducer?.Dispose();
+            if (_producerBuilders != null)
+            {
+                foreach (var registration in _producerBuilders.Values)
+                {
+                    registration.Dispose();
+                }
+            }
+        }
+
+        private class ProducerBuilder : IDisposable
+        {
+            private readonly OutgoingMessageRegistry _messageRegistry;
+            private readonly Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
+            private readonly MessageIdGenerator _messageIdGenerator;
+            private readonly string _producerName;
+            private KafkaProducer _kafkaProducer;
+
+            public ProducerBuilder(string producerName, ProducerConfiguration configuration, OutgoingMessageRegistry messageRegistry)
+            {
+                _messageRegistry = messageRegistry;
+                _producerName = producerName;
+                _kafkaProducerFactory = configuration.KafkaProducerFactory;
+                _messageIdGenerator = configuration.MessageIdGenerator;
+            }
+
+            public Producer Build(ILoggerFactory loggerFactory)
+            {
+                if (_kafkaProducer is null)
+                {
+                    _kafkaProducer = _kafkaProducerFactory(loggerFactory);
+                }
+
+                var producer = new Producer(
+                    kafkaProducer: _kafkaProducer,
+                    outgoingMessageRegistry: _messageRegistry,
+                    messageIdGenerator: _messageIdGenerator
+                );
+
+                producer.Name = _producerName;
+
+                return producer;
+            }
+
+            public void Dispose()
+            {
+                _kafkaProducer?.Dispose();
+            }
         }
     }
 }
