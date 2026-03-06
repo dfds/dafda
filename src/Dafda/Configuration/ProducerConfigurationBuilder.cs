@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
+    using Microsoft.Extensions.DependencyInjection;
+
     internal sealed class ProducerConfigurationBuilder
     {
         private static readonly string[] DefaultConfigurationKeys =
@@ -31,7 +33,7 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
-        private Func<ILoggerFactory, KafkaProducer> _kafkaProducerFactory;
+        private Func<IServiceProvider, KafkaProducer> _kafkaProducerFactory;
         private static readonly IPayloadSerializer _defaultPayloadSerializer = new DefaultPayloadSerializer();
         private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => _defaultPayloadSerializer);
 
@@ -82,7 +84,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<ILoggerFactory,KafkaProducer> inlineFactory)
+        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<IServiceProvider, KafkaProducer> inlineFactory)
         {
             _kafkaProducerFactory = inlineFactory;
             return this;
@@ -112,7 +114,11 @@ namespace Dafda.Configuration
 
             if (_kafkaProducerFactory == null)
             {
-                _kafkaProducerFactory = loggerFactory => new KafkaProducer(loggerFactory, configurations, _topicPayloadSerializerRegistry);
+                _kafkaProducerFactory = provider =>
+                {
+                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                    return new KafkaProducer(loggerFactory, configurations, _topicPayloadSerializerRegistry);
+                };
             }
 
             return new ProducerConfiguration(

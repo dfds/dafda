@@ -79,7 +79,7 @@ namespace Dafda.Configuration
             Builder.WithBootstrapServers(bootstrapServers);
         }
 
-        internal void WithKafkaProducerFactory(Func<ILoggerFactory, KafkaProducer> inlineFactory)
+        internal void WithKafkaProducerFactory(Func<IServiceProvider, KafkaProducer> inlineFactory)
         {
             Builder.WithKafkaProducerFactory(inlineFactory);
         }

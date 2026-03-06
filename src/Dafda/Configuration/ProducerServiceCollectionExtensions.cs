@@ -23,15 +23,17 @@ namespace Dafda.Configuration
         {
             EnsureServiceNotAlreadyRegistered<TService>(services);
 
-            var factory = AddOrGetRegisteredProducerFactory(services);
-        
             var producerOptions = new ProducerOptions();
             options?.Invoke(producerOptions);
             var producerConfiguration = producerOptions.Builder.Build();
             var outgoingMessageRegistry = producerOptions.OutgoingMessageRegistry;
-            factory.ConfigureProducerFor<TImplementation>(producerConfiguration, outgoingMessageRegistry);
-
-            services.AddTransient<TService, TImplementation>(provider => CreateInstance<TImplementation>(provider, factory));
+            var producerProvider = new ProducerProvider<TImplementation>(producerConfiguration, outgoingMessageRegistry);
+            
+            services.AddTransient<TService, TImplementation>(provider =>
+            {
+                var producer = producerProvider.CreateProducer(provider);
+                return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
+            });
         }
 
         /// <summary>
@@ -63,19 +65,19 @@ namespace Dafda.Configuration
         {
             EnsureServiceNotAlreadyRegistered<TService>(services);
 
+            services.AddSingleton(provider =>
+            {
+                var producerOptions = optionsFactory(provider);
+                var producerConfiguration = producerOptions.Builder.Build();
+                var outgoingMessageRegistry = producerOptions.OutgoingMessageRegistry;
+                return new ProducerProvider<TImplementation>(producerConfiguration, outgoingMessageRegistry);
+            });
+            
             services.AddTransient<TService, TImplementation>(provider =>
             {
-                var factory = AddOrGetRegisteredProducerFactory(services);
-
-                if (!factory.IsConfigured<TImplementation>())
-                {
-                    var producerOptions = optionsFactory(provider);
-                    var producerConfiguration = producerOptions.Builder.Build();
-                    var outgoingMessageRegistry = producerOptions.OutgoingMessageRegistry;
-                    factory.ConfigureProducerFor<TImplementation>(producerConfiguration, outgoingMessageRegistry);
-                }
-
-                return CreateInstance<TImplementation>(provider, factory);
+                var producerProvider = provider.GetRequiredService<ProducerProvider<TImplementation>>();
+                var producer = producerProvider.CreateProducer(provider);
+                return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
             });
         }
 
@@ -99,34 +101,38 @@ namespace Dafda.Configuration
             if (services.Any(d => d.ServiceType == typeof(TService)))
             {
                 throw new ProducerFactoryException(
-                    $"A service registration for '{typeof(TService).FullName}' already exists. " +
-                    "Dafda producers can only be registered once per service type. " +
-                    "Remove the existing registration or use a different service type.");
+                    $"A producer with the type \"{typeof(TService).FullName}\" has already been registered." +
+                    $" Each producer should be registered with a unique service type.");
             }
         }
+    }
+    
+    internal class ProducerProvider<TImplementation>(
+        ProducerConfiguration configuration,
+        OutgoingMessageRegistry messageRegistry)
+        : IDisposable
+    {
+        private KafkaProducer _kafkaProducer;
 
-        private static TImplementation CreateInstance<TImplementation>(IServiceProvider provider, ProducerFactory factory)
+        public Producer CreateProducer(IServiceProvider provider)
         {
-            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-            var producer = factory.GetFor<TImplementation>(loggerFactory);
-            return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
-        }
+            _kafkaProducer ??= configuration.KafkaProducerFactory(provider);
 
-        private static ProducerFactory AddOrGetRegisteredProducerFactory(IServiceCollection services)
-        {
-            var factory = services
-                .Where(x => x.ServiceType == typeof(ProducerFactory))
-                .Select(x => x.ImplementationInstance)
-                .Cast<ProducerFactory>()
-                .SingleOrDefault();
-
-            if (factory == null)
+            var producer = new Producer(
+                kafkaProducer: _kafkaProducer,
+                outgoingMessageRegistry: messageRegistry,
+                messageIdGenerator: configuration.MessageIdGenerator
+            )
             {
-                factory = new ProducerFactory();
-                services.AddSingleton(factory);
-            }
+                Name = typeof(TImplementation).FullName
+            };
 
-            return factory;
+            return producer;
+        }
+
+        public void Dispose()
+        {
+            _kafkaProducer?.Dispose(); // to do why? it's shared across all producer instances created by this provider, so we can't dispose it after each producer is created. Instead, we dispose it when the provider itself is disposed, which happens when the application shuts down.
         }
     }
 }
