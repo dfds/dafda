@@ -17,7 +17,7 @@ namespace Dafda.Configuration
         /// <param name="consumerErrorHandler"></param>
         public ConsumerConfigurationBase(
             IDictionary<string, string> configuration,
-            IHandlerUnitOfWorkFactory unitOfWorkFactory,
+            Func<IServiceProvider, IHandlerUnitOfWorkFactory> unitOfWorkFactory,
             IConsumerErrorHandler consumerErrorHandler)
         {
             KafkaConfiguration = configuration;
@@ -29,7 +29,7 @@ namespace Dafda.Configuration
         public IDictionary<string, string> KafkaConfiguration { get; }
 
         /// <summary>Factory for unit of work</summary>
-        public IHandlerUnitOfWorkFactory UnitOfWorkFactory { get; }
+        public Func<IServiceProvider, IHandlerUnitOfWorkFactory> UnitOfWorkFactory { get; }
 
         /// <summary>ConsumerGroupId</summary>
         public string GroupId => KafkaConfiguration[ConfigurationKey.GroupId];
