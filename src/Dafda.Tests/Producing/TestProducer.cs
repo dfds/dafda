@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Dafda.Consuming;
 using Dafda.Diagnostics;
@@ -17,8 +18,16 @@ using Xunit;
 namespace Dafda.Tests.Producing
 {
     [Collection("Serializing")]
-    public class TestProducer
+    public class TestProducer : IClassFixture<DafdaActivitySourceFixture>
     {
+        private readonly DafdaActivitySourceFixture _fixture;
+
+        public TestProducer(DafdaActivitySourceFixture fixture)
+        {
+            _fixture = fixture;
+            _fixture.ResetDafdaActivitySource();
+        }
+
         [Fact]
         public async Task Can_produce_message()
         {
@@ -294,6 +303,426 @@ namespace Dafda.Tests.Producing
                                 }}";
 
             AssertJson.Equal(expected, spy.Value);
+        }
+
+        [Fact]
+        public async Task Can_produce_multiple_messages()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "id1" },
+                new Message { Id = "id2" },
+                new Message { Id = "id3" }
+            };
+
+            await sut.Produce(messages);
+
+            Assert.Equal(3, spy.ProduceCallCount);
+            Assert.Equal("foo", spy.Topic);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_to_expected_topic()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var expectedTopic = "foo";
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>(expectedTopic, "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "id1" },
+                new Message { Id = "id2" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                headers: new Dictionary<string, object>
+                {
+                    { "foo-key", "foo-value" }
+                }
+            );
+
+            Assert.Equal(expectedTopic, spy.Topic);
+            Assert.Equal(2, spy.ProduceCallCount);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_with_expected_partition_keys()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "key1" },
+                new Message { Id = "key2" },
+                new Message { Id = "key3" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                headers: new Dictionary<string, object>
+                {
+                    { "foo-key", "foo-value" }
+                }
+            );
+
+            Assert.Equal(3, spy.ProduceCallCount);
+            Assert.Contains("key1", spy.AllKeys);
+            Assert.Contains("key2", spy.AllKeys);
+            Assert.Contains("key3", spy.AllKeys);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_with_expected_serialized_values()
+        {
+            var expectedValue = "foo-value";
+
+            var spy = new KafkaProducerSpy(new PayloadSerializerStub(expectedValue));
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "id1" },
+                new Message { Id = "id2" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                headers: new Dictionary<string, object>
+                {
+                    { "foo-key", "foo-value" }
+                }
+            );
+
+            Assert.Equal(expectedValue, spy.Value);
+            Assert.Equal(2, spy.ProduceCallCount);
+        }
+
+        [Fact]
+        public async Task produces_expected_multiple_messages_without_headers_using_default_serializer()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(new MessageIdGeneratorStub(() => "1"))
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "dummyId1" },
+                new Message { Id = "dummyId2" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                headers: []
+            );
+
+            Assert.Equal(2, spy.ProduceCallCount);
+            var expected = @"{
+                                ""messageId"":""1"",
+                                ""type"":""bar"",
+                                ""data"":
+                                {
+                                    ""id"":""dummyId2""
+                                    }
+                                }";
+
+            AssertJson.Equal(expected, spy.Value);
+        }
+
+        [Fact]
+        public async Task produces_expected_multiple_messages_with_headers_using_default_serializer()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(new MessageIdGeneratorStub(() => "1"))
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "dummyId1" },
+                new Message { Id = "dummyId2" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                headers: new Dictionary<string, object>
+                {
+                    { "foo-key", "foo-value" }
+                }
+            );
+
+            Assert.Equal(2, spy.ProduceCallCount);
+            var expected = @"{
+                                ""messageId"":""1"",
+                                ""type"":""bar"",
+                                ""foo-key"":""foo-value"",
+                                ""data"":
+                                {
+                                    ""id"":""dummyId2""
+                                    }
+                                }";
+
+            AssertJson.Equal(expected, spy.Value);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_using_metadata()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "key1" },
+                new Message { Id = "key2" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                headers: new Metadata()
+            );
+
+            Assert.Equal(2, spy.ProduceCallCount);
+            Assert.Contains("key1", spy.AllKeys);
+            Assert.Contains("key2", spy.AllKeys);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_using_message_handler_context()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(new MessageIdGeneratorStub(() => "1"))
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "0" },
+                new Message { Id = "1" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                context: new MessageHandlerContext(new Metadata())
+            );
+
+            Assert.Equal(2, spy.ProduceCallCount);
+            var expected = @"
+                            {
+                            ""messageId"":""1"",
+                            ""type"":""bar"",
+                            ""data"":
+                            {
+                                ""id"":""1""
+                                }
+                            }";
+
+            AssertJson.Equal(expected, spy.Value);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_using_message_handler_context_with_additional_headers()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(new MessageIdGeneratorStub(() => "1"))
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "0" },
+                new Message { Id = "1" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                context: new MessageHandlerContext(new Metadata()),
+                headers: new Dictionary<string, string>
+                {
+                    { "additional-key", "additional-value" }
+                }
+            );
+
+            Assert.Equal(2, spy.ProduceCallCount);
+            var expected = @"
+                            {
+                            ""messageId"":""1"",
+                            ""type"":""bar"",
+                            ""additional-key"":""additional-value"",
+                            ""data"":
+                            {
+                                ""id"":""1""
+                                }
+                            }";
+
+            AssertJson.Equal(expected, spy.Value);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_preserves_order()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "first" },
+                new Message { Id = "second" },
+                new Message { Id = "third" },
+                new Message { Id = "fourth" },
+                new Message { Id = "fifth" }
+            };
+
+            await sut.Produce(messages);
+
+            Assert.Equal(5, spy.ProduceCallCount);
+            Assert.Equal("first", spy.ProducedMessages[0].Key);
+            Assert.Equal("second", spy.ProducedMessages[1].Key);
+            Assert.Equal("third", spy.ProducedMessages[2].Key);
+            Assert.Equal("fourth", spy.ProducedMessages[3].Key);
+            Assert.Equal("fifth", spy.ProducedMessages[4].Key);
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_with_headers_preserves_order()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "alpha" },
+                new Message { Id = "beta" },
+                new Message { Id = "gamma" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                headers: new Dictionary<string, object>
+                {
+                    { "foo-key", "foo-value" }
+                }
+            );
+
+            Assert.Equal(3, spy.ProduceCallCount);
+            Assert.Equal("alpha", spy.ProducedMessages[0].Key);
+            Assert.Equal("beta", spy.ProducedMessages[1].Key);
+            Assert.Equal("gamma", spy.ProducedMessages[2].Key);
+            Assert.Collection(spy.ProducedMessages,
+                msg => Assert.Equal(1, msg.Order),
+                msg => Assert.Equal(2, msg.Order),
+                msg => Assert.Equal(3, msg.Order)
+            );
+        }
+
+        [Fact]
+        public async Task produces_multiple_messages_with_context_preserves_order()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var sut = A.Producer
+                .With(spy)
+                .With(A.OutgoingMessageRegistry
+                    .Register<Message>("foo", "bar", @event => @event.Id)
+                    .Build()
+                )
+                .Build();
+
+            var messages = new[]
+            {
+                new Message { Id = "msg1" },
+                new Message { Id = "msg2" },
+                new Message { Id = "msg3" },
+                new Message { Id = "msg4" }
+            };
+
+            await sut.Produce(
+                messages: messages,
+                context: new MessageHandlerContext(new Metadata())
+            );
+
+            Assert.Equal(4, spy.ProduceCallCount);
+            var orderedKeys = spy.ProducedMessages.OrderBy(m => m.Order).Select(m => m.Key).ToArray();
+            Assert.Equal(new[] { "msg1", "msg2", "msg3", "msg4" }, orderedKeys);
         }
     }
 }
