@@ -20,7 +20,7 @@ namespace Dafda.Configuration
             where TImplementation : class, TService 
             where TService : class
         {
-            EnsureServiceIsNotAlreadyRegistered<TService>(services);
+            ThrowIfProducerServiceAlreadyRegisteredFor<TService>(services);
 
             services.AddSingleton(_ =>
             {
@@ -59,7 +59,7 @@ namespace Dafda.Configuration
             where TImplementation : class, TService
             where TService : class
         {
-            EnsureServiceIsNotAlreadyRegistered<TService>(services);
+            ThrowIfProducerServiceAlreadyRegisteredFor<TService>(services);
 
             services.AddSingleton(provider =>
             {
@@ -85,7 +85,7 @@ namespace Dafda.Configuration
             AddProducerFor<TClient, TClient>(services, optionsFactory);
         }
     
-        private static void EnsureServiceIsNotAlreadyRegistered<TService>(IServiceCollection services) where TService : class
+        private static void ThrowIfProducerServiceAlreadyRegisteredFor<TService>(IServiceCollection services) where TService : class
         {
             if (services.Any(d => d.ServiceType == typeof(TService)))
             {
