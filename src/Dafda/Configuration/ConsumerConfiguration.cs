@@ -4,30 +4,17 @@ using Dafda.Consuming;
 using Dafda.Consuming.Interfaces;
 using Dafda.Consuming.MessageFilters;
 
-namespace Dafda.Configuration
-{
-    internal class ConsumerConfiguration : ConsumerConfigurationBase
-    {
-        public ConsumerConfiguration(IDictionary<string, string> configuration,
-            MessageHandlerRegistry messageHandlerRegistry,
-            IHandlerUnitOfWorkFactory unitOfWorkFactory,
-            Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory,
-            Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory,
-            Func<IServiceProvider, IMessageHandlerExecutionStrategy> messageHandlerExecutionStrategyFactory,
-            MessageFilter messageFilter,
-            IConsumerErrorHandler consumerErrorHandler) : base(configuration, unitOfWorkFactory, consumerErrorHandler)
-        {
-            MessageHandlerRegistry = messageHandlerRegistry;
-            ConsumerScopeFactory = consumerScopeFactory;
-            MessageFilter = messageFilter;
-            IncomingMessageFactory = incomingMessageFactory;
-            MessageHandlerExecutionStrategyFactory = messageHandlerExecutionStrategyFactory;
-        }
+namespace Dafda.Configuration;
 
-        public Func<IServiceProvider, IConsumerScopeFactory> ConsumerScopeFactory { get; }
-        public Func<IServiceProvider, IIncomingMessageFactory> IncomingMessageFactory { get; }
-        public Func<IServiceProvider, IMessageHandlerExecutionStrategy> MessageHandlerExecutionStrategyFactory { get; }
-        public MessageHandlerRegistry MessageHandlerRegistry { get; }
-        public MessageFilter MessageFilter { get; }
-    }
+internal class ConsumerConfiguration(
+    IDictionary<string, string> configuration,
+    MessageHandlerRegistry messageHandlerRegistry,
+    ConsumerConfigurationFactories factories,
+    MessageFilter messageFilter,
+    IConsumerErrorHandler consumerErrorHandler)
+    : ConsumerConfigurationBase(configuration, factories.UnitOfWorkFactory, consumerErrorHandler)
+{
+    public ConsumerConfigurationFactories Factories { get; } = factories;
+    public MessageHandlerRegistry MessageHandlerRegistry { get; } = messageHandlerRegistry;
+    public MessageFilter MessageFilter { get; } = messageFilter;
 }
