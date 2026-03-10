@@ -20,7 +20,7 @@ namespace Dafda.Configuration
             where TImplementation : class, TService 
             where TService : class
         {
-            EnsureServiceIsNotAlreadyRegistered<TService>(services);
+            EnsureServiceIsNotAlreadyRegistered<TImplementation>(services);
 
             services.AddSingleton(_ =>
             {
@@ -59,7 +59,7 @@ namespace Dafda.Configuration
             where TImplementation : class, TService
             where TService : class
         {
-            EnsureServiceIsNotAlreadyRegistered<TService>(services);
+            EnsureServiceIsNotAlreadyRegistered<TImplementation>(services);
 
             services.AddSingleton(provider =>
             {
@@ -95,7 +95,7 @@ namespace Dafda.Configuration
             }
         }
 
-        private static TService CreateImplementation<TService, TImplementation>(IServiceProvider provider)
+        private static TImplementation CreateImplementation<TService, TImplementation>(IServiceProvider provider)
             where TImplementation : class, TService
             where TService : class
         {

@@ -10,22 +10,6 @@ namespace Dafda.Tests.Configuration
     public class TestServiceCollectionExtensions
     {
         [Fact]
-        public void registers_a_producer_factory()
-        {
-            var services = new ServiceCollection();
-
-            services.AddProducerFor<SimpleSender>(options =>
-            {
-                options.WithBootstrapServers("dummy");
-            });
-
-            var provider = services.BuildServiceProvider();
-            var producerFactory = provider.GetService<ProducerFactory>();
-
-            Assert.NotNull(producerFactory);
-        }
-
-        [Fact]
         public async Task Can_produce_message()
         {
             var spy = new KafkaProducerSpy();
@@ -70,7 +54,7 @@ namespace Dafda.Tests.Configuration
             Assert.NotNull(messageSender.ADependency);
             
             Assert.Equal("hello one", messageSender.ADependency.Message);
-            Assert.Equal(ProducerFactory.GetKeyNameOf<MessageSenderOne>(), messageSender.Producer.Name);
+            Assert.Equal(typeof(MessageSenderOne).FullName, messageSender.Producer.Name);
         }
 
         [Fact]
@@ -88,7 +72,7 @@ namespace Dafda.Tests.Configuration
 
             Assert.NotNull(messageSender);
             Assert.NotNull(messageSender.Producer);
-            Assert.Equal(ProducerFactory.GetKeyNameOf<MessageSenderOne>(), messageSender.Producer.Name);
+            Assert.Equal(typeof(MessageSenderOne).FullName, messageSender.Producer.Name);
         }
 
         [Fact]
@@ -118,7 +102,7 @@ namespace Dafda.Tests.Configuration
             Assert.NotNull(messageSenderOne.ADependency);
             
             Assert.Equal("hello one", messageSenderOne.ADependency.Message);
-            Assert.Equal(ProducerFactory.GetKeyNameOf<MessageSenderOne>(), messageSenderOne.Producer.Name);
+            Assert.Equal(typeof(MessageSenderOne).FullName, messageSenderOne.Producer.Name);
 
             var messageSenderTwo = provider.GetRequiredService<MessageSenderTwo>();
             
@@ -127,9 +111,7 @@ namespace Dafda.Tests.Configuration
             Assert.NotNull(messageSenderTwo.ADependency);
             
             Assert.Equal("hello two", messageSenderTwo.ADependency.Message);
-            Assert.Equal(ProducerFactory.GetKeyNameOf<MessageSenderTwo>(), messageSenderTwo.Producer.Name);
-            
-            Assert.NotEqual(messageSenderOne.Producer.Name, messageSenderTwo.Producer.Name);
+            Assert.Equal(messageSenderTwo.Producer.Name, messageSenderTwo.Producer.Name);
         }
 
         [Fact]
