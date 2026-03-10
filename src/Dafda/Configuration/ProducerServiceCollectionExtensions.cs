@@ -5,14 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dafda.Configuration
 {
-    /// <summary></summary>
+    /// <summary>
+    /// Extension methods for registering Kafka producers with the Microsoft dependency injection container.
+    /// </summary>
     public static class ProducerServiceCollectionExtensions
     {
         /// <summary>
         /// Add a Kafka producer available through the Microsoft dependency injection's <see cref="IServiceProvider"/>
-        /// as <see cref="Producer"/>. 
-        ///
-        /// NOTE: currently only a single producer can be configured per <typeparamref name="TImplementation"/>.
+        /// as <typeparamref name="TService"/>. Each <typeparamref name="TService"/> must be unique —
+        /// duplicate registrations will throw a <see cref="ProducerFactoryException"/>.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> used in <c>Startup</c>.</param>
         /// <param name="options">Use this action to override Dafda and underlying Kafka configuration.</param>
@@ -26,17 +27,16 @@ namespace Dafda.Configuration
             {
                 var producerOptions = new ProducerOptions();
                 options?.Invoke(producerOptions);
-                return new ProducerProvider<TImplementation>(producerOptions);
+                return new ProducerFactory<TImplementation>(producerOptions);
             });
             
-            services.AddTransient<TService, TImplementation>(CreateImplementation<TService, TImplementation>);
+            services.AddTransient<TService, TImplementation>(CreateProducerService<TService, TImplementation>);
         }
 
         /// <summary>
         /// Add a Kafka producer available through the Microsoft dependency injection's <see cref="IServiceProvider"/>
-        /// as <see cref="Producer"/>. 
-        ///
-        /// NOTE: currently only a single producer can be configured per <typeparamref name="TClient"/>.
+        /// as <typeparamref name="TClient"/>. Each <typeparamref name="TClient"/> must be unique —
+        /// duplicate registrations will throw a <see cref="ProducerFactoryException"/>.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> used in <c>Startup</c>.</param>
         /// <param name="options">Use this action to override Dafda and underlying Kafka configuration.</param>
@@ -47,11 +47,10 @@ namespace Dafda.Configuration
 
         /// <summary>
         /// Add a Kafka producer available through the Microsoft dependency injection's <see cref="IServiceProvider"/>
-        /// as <see cref="Producer"/>.
+        /// as <typeparamref name="TService"/>. Each <typeparamref name="TService"/> must be unique —
+        /// duplicate registrations will throw a <see cref="ProducerFactoryException"/>.
         ///
-        /// Use this overload when configuration depends on other services (for example, IConfiguration).
-        ///
-        /// NOTE: currently only a single producer can be configured per <typeparamref name="TImplementation"/>.
+        /// Use this overload when configuration depends on other services (for example, <c>IConfiguration</c>).
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> used in <c>Startup</c>.</param>
         /// <param name="optionsFactory">Factory that creates and configures <see cref="ProducerOptions"/> using the built <see cref="IServiceProvider"/>.</param>
@@ -63,20 +62,19 @@ namespace Dafda.Configuration
 
             services.AddSingleton(provider =>
             {
-                var producerOptions = optionsFactory(provider);
-                return new ProducerProvider<TImplementation>(producerOptions);
+                var options = optionsFactory(provider);
+                return new ProducerFactory<TImplementation>(options);
             });
             
-            services.AddTransient<TService, TImplementation>(CreateImplementation<TService, TImplementation>);
+            services.AddTransient<TService, TImplementation>(CreateProducerService<TService, TImplementation>);
         }
 
         /// <summary>
         /// Add a Kafka producer available through the Microsoft dependency injection's <see cref="IServiceProvider"/>
-        /// as <see cref="Producer"/>.
+        /// as <typeparamref name="TClient"/>. Each <typeparamref name="TClient"/> must be unique —
+        /// duplicate registrations will throw a <see cref="ProducerFactoryException"/>.
         ///
-        /// Use this overload when configuration depends on other services (for example, IConfiguration).
-        ///
-        /// NOTE: currently only a single producer can be configured per <typeparamref name="TClient"/>.
+        /// Use this overload when configuration depends on other services (for example, <c>IConfiguration</c>).
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> used in <c>Startup</c>.</param>
         /// <param name="optionsFactory">Factory that creates and configures <see cref="ProducerOptions"/> using the built <see cref="IServiceProvider"/>.</param>
@@ -90,34 +88,28 @@ namespace Dafda.Configuration
             if (services.Any(d => d.ServiceType == typeof(TService)))
             {
                 throw new ProducerFactoryException(
-                    $"A producer with the type \"{typeof(TService).FullName}\" has already been registered." +
-                    $" Each producer should be registered with a unique service type.");
+                    $"A producer has already been registered for service type \"{typeof(TService).FullName}\". Each producer must use a unique service type.");
             }
         }
 
-        private static TImplementation CreateImplementation<TService, TImplementation>(IServiceProvider provider)
+        private static TImplementation CreateProducerService<TService, TImplementation>(IServiceProvider provider)
             where TImplementation : class, TService
             where TService : class
         {
-            var producerProvider = provider.GetRequiredService<ProducerProvider<TImplementation>>();
-            var producer = producerProvider.CreateProducer(provider);
+            var producerFactory = provider.GetRequiredService<ProducerFactory<TImplementation>>();
+            var producer = producerFactory.CreateProducerInstance(provider);
             return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
         }
     }
     
-    internal class ProducerProvider<TImplementation> : IDisposable
+    internal class ProducerFactory<TImplementation>(ProducerOptions options) : IDisposable
     {
-        private readonly ProducerConfiguration _configuration;
-        private readonly OutgoingMessageRegistry _messageRegistry;
+        private readonly ProducerConfiguration _configuration = options.Builder.Build();
+        private readonly OutgoingMessageRegistry _messageRegistry = options.OutgoingMessageRegistry;
         private KafkaProducer _kafkaProducer;
 
-        public ProducerProvider(ProducerOptions options)
-        {
-            _configuration = options.Builder.Build();
-            _messageRegistry = options.OutgoingMessageRegistry;
-        }
 
-        public Producer CreateProducer(IServiceProvider provider)
+        public Producer CreateProducerInstance(IServiceProvider provider)
         {
             _kafkaProducer ??= _configuration.KafkaProducerFactory(provider);
 
