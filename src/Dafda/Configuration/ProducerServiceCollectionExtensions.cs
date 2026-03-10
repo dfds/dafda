@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -21,19 +20,16 @@ namespace Dafda.Configuration
             where TImplementation : class, TService 
             where TService : class
         {
-            EnsureServiceNotAlreadyRegistered<TService>(services);
+            EnsureServiceIsNotAlreadyRegistered<TService>(services);
 
-            var producerOptions = new ProducerOptions();
-            options?.Invoke(producerOptions);
-            var producerConfiguration = producerOptions.Builder.Build();
-            var outgoingMessageRegistry = producerOptions.OutgoingMessageRegistry;
-            var producerProvider = new ProducerProvider<TImplementation>(producerConfiguration, outgoingMessageRegistry);
-            
-            services.AddTransient<TService, TImplementation>(provider =>
+            services.AddSingleton(_ =>
             {
-                var producer = producerProvider.CreateProducer(provider);
-                return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
+                var producerOptions = new ProducerOptions();
+                options?.Invoke(producerOptions);
+                return new ProducerProvider<TImplementation>(producerOptions);
             });
+            
+            services.AddTransient<TService, TImplementation>(CreateImplementation<TService, TImplementation>);
         }
 
         /// <summary>
@@ -63,22 +59,15 @@ namespace Dafda.Configuration
             where TImplementation : class, TService
             where TService : class
         {
-            EnsureServiceNotAlreadyRegistered<TService>(services);
+            EnsureServiceIsNotAlreadyRegistered<TService>(services);
 
             services.AddSingleton(provider =>
             {
                 var producerOptions = optionsFactory(provider);
-                var producerConfiguration = producerOptions.Builder.Build();
-                var outgoingMessageRegistry = producerOptions.OutgoingMessageRegistry;
-                return new ProducerProvider<TImplementation>(producerConfiguration, outgoingMessageRegistry);
+                return new ProducerProvider<TImplementation>(producerOptions);
             });
             
-            services.AddTransient<TService, TImplementation>(provider =>
-            {
-                var producerProvider = provider.GetRequiredService<ProducerProvider<TImplementation>>();
-                var producer = producerProvider.CreateProducer(provider);
-                return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
-            });
+            services.AddTransient<TService, TImplementation>(CreateImplementation<TService, TImplementation>);
         }
 
         /// <summary>
@@ -96,7 +85,7 @@ namespace Dafda.Configuration
             AddProducerFor<TClient, TClient>(services, optionsFactory);
         }
     
-        private static void EnsureServiceNotAlreadyRegistered<TService>(IServiceCollection services) where TService : class
+        private static void EnsureServiceIsNotAlreadyRegistered<TService>(IServiceCollection services) where TService : class
         {
             if (services.Any(d => d.ServiceType == typeof(TService)))
             {
@@ -105,23 +94,37 @@ namespace Dafda.Configuration
                     $" Each producer should be registered with a unique service type.");
             }
         }
+
+        private static TService CreateImplementation<TService, TImplementation>(IServiceProvider provider)
+            where TImplementation : class, TService
+            where TService : class
+        {
+            var producerProvider = provider.GetRequiredService<ProducerProvider<TImplementation>>();
+            var producer = producerProvider.CreateProducer(provider);
+            return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
+        }
     }
     
-    internal class ProducerProvider<TImplementation>(
-        ProducerConfiguration configuration,
-        OutgoingMessageRegistry messageRegistry)
-        : IDisposable
+    internal class ProducerProvider<TImplementation> : IDisposable
     {
+        private readonly ProducerConfiguration _configuration;
+        private readonly OutgoingMessageRegistry _messageRegistry;
         private KafkaProducer _kafkaProducer;
+
+        public ProducerProvider(ProducerOptions options)
+        {
+            _configuration = options.Builder.Build();
+            _messageRegistry = options.OutgoingMessageRegistry;
+        }
 
         public Producer CreateProducer(IServiceProvider provider)
         {
-            _kafkaProducer ??= configuration.KafkaProducerFactory(provider);
+            _kafkaProducer ??= _configuration.KafkaProducerFactory(provider);
 
             var producer = new Producer(
                 kafkaProducer: _kafkaProducer,
-                outgoingMessageRegistry: messageRegistry,
-                messageIdGenerator: configuration.MessageIdGenerator
+                outgoingMessageRegistry: _messageRegistry,
+                messageIdGenerator: _configuration.MessageIdGenerator
             )
             {
                 Name = typeof(TImplementation).FullName
@@ -132,7 +135,7 @@ namespace Dafda.Configuration
 
         public void Dispose()
         {
-            _kafkaProducer?.Dispose(); // to do why? it's shared across all producer instances created by this provider, so we can't dispose it after each producer is created. Instead, we dispose it when the provider itself is disposed, which happens when the application shuts down.
+            _kafkaProducer?.Dispose();
         }
     }
 }
