@@ -11,16 +11,16 @@ namespace Dafda.Producing
     /// </summary>
     public sealed class Producer
     {
-        private readonly KafkaProducer _kafkaProducer;
         private readonly PayloadDescriptorFactory _payloadDescriptorFactory;
 
         internal Producer(KafkaProducer kafkaProducer, OutgoingMessageRegistry outgoingMessageRegistry, MessageIdGenerator messageIdGenerator)
         {
-            _kafkaProducer = kafkaProducer;
+            KafkaProducer = kafkaProducer;
             _payloadDescriptorFactory = new PayloadDescriptorFactory(outgoingMessageRegistry, messageIdGenerator);
         }
 
         internal string Name { get; set; } = "__Default Producer__";
+        internal KafkaProducer KafkaProducer { get; }
 
         /// <summary>
         /// Produce a <paramref name="message"/> on Kafka
@@ -39,10 +39,10 @@ namespace Dafda.Producing
         public async Task Produce(object message, Metadata headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, headers);
-            payloadDescriptor.ClientId = _kafkaProducer.ClientId;
+            payloadDescriptor.ClientId = KafkaProducer.ClientId;
             using var activity = DafdaActivitySource.StartPublishingActivity(payloadDescriptor);
 
-            await _kafkaProducer.Produce(payloadDescriptor);
+            await KafkaProducer.Produce(payloadDescriptor);
         }
 
         /// <summary>
@@ -75,10 +75,10 @@ namespace Dafda.Producing
         public async Task Produce(object message, MessageHandlerContext context, Dictionary<string, string> headers)
         {
             var payloadDescriptor = _payloadDescriptorFactory.Create(message, context, headers);
-            payloadDescriptor.ClientId = _kafkaProducer.ClientId;
+            payloadDescriptor.ClientId = KafkaProducer.ClientId;
             using var activity = DafdaActivitySource.StartPublishingActivity(payloadDescriptor);
 
-            await _kafkaProducer.Produce(payloadDescriptor);
+            await KafkaProducer.Produce(payloadDescriptor);
         }
     }
 }
