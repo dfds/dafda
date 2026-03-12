@@ -54,7 +54,7 @@ namespace Dafda.Configuration
             {
                 var outboxUnitOfWorkFactory = provider.GetRequiredService<IOutboxUnitOfWorkFactory>();
                 var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                var kafkaProducer = configuration.KafkaProducerFactory(loggerFactory);
+                var kafkaProducer = configuration.KafkaProducerFactory(provider);
                 var producer = new OutboxProducer(kafkaProducer);
                 var outboxDispatcher = new OutboxDispatcher(loggerFactory, outboxUnitOfWorkFactory, producer);
 
