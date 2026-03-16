@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Dafda.Consuming.Interfaces;
+using Dafda.Consuming;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using Dafda.Consuming;
-using Dafda.Consuming.Interfaces;
 
 namespace Dafda.Configuration
 {
