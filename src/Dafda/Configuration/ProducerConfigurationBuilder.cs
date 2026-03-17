@@ -6,124 +6,125 @@ using Dafda.Serializing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Dafda.Configuration;
-
-internal sealed class ProducerConfigurationBuilder
+namespace Dafda.Configuration
 {
-    private static readonly string[] DefaultConfigurationKeys =
+    internal sealed class ProducerConfigurationBuilder
     {
-        ConfigurationKey.BootstrapServers,
-        ConfigurationKey.BrokerVersionFallback,
-        ConfigurationKey.ApiVersionFallbackMs,
-        ConfigurationKey.SslCaLocation,
-        ConfigurationKey.SaslUsername,
-        ConfigurationKey.SaslPassword,
-        ConfigurationKey.SaslMechanisms,
-        ConfigurationKey.SecurityProtocol,
-    };
-
-    private static readonly string[] RequiredConfigurationKeys =
-    {
-        ConfigurationKey.BootstrapServers
-    };
-
-    private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
-    private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
-
-    private ConfigurationSource _configurationSource = ConfigurationSource.Null;
-    private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
-    private Func<IServiceProvider, KafkaProducer> _kafkaProducerFactory;
-    private static readonly IPayloadSerializer _defaultPayloadSerializer = new DefaultPayloadSerializer();
-    private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => _defaultPayloadSerializer);
-
-    public ProducerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
-    {
-        _configurationSource = configurationSource;
-        return this;
-    }
-
-    public ProducerConfigurationBuilder WithNamingConvention(Func<string, string> converter)
-    {
-        _namingConventions.Add(NamingConvention.UseCustom(converter));
-        return this;
-    }
-
-    internal ProducerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
-    {
-        _namingConventions.Add(namingConvention);
-        return this;
-    }
-
-    public ProducerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
-    {
-        WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
-
-        foreach (var additionalPrefix in additionalPrefixes)
+        private static readonly string[] DefaultConfigurationKeys =
         {
-            WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
+            ConfigurationKey.BootstrapServers,
+            ConfigurationKey.BrokerVersionFallback,
+            ConfigurationKey.ApiVersionFallbackMs,
+            ConfigurationKey.SslCaLocation,
+            ConfigurationKey.SaslUsername,
+            ConfigurationKey.SaslPassword,
+            ConfigurationKey.SaslMechanisms,
+            ConfigurationKey.SecurityProtocol,
+        };
+
+        private static readonly string[] RequiredConfigurationKeys =
+        {
+            ConfigurationKey.BootstrapServers
+        };
+
+        private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
+        private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
+
+        private ConfigurationSource _configurationSource = ConfigurationSource.Null;
+        private MessageIdGenerator _messageIdGenerator = MessageIdGenerator.Default;
+        private Func<IServiceProvider, KafkaProducer> _kafkaProducerFactory;
+        private static readonly IPayloadSerializer _defaultPayloadSerializer = new DefaultPayloadSerializer();
+        private readonly TopicPayloadSerializerRegistry _topicPayloadSerializerRegistry = new TopicPayloadSerializerRegistry(() => _defaultPayloadSerializer);
+
+        public ProducerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
+        {
+            _configurationSource = configurationSource;
+            return this;
         }
 
-        return this;
-    }
-
-    public ProducerConfigurationBuilder WithConfiguration(string key, string value)
-    {
-        _configurations[key] = value;
-        return this;
-    }
-
-    public ProducerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
-    {
-        return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
-    }
-
-    public ProducerConfigurationBuilder WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
-    {
-        _messageIdGenerator = messageIdGenerator;
-        return this;
-    }
-
-    internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<IServiceProvider, KafkaProducer> inlineFactory)
-    {
-        _kafkaProducerFactory = inlineFactory;
-        return this;
-    }
-
-    public ProducerConfigurationBuilder WithDefaultPayloadSerializer(Func<IPayloadSerializer> payloadSerializerFactory)
-    {
-        _topicPayloadSerializerRegistry.SetDefaultPayloadSerializer(payloadSerializerFactory);
-        return this;
-    }
-
-    public ProducerConfigurationBuilder WithPayloadSerializer(string topic, Func<IPayloadSerializer> payloadSerializerFactory)
-    {
-        _topicPayloadSerializerRegistry.Register(topic, payloadSerializerFactory);
-        return this;
-    }
-        
-    internal ProducerConfiguration Build()
-    {
-        var configurations = new ConfigurationBuilder()
-            .WithConfigurationKeys(DefaultConfigurationKeys)
-            .WithRequiredConfigurationKeys(RequiredConfigurationKeys)
-            .WithNamingConventions(_namingConventions.ToArray())
-            .WithConfigurationSource(_configurationSource)
-            .WithConfigurations(_configurations)
-            .Build();
-
-        if (_kafkaProducerFactory == null)
+        public ProducerConfigurationBuilder WithNamingConvention(Func<string, string> converter)
         {
-            _kafkaProducerFactory = provider =>
+            _namingConventions.Add(NamingConvention.UseCustom(converter));
+            return this;
+        }
+
+        internal ProducerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
+        {
+            _namingConventions.Add(namingConvention);
+            return this;
+        }
+
+        public ProducerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
+        {
+            WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
+
+            foreach (var additionalPrefix in additionalPrefixes)
             {
-                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                return new KafkaProducer(loggerFactory, configurations, _topicPayloadSerializerRegistry);
-            };
+                WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
+            }
+
+            return this;
         }
 
-        return new ProducerConfiguration(
-            configurations,
-            _messageIdGenerator,
-            _kafkaProducerFactory
-        );
+        public ProducerConfigurationBuilder WithConfiguration(string key, string value)
+        {
+            _configurations[key] = value;
+            return this;
+        }
+
+        public ProducerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
+        {
+            return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
+        }
+
+        public ProducerConfigurationBuilder WithMessageIdGenerator(MessageIdGenerator messageIdGenerator)
+        {
+            _messageIdGenerator = messageIdGenerator;
+            return this;
+        }
+
+        internal ProducerConfigurationBuilder WithKafkaProducerFactory(Func<IServiceProvider, KafkaProducer> inlineFactory)
+        {
+            _kafkaProducerFactory = inlineFactory;
+            return this;
+        }
+
+        public ProducerConfigurationBuilder WithDefaultPayloadSerializer(Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _topicPayloadSerializerRegistry.SetDefaultPayloadSerializer(payloadSerializerFactory);
+            return this;
+        }
+
+        public ProducerConfigurationBuilder WithPayloadSerializer(string topic, Func<IPayloadSerializer> payloadSerializerFactory)
+        {
+            _topicPayloadSerializerRegistry.Register(topic, payloadSerializerFactory);
+            return this;
+        }
+        
+        internal ProducerConfiguration Build()
+        {
+            var configurations = new ConfigurationBuilder()
+                .WithConfigurationKeys(DefaultConfigurationKeys)
+                .WithRequiredConfigurationKeys(RequiredConfigurationKeys)
+                .WithNamingConventions(_namingConventions.ToArray())
+                .WithConfigurationSource(_configurationSource)
+                .WithConfigurations(_configurations)
+                .Build();
+
+            if (_kafkaProducerFactory == null)
+            {
+                _kafkaProducerFactory = provider =>
+                {
+                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                    return new KafkaProducer(loggerFactory, configurations, _topicPayloadSerializerRegistry);
+                };
+            }
+
+            return new ProducerConfiguration(
+                configurations,
+                _messageIdGenerator,
+                _kafkaProducerFactory
+            );
+        }
     }
 }
