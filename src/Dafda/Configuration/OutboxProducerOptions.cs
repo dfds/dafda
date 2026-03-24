@@ -2,7 +2,6 @@ using System;
 using Dafda.Outbox;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
