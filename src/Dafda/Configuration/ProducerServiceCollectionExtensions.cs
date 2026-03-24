@@ -27,7 +27,7 @@ namespace Dafda.Configuration
             {
                 var producerOptions = new ProducerOptions();
                 options?.Invoke(producerOptions);
-                return new ProducerFactory<TImplementation>(producerOptions);
+                return new ProducerFactory<TService>(producerOptions);
             });
             
             services.AddTransient<TService, TImplementation>(CreateProducerService<TService, TImplementation>);
@@ -63,7 +63,7 @@ namespace Dafda.Configuration
             services.AddSingleton(provider =>
             {
                 var options = optionsFactory(provider);
-                return new ProducerFactory<TImplementation>(options);
+                return new ProducerFactory<TService>(options);
             });
             
             services.AddTransient<TService, TImplementation>(CreateProducerService<TService, TImplementation>);
@@ -96,18 +96,17 @@ namespace Dafda.Configuration
             where TImplementation : class, TService
             where TService : class
         {
-            var producerFactory = provider.GetRequiredService<ProducerFactory<TImplementation>>();
+            var producerFactory = provider.GetRequiredService<ProducerFactory<TService>>();
             var producer = producerFactory.CreateProducerInstance(provider);
             return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
         }
     }
     
-    internal class ProducerFactory<TImplementation>(ProducerOptions options) : IDisposable
+    internal class ProducerFactory<TService>(ProducerOptions options) : IDisposable
     {
         private readonly ProducerConfiguration _configuration = options.Builder.Build();
         private readonly OutgoingMessageRegistry _messageRegistry = options.OutgoingMessageRegistry;
         private KafkaProducer _kafkaProducer;
-
 
         public Producer CreateProducerInstance(IServiceProvider provider)
         {
@@ -119,7 +118,7 @@ namespace Dafda.Configuration
                 messageIdGenerator: _configuration.MessageIdGenerator
             )
             {
-                Name = typeof(TImplementation).FullName
+                Name = typeof(TService).FullName
             };
 
             return producer;

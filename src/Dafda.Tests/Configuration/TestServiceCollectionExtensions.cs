@@ -73,7 +73,7 @@ namespace Dafda.Tests.Configuration
 
             Assert.NotNull(messageSender);
             Assert.NotNull(messageSender.Producer);
-            Assert.Equal(typeof(MessageSenderOne).FullName, messageSender.Producer.Name);
+            Assert.Equal(typeof(IMessageSenderOne).FullName, messageSender.Producer.Name);
         }
 
         [Fact]
@@ -201,7 +201,7 @@ namespace Dafda.Tests.Configuration
 
             Assert.NotNull(messageSender);
             Assert.NotNull(messageSender.Producer);
-            Assert.Equal(typeof(MessageSenderOne).FullName, messageSender.Producer.Name);
+            Assert.Equal(typeof(IMessageSenderOne).FullName, messageSender.Producer.Name);
         }
 
         [Fact]
