@@ -112,7 +112,8 @@ namespace Dafda.Tests.Configuration
             Assert.NotNull(messageSenderTwo.ADependency);
             
             Assert.Equal("hello two", messageSenderTwo.ADependency.Message);
-            Assert.Equal(messageSenderTwo.Producer.Name, messageSenderTwo.Producer.Name);
+            Assert.Equal(typeof(MessageSenderTwo).FullName, messageSenderTwo.Producer.Name);
+            Assert.NotEqual(messageSenderOne.Producer.Name, messageSenderTwo.Producer.Name);
         }
 
         [Fact]
