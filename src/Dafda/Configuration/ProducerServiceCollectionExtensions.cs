@@ -24,11 +24,11 @@ namespace Dafda.Configuration
         {
             ThrowIfProducerServiceAlreadyRegisteredFor<TService>(services);
 
-            services.AddSingleton(_ =>
+            services.AddSingleton(provider =>
             {
                 var producerOptions = new ProducerOptions();
                 options?.Invoke(producerOptions);
-                return new ProducerFactory<TService>(producerOptions);
+                return new ProducerFactory<TService>(provider, producerOptions);
             });
             
             services.AddTransient<TService, TImplementation>(CreateProducerService<TService, TImplementation>);
@@ -64,7 +64,7 @@ namespace Dafda.Configuration
             services.AddSingleton(provider =>
             {
                 var options = optionsFactory(provider);
-                return new ProducerFactory<TService>(options);
+                return new ProducerFactory<TService>(provider, options);
             });
             
             services.AddTransient<TService, TImplementation>(CreateProducerService<TService, TImplementation>);
@@ -89,7 +89,7 @@ namespace Dafda.Configuration
             if (services.Any(d => d.ServiceType == typeof(TService)))
             {
                 throw new ProducerFactoryException(
-                    $"A producer has already been registered for service type \"{typeof(TService).FullName}\". Each producer must use a unique service type.");
+                    $"Service type \"{typeof(TService).FullName}\" is already registered in the dependency injection container. Each Dafda producer must use a unique service type.");
             }
         }
 
@@ -98,18 +98,18 @@ namespace Dafda.Configuration
             where TService : class
         {
             var producerFactory = provider.GetRequiredService<ProducerFactory<TService>>();
-            var producer = producerFactory.CreateProducerInstance(provider);
+            var producer = producerFactory.CreateProducerInstance();
             return ActivatorUtilities.CreateInstance<TImplementation>(provider, producer);
         }
     }
     
-    internal class ProducerFactory<TService>(ProducerOptions options) : IDisposable
+    internal class ProducerFactory<TService>(IServiceProvider provider, ProducerOptions options) : IDisposable
     {
         private readonly ProducerConfiguration _configuration = options.Builder.Build();
         private readonly OutgoingMessageRegistry _messageRegistry = options.OutgoingMessageRegistry;
         private Lazy<KafkaProducer> _kafkaProducer;
 
-        public Producer CreateProducerInstance(IServiceProvider provider)
+        public Producer CreateProducerInstance()
         {
             // Use LazyInitializer to ensure thread-safe, once-only construction while
             // capturing `provider` in the factory delegate.

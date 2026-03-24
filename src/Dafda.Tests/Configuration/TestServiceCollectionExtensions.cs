@@ -353,6 +353,88 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
+        public void throws_when_same_service_type_is_registered_twice_with_action_options()
+        {
+            var services = new ServiceCollection();
+            services.AddProducerFor<SimpleSender>(options =>
+            {
+                options.WithBootstrapServers("dummy");
+            });
+
+            var exception = Assert.Throws<ProducerFactoryException>(() =>
+                services.AddProducerFor<SimpleSender>(options =>
+                {
+                    options.WithBootstrapServers("dummy");
+                }));
+
+            Assert.Contains(typeof(SimpleSender).FullName, exception.Message);
+        }
+
+        [Fact]
+        public void throws_when_same_service_type_is_registered_twice_with_factory_options()
+        {
+            var services = new ServiceCollection();
+            services.AddProducerFor<SimpleSender>(_ =>
+            {
+                var options = new ProducerOptions();
+                options.WithBootstrapServers("dummy");
+                return options;
+            });
+
+            var exception = Assert.Throws<ProducerFactoryException>(() =>
+                services.AddProducerFor<SimpleSender>(_ =>
+                {
+                    var options = new ProducerOptions();
+                    options.WithBootstrapServers("dummy");
+                    return options;
+                }));
+
+            Assert.Contains(typeof(SimpleSender).FullName, exception.Message);
+        }
+
+        [Fact]
+        public void throws_when_same_abstract_service_type_is_registered_twice_with_action_options()
+        {
+            var services = new ServiceCollection();
+            services.AddTransient<MessageSenderOne.AnotherDependency>();
+            services.AddProducerFor<IMessageSenderOne, MessageSenderOne>(options =>
+            {
+                options.WithBootstrapServers("dummy");
+            });
+
+            var exception = Assert.Throws<ProducerFactoryException>(() =>
+                services.AddProducerFor<IMessageSenderOne, MessageSenderOne>(options =>
+                {
+                    options.WithBootstrapServers("dummy");
+                }));
+
+            Assert.Contains(typeof(IMessageSenderOne).FullName, exception.Message);
+        }
+
+        [Fact]
+        public void throws_when_same_abstract_service_type_is_registered_twice_with_factory_options()
+        {
+            var services = new ServiceCollection();
+            services.AddTransient<MessageSenderOne.AnotherDependency>();
+            services.AddProducerFor<IMessageSenderOne, MessageSenderOne>(_ =>
+            {
+                var options = new ProducerOptions();
+                options.WithBootstrapServers("dummy");
+                return options;
+            });
+
+            var exception = Assert.Throws<ProducerFactoryException>(() =>
+                services.AddProducerFor<IMessageSenderOne, MessageSenderOne>(_ =>
+                {
+                    var options = new ProducerOptions();
+                    options.WithBootstrapServers("dummy");
+                    return options;
+                }));
+
+            Assert.Contains(typeof(IMessageSenderOne).FullName, exception.Message);
+        }
+
+        [Fact]
         public void options_factory_receives_service_provider()
         {
             var services = new ServiceCollection();
