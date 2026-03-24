@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Dafda.Producing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -106,14 +107,18 @@ namespace Dafda.Configuration
     {
         private readonly ProducerConfiguration _configuration = options.Builder.Build();
         private readonly OutgoingMessageRegistry _messageRegistry = options.OutgoingMessageRegistry;
-        private KafkaProducer _kafkaProducer;
+        private Lazy<KafkaProducer> _kafkaProducer;
 
         public Producer CreateProducerInstance(IServiceProvider provider)
         {
-            _kafkaProducer ??= _configuration.KafkaProducerFactory(provider);
+            // Use LazyInitializer to ensure thread-safe, once-only construction while
+            // capturing `provider` in the factory delegate.
+            LazyInitializer.EnsureInitialized(
+                ref _kafkaProducer,
+                () => new Lazy<KafkaProducer>(() => _configuration.KafkaProducerFactory(provider), isThreadSafe: true));
 
             var producer = new Producer(
-                kafkaProducer: _kafkaProducer,
+                kafkaProducer: _kafkaProducer.Value,
                 outgoingMessageRegistry: _messageRegistry,
                 messageIdGenerator: _configuration.MessageIdGenerator
             )
@@ -126,7 +131,10 @@ namespace Dafda.Configuration
 
         public void Dispose()
         {
-            _kafkaProducer?.Dispose();
+            if (_kafkaProducer is { IsValueCreated: true })
+            {
+                _kafkaProducer.Value.Dispose();
+            }
         }
     }
 }
