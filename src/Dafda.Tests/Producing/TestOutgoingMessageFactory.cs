@@ -7,10 +7,17 @@ using Xunit;
 namespace Dafda.Tests.Producing
 {
     [Collection("Serializing")]
-    public class TestOutgoingMessageFactory
+    public class TestOutgoingMessageFactory : IClassFixture<DafdaActivitySourceFixture>
     {
+        private readonly DafdaActivitySourceFixture _fixture;
         private const string DummyTopic = "dummy_topic";
         private const string DummyType = "dummy_type";
+
+        public TestOutgoingMessageFactory(DafdaActivitySourceFixture fixture)
+        {
+            _fixture = fixture;
+            _fixture.ResetDafdaActivitySource();
+        }
 
         [Fact]
         public async Task Can_create_outgoing_message_from_registry_with_expected_raw_message()

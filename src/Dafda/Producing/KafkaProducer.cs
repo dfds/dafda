@@ -22,24 +22,24 @@ namespace Dafda.Producing
 
         public string ClientId => _innerKafkaProducer.Name;
 
-        public async Task Produce(PayloadDescriptor payloadDescriptor)
+        public async Task<DeliveryResult<string, string>> Produce(PayloadDescriptor payloadDescriptor)
         {
             var serializer = _payloadSerializerRegistry.Get(payloadDescriptor.TopicName);
 
-            await InternalProduce(
+            return await InternalProduce(
                 topic: payloadDescriptor.TopicName,
                 key: payloadDescriptor.PartitionKey,
                 value: await serializer.Serialize(payloadDescriptor)
             );
         }
 
-        internal virtual async Task InternalProduce(string topic, string key, string value)
+        internal virtual async Task<DeliveryResult<string, string>> InternalProduce(string topic, string key, string value)
         {
             try
             {
                 _logger.LogDebug("Producing message with {Key} on {Topic}", key, topic);
 
-                await _innerKafkaProducer.ProduceAsync(
+                return await _innerKafkaProducer.ProduceAsync(
                     topic: topic,
                     message: new Message<string, string>
                     {
