@@ -310,6 +310,49 @@ namespace Dafda.Tests.Configuration
         }
 
         [Fact]
+        public void disposing_service_provider_disposes_kafka_producer()
+        {
+            var spy = new KafkaProducerSpy();
+
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddProducerFor<SimpleSender>(options =>
+            {
+                options.WithBootstrapServers("dummy");
+                options.WithKafkaProducerFactory(_ => spy);
+            });
+
+            var provider = services.BuildServiceProvider();
+
+            // Resolve the service so that the KafkaProducer is created inside ProducerFactory
+            _ = provider.GetRequiredService<SimpleSender>();
+
+            Assert.False(spy.WasDisposed);
+
+            provider.Dispose();
+
+            Assert.True(spy.WasDisposed);
+        }
+
+        [Fact]
+        public void disposing_service_provider_does_not_throw_when_kafka_producer_was_never_created()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddProducerFor<SimpleSender>(options =>
+            {
+                options.WithBootstrapServers("dummy");
+            });
+
+            var provider = services.BuildServiceProvider();
+
+            // Do NOT resolve SimpleSender — KafkaProducer is never instantiated
+            var exception = Record.Exception(() => provider.Dispose());
+
+            Assert.Null(exception);
+        }
+
+        [Fact]
         public void options_factory_receives_service_provider()
         {
             var services = new ServiceCollection();
