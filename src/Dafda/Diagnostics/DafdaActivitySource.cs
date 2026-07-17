@@ -228,7 +228,9 @@ internal static class DafdaActivitySource
     /// <returns>An enumerable collection of trace context values.</returns>
     private static IEnumerable<string> ExtractContextFromMetadata(Metadata metadata, string key)
     {
-        yield return metadata[key];
+        var value = metadata[key];
+        if (value != null)
+            yield return value;
     }
 
     /// <summary>
