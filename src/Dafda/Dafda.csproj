@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DocumentationFile>bin\Debug\Dafda.xml</DocumentationFile>
+    <DocumentationFile>bin/$(Configuration)/Dafda.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
