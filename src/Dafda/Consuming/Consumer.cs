@@ -1,73 +1,84 @@
+namespace Dafda.Consuming;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Dafda.Consuming.Interfaces;
-using Dafda.Consuming.MessageFilters;
-using Dafda.Diagnostics;
+using Diagnostics;
+using Interfaces;
+using MessageFilters;
 
-namespace Dafda.Consuming
+internal class Consumer(
+    MessageHandlerRegistry messageHandlerRegistry,
+    IHandlerUnitOfWorkFactory unitOfWorkFactory,
+    IConsumerScopeFactory consumerScopeFactory,
+    IUnconfiguredMessageHandlingStrategy fallbackHandler,
+    MessageFilter messageFilter,
+    IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
+    bool isAutoCommitEnabled = false,
+    IDeadLetterQueue deadLetterQueue = null,
+    int maxRetries = 0)
+    : IConsumer
 {
-    internal class Consumer : IConsumer
+    private readonly LocalMessageDispatcher _localMessageDispatcher = new(
+        messageHandlerRegistry,
+        unitOfWorkFactory,
+        fallbackHandler,
+        messageHandlerExecutionStrategy);
+
+    private readonly IDeadLetterQueue _deadLetterQueue = deadLetterQueue ?? NullDeadLetterQueue.Instance;
+
+    public async Task ConsumeAll(CancellationToken cancellationToken)
     {
-        private readonly LocalMessageDispatcher _localMessageDispatcher;
-        private readonly IConsumerScopeFactory _consumerScopeFactory;
-        private readonly MessageFilter _messageFilter;
-        private readonly bool _isAutoCommitEnabled;
-
-        public Consumer(
-            MessageHandlerRegistry messageHandlerRegistry,
-            IHandlerUnitOfWorkFactory unitOfWorkFactory,
-            IConsumerScopeFactory consumerScopeFactory,
-            IUnconfiguredMessageHandlingStrategy fallbackHandler,
-            MessageFilter messageFilter,
-            IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
-            bool isAutoCommitEnabled = false)
+        using var consumerScope = consumerScopeFactory.CreateConsumerScope();
+        while (!cancellationToken.IsCancellationRequested)
         {
-            _localMessageDispatcher =
-                new LocalMessageDispatcher(
-                    messageHandlerRegistry,
-                    unitOfWorkFactory,
-                    fallbackHandler,
-                    messageHandlerExecutionStrategy);
-            _consumerScopeFactory =
-                consumerScopeFactory
-                ?? throw new ArgumentNullException(nameof(consumerScopeFactory));
-            _messageFilter = messageFilter;
-            _isAutoCommitEnabled = isAutoCommitEnabled;
+            await ProcessNextMessage(consumerScope, cancellationToken);
+        }
+    }
+
+    public async Task ConsumeSingle(CancellationToken cancellationToken)
+    {
+        using var consumerScope = consumerScopeFactory.CreateConsumerScope();
+        await ProcessNextMessage(consumerScope, cancellationToken);
+    }
+
+    private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
+    {
+        var messageResult = await consumerScope.GetNext(cancellationToken);
+        using var activity = DafdaActivitySource.StartReceivingActivity(messageResult);
+
+        if (messageFilter.CanAcceptMessage(messageResult))
+        {
+            await Dispatch(messageResult, cancellationToken);
         }
 
-        public async Task ConsumeAll(CancellationToken cancellationToken)
+        if (!isAutoCommitEnabled)
         {
-            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    await ProcessNextMessage(consumerScope, cancellationToken);
-                }
-            }
+            await messageResult.Commit(cancellationToken);
         }
+    }
 
-        public async Task ConsumeSingle(CancellationToken cancellationToken)
+    private async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
+    {
+        var deadLetterQueueEnabled = _deadLetterQueue is not NullDeadLetterQueue;
+        var attempt = 0;
+
+        while (true)
         {
-            using (var consumerScope = _consumerScopeFactory.CreateConsumerScope())
-            {
-                await ProcessNextMessage(consumerScope, cancellationToken);
-            }
-        }
-
-        private async Task ProcessNextMessage(ConsumerScope consumerScope, CancellationToken cancellationToken)
-        {
-            var messageResult = await consumerScope.GetNext(cancellationToken);
-            using var activity = DafdaActivitySource.StartReceivingActivity(messageResult);
-
-            if (_messageFilter.CanAcceptMessage(messageResult))
+            try
             {
                 await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
+                return;
             }
-
-            if (!_isAutoCommitEnabled)
+            catch (Exception exception) when (deadLetterQueueEnabled)
             {
-                await messageResult.Commit(cancellationToken);
+                if (attempt++ < maxRetries)
+                {
+                    continue;
+                }
+
+                await _deadLetterQueue.Send(messageResult, exception, cancellationToken);
+                return;
             }
         }
     }
