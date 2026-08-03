@@ -14,7 +14,7 @@ public class MessageResult
     private readonly Func<CancellationToken, Task> _onCommit;
 
     /// <summary>
-    /// Resulting Message contaning Transport Level Message
+    /// Resulting Message containing Transport Level Message
     /// </summary>
     public MessageResult(TransportLevelMessage message, Func<CancellationToken, Task> onCommit = null)
     {
