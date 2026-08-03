@@ -70,7 +70,7 @@ internal class Consumer(
                 await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
                 return;
             }
-            catch (Exception exception) when (deadLetterQueueEnabled)
+            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested)
             {
                 if (attempt++ < maxRetries)
                 {

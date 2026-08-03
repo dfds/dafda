@@ -431,6 +431,30 @@ public class TestConsumer
             () => sut.ConsumeSingle(CancellationToken.None));
     }
 
+    [Fact]
+    public async Task does_not_dead_letter_when_cancelled_during_dispatch()
+    {
+        using var cts = new CancellationTokenSource();
+
+        var handler = new MessageHandlerSpy<FooMessage>(() =>
+        {
+            cts.Cancel();
+            cts.Token.ThrowIfCancellationRequested();
+        });
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            maxRetries: 3);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => sut.ConsumeSingle(cts.Token));
+
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+    }
+
     private static Consumer BuildConsumerWithHandler(
         IMessageHandler<FooMessage> handler,
         Func<CancellationToken, Task> onCommit = null,
