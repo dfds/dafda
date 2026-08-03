@@ -26,12 +26,19 @@ internal sealed class KafkaDeadLetterQueue(
 
     private string ResolveTopic(MessageResult message)
     {
-        return ResolveTopicName(topicName, message.Topic);
+        return ResolveTopicName(topicName, message.Topic, message.GroupId);
     }
 
-    internal static string ResolveTopicName(string configuredTopicName, string sourceTopic)
+    internal static string ResolveTopicName(string configuredTopicName, string sourceTopic, string groupId)
     {
-        return configuredTopicName ?? $"{sourceTopic}{DefaultTopicSuffix}";
+        if (configuredTopicName != null)
+        {
+            return configuredTopicName;
+        }
+
+        return string.IsNullOrEmpty(groupId)
+            ? $"{sourceTopic}{DefaultTopicSuffix}"
+            : $"{sourceTopic}.{groupId}{DefaultTopicSuffix}";
     }
 
     public async Task Send(MessageResult message, Exception exception, CancellationToken cancellationToken)
