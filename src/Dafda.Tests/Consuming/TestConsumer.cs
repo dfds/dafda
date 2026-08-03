@@ -455,6 +455,20 @@ public class TestConsumer
         Assert.Equal(0, deadLetterQueueSpy.SendCount);
     }
 
+    [Fact]
+    public void disposing_consumer_disposes_the_dead_letter_queue()
+    {
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            new MessageHandlerSpy<FooMessage>(() => { }),
+            deadLetterQueue: deadLetterQueueSpy);
+
+        ((IDisposable)sut).Dispose();
+
+        Assert.Equal(1, deadLetterQueueSpy.DisposedCount);
+    }
+
     private static Consumer BuildConsumerWithHandler(
         IMessageHandler<FooMessage> handler,
         Func<CancellationToken, Task> onCommit = null,
@@ -525,11 +539,12 @@ public class TestConsumer
         public string Value { get; set; }
     }
 
-    private class DeadLetterQueueSpy : IDeadLetterQueue
+    private class DeadLetterQueueSpy : IDeadLetterQueue, IDisposable
     {
         public int SendCount { get; private set; }
         public MessageResult LastMessage { get; private set; }
         public Exception LastException { get; private set; }
+        public int DisposedCount { get; private set; }
 
         public Task Send(MessageResult message, Exception exception, CancellationToken cancellationToken)
         {
@@ -537,6 +552,11 @@ public class TestConsumer
             LastMessage = message;
             LastException = exception;
             return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            DisposedCount++;
         }
     }
 

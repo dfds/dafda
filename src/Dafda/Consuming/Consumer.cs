@@ -17,7 +17,7 @@ internal class Consumer(
     bool isAutoCommitEnabled = false,
     IDeadLetterQueue deadLetterQueue = null,
     int maxRetries = 0)
-    : IConsumer
+    : IConsumer, IDisposable
 {
     private readonly LocalMessageDispatcher _localMessageDispatcher = new(
         messageHandlerRegistry,
@@ -81,5 +81,10 @@ internal class Consumer(
                 return;
             }
         }
+    }
+
+    public void Dispose()
+    {
+        (_deadLetterQueue as IDisposable)?.Dispose();
     }
 }

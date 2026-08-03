@@ -61,5 +61,12 @@ namespace Dafda.Consuming
         {
             return Task.Run(async () => { await ConsumeAll(stoppingToken); }, stoppingToken);
         }
+
+        /// <summary>Disposes the underlying consumer (and any resources it owns, such as a dead letter queue producer).</summary>
+        public override void Dispose()
+        {
+            (_consumer as IDisposable)?.Dispose();
+            base.Dispose();
+        }
     }
 }
