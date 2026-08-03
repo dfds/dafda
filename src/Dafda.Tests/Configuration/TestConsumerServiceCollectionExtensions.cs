@@ -323,8 +323,8 @@ namespace Dafda.Tests.Configuration
                 return Task.CompletedTask;
             }
 
-            public static string? LastActivityParentId { get; private set; }
-            public static string? LastActivityId { get; private set; }
+            public static string LastActivityParentId { get; private set; }
+            public static string LastActivityId { get; private set; }
             public static object LastHandledMessage { get; private set; }
             public static Baggage LastBaggage { get; private set; }
         }
