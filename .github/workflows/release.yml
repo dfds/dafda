@@ -1,28 +1,102 @@
-name: Dafda CI Release
+name: Dafda Release
 
 on:
-  push:
-    branches:
-      - master
-    tags:
-      - "*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (e.g. 1.2.3)
+        required: true
+        type: string
+      dry_run:
+        description: Dry run (build/test/pack only, no push/publish)
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    name: Build NuGet package
+  release:
+    name: Build and publish release
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      DRY_RUN: ${{ inputs.dry_run }}
+
     steps:
-      - uses: actions/checkout@v1
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - name: Build package
-        run: make package CONFIGURATION=Release
-      - name: Push package
-        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: Validate release version
+        run: |
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z\.-]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+
+      - name: Ensure tag does not already exist
+        run: |
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists"
+            exit 1
+          fi
+
+      - name: Update project version
+        run: sed -i -E "s#<Version>.*</Version>#<Version>${VERSION}</Version>#" src/Dafda/Dafda.csproj
+
+      - name: Commit version and create tag
+        env:
+          GIT_USER_NAME: ${{ github.actor }}
+          GIT_USER_EMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: |
+          git config user.name "$GIT_USER_NAME"
+          git config user.email "$GIT_USER_EMAIL"
+
+          if git diff --quiet -- src/Dafda/Dafda.csproj; then
+            echo "Version is already set to $VERSION"
+          else
+            git add src/Dafda/Dafda.csproj
+            git commit -m "release: $VERSION"
+          fi
+
+          git tag "$VERSION"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run enabled: skipping git push"
+          else
+            git push origin "HEAD:${GITHUB_REF_NAME}" --follow-tags
+          fi
+
+      - name: Restore dependencies
+        run: dotnet restore src/Dafda.sln
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore src/Dafda.sln
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal src/Dafda.sln
+
+      - name: Pack NuGet package
+        run: dotnet pack src/Dafda/Dafda.csproj --configuration Release --no-build --output .output
+
+      - name: Push package to NuGet
+        if: ${{ !inputs.dry_run }}
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          echo "Pushing new release with version ${GITHUB_REF:10}..."
-          make push CONFIGURATION=Release
+        run: dotnet nuget push ".output/Dafda.$VERSION.nupkg" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY"
+
+      - name: Create GitHub Release
+        if: ${{ !inputs.dry_run }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
+          generate_release_notes: true
+          files: .output/Dafda.${{ env.VERSION }}.nupkg
