@@ -1,209 +1,239 @@
+namespace Dafda.Configuration;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Dafda.Consuming;
-using Dafda.Consuming.MessageFilters;
+using Consuming;
+using Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Dafda.Configuration
+internal sealed class ConsumerConfigurationBuilder
 {
-    internal sealed class ConsumerConfigurationBuilder
+    private static readonly string[] DefaultConfigurationKeys =
     {
-        private static readonly string[] DefaultConfigurationKeys =
+        ConfigurationKey.GroupId,
+        ConfigurationKey.EnableAutoCommit,
+        ConfigurationKey.AllowAutoCreateTopics,
+        ConfigurationKey.BootstrapServers,
+        ConfigurationKey.BrokerVersionFallback,
+        ConfigurationKey.ApiVersionFallbackMs,
+        ConfigurationKey.SslCaLocation,
+        ConfigurationKey.SaslUsername,
+        ConfigurationKey.SaslPassword,
+        ConfigurationKey.SaslMechanisms,
+        ConfigurationKey.SecurityProtocol,
+    };
+
+    private static readonly string[] RequiredConfigurationKeys =
+    {
+        ConfigurationKey.GroupId,
+        ConfigurationKey.BootstrapServers
+    };
+
+    private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
+    private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
+    private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
+
+    private ConfigurationSource _configurationSource = ConfigurationSource.Null;
+
+    private Func<IServiceProvider, IHandlerUnitOfWorkFactory> _handlerUnitOfWorkFactory;
+
+    private Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> _unconfiguredMessageHandlingStrategy;
+    private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
+    private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
+
+    private Func<IServiceProvider, IMessageHandlerExecutionStrategy> _messageHandlerExecutionStrategyFactory;
+    private bool _readFromBeginning;
+
+    private MessageFilter _messageFilter = MessageFilter.Default;
+    private ConsumerErrorHandler _consumerErrorHandler = ConsumerErrorHandler.Default;
+    private DeadLetterQueueOptions _deadLetterQueueOptions;
+
+    private void ApplyDefaults(IDictionary<string, string> configurations)
+    {
+        _handlerUnitOfWorkFactory ??= sp => ActivatorUtilities.CreateInstance<ServiceProviderUnitOfWorkFactory>(sp);
+        _unconfiguredMessageHandlingStrategy ??= sp => ActivatorUtilities.CreateInstance<RequireExplicitHandlers>(sp);
+        _messageHandlerExecutionStrategyFactory ??= sp => ActivatorUtilities.CreateInstance<DirectMessageHandlerExecutionStrategy>(sp);
+        _consumerScopeFactory ??= provider =>
         {
-            ConfigurationKey.GroupId,
-            ConfigurationKey.EnableAutoCommit,
-            ConfigurationKey.AllowAutoCreateTopics,
-            ConfigurationKey.BootstrapServers,
-            ConfigurationKey.BrokerVersionFallback,
-            ConfigurationKey.ApiVersionFallbackMs,
-            ConfigurationKey.SslCaLocation,
-            ConfigurationKey.SaslUsername,
-            ConfigurationKey.SaslPassword,
-            ConfigurationKey.SaslMechanisms,
-            ConfigurationKey.SecurityProtocol,
-        };
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
 
-        private static readonly string[] RequiredConfigurationKeys =
-        {
-            ConfigurationKey.GroupId,
-            ConfigurationKey.BootstrapServers
-        };
-
-        private readonly IDictionary<string, string> _configurations = new Dictionary<string, string>();
-        private readonly IList<NamingConvention> _namingConventions = new List<NamingConvention>();
-        private readonly MessageHandlerRegistry _messageHandlerRegistry = new MessageHandlerRegistry();
-
-        private ConfigurationSource _configurationSource = ConfigurationSource.Null;
-
-        private Func<IServiceProvider, IHandlerUnitOfWorkFactory> _handlerUnitOfWorkFactory;
-
-        private Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> _unconfiguredMessageHandlingStrategy;
-        private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
-        private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
-
-        private Func<IServiceProvider, IMessageHandlerExecutionStrategy> _messageHandlerExecutionStrategyFactory;
-        private bool _readFromBeginning;
-
-        private MessageFilter _messageFilter = MessageFilter.Default;
-        private ConsumerErrorHandler _consumerErrorHandler = ConsumerErrorHandler.Default;
-
-        private void ApplyDefaults(IDictionary<string, string> configurations)
-        {
-            _handlerUnitOfWorkFactory ??= sp => ActivatorUtilities.CreateInstance<ServiceProviderUnitOfWorkFactory>(sp);
-            _unconfiguredMessageHandlingStrategy ??= sp => ActivatorUtilities.CreateInstance<RequireExplicitHandlers>(sp);
-            _messageHandlerExecutionStrategyFactory ??= sp => ActivatorUtilities.CreateInstance<DirectMessageHandlerExecutionStrategy>(sp);
-            _consumerScopeFactory ??= provider =>
-            {
-                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-
-                return new KafkaBasedConsumerScopeFactory(
-                    loggerFactory: loggerFactory,
-                    configuration: configurations,
-                    topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
-                    incomingMessageFactory: _incomingMessageFactory(provider),
-                    readFromBeginning: _readFromBeginning
-                );
-            };
-        }
-
-        public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
-        {
-            _configurationSource = configurationSource;
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithNamingConvention(Func<string, string> converter)
-        {
-            _namingConventions.Add(NamingConvention.UseCustom(converter));
-            return this;
-        }
-
-        internal ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
-        {
-            _namingConventions.Add(namingConvention);
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
-        {
-            WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
-
-            foreach (var additionalPrefix in additionalPrefixes)
-            {
-                WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
-            }
-
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithConfiguration(string key, string value)
-        {
-            _configurations[key] = value;
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithGroupId(string groupId)
-        {
-            return WithConfiguration(ConfigurationKey.GroupId, groupId);
-        }
-
-        public ConsumerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
-        {
-            return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
-        }
-
-        public ConsumerConfigurationBuilder WithUnitOfWorkFactory(Func<IServiceProvider, IHandlerUnitOfWorkFactory> handlerUnitOfWorkFactory)
-        {
-            _handlerUnitOfWorkFactory = handlerUnitOfWorkFactory;
-            return this;
-        }
-
-        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory)
-        {
-            _consumerScopeFactory = consumerScopeFactory;
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithUnconfiguredMessageHandlingStrategy(Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> unconfiguredMessageHandlingStrategy)
-        {
-            _unconfiguredMessageHandlingStrategy = unconfiguredMessageHandlingStrategy;
-            return this;
-        }
-        
-        public ConsumerConfigurationBuilder ReadFromBeginning()
-        {
-            _readFromBeginning = true;
-            return this;
-        }
-
-        public void WithMessageFilter(MessageFilter messageFilter)
-        {
-            _messageFilter = messageFilter;
-        }
-
-        public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
-            where TMessageHandler : IMessageHandler<TMessage>
-        {
-            _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithIncomingMessageFactory(Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory)
-        {
-            _incomingMessageFactory = incomingMessageFactory;
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithPoisonMessageHandling()
-        {
-            var inner = _incomingMessageFactory;
-            _incomingMessageFactory = provider => new PoisonAwareIncomingMessageFactory(
-                provider.GetRequiredService<ILogger<PoisonAwareIncomingMessageFactory>>(),
-                inner(provider)
-            );
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithConsumerErrorHandler(Func<Exception, Task<ConsumerFailureStrategy>> failureEvaluation)
-        {
-            _consumerErrorHandler = new ConsumerErrorHandler(failureEvaluation);
-            return this;
-        }
-
-        public ConsumerConfigurationBuilder WithMessageHandlerExecutionStrategyFactory(Func<IServiceProvider, IMessageHandlerExecutionStrategy> factory)
-        {
-            _messageHandlerExecutionStrategyFactory = factory;
-            return this;
-        }
-
-        internal ConsumerConfiguration Build()
-        {
-            var configurations = new ConfigurationBuilder()
-                .WithConfigurationKeys(DefaultConfigurationKeys)
-                .WithRequiredConfigurationKeys(RequiredConfigurationKeys)
-                .WithNamingConventions(_namingConventions.ToArray())
-                .WithConfigurationSource(_configurationSource)
-                .WithConfigurations(_configurations)
-                .Build();
-            
-            ApplyDefaults(configurations);
-
-            var consumerConfigurationFactories = new ConsumerConfigurationFactories(
-                UnitOfWorkFactory: _handlerUnitOfWorkFactory,
-                UnconfiguredMessageHandlingStrategy: _unconfiguredMessageHandlingStrategy,
-                ConsumerScopeFactory: _consumerScopeFactory,
-                IncomingMessageFactory: _incomingMessageFactory,
-                MessageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory);
-            
-            return new ConsumerConfiguration(
+            return new KafkaBasedConsumerScopeFactory(
+                loggerFactory: loggerFactory,
                 configuration: configurations,
-                messageHandlerRegistry: _messageHandlerRegistry,
-                factories: consumerConfigurationFactories,
-                messageFilter: _messageFilter,
-                consumerErrorHandler: _consumerErrorHandler);
+                topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
+                incomingMessageFactory: _incomingMessageFactory(provider),
+                readFromBeginning: _readFromBeginning
+            );
+        };
+    }
+
+    public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
+    {
+        _configurationSource = configurationSource;
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithNamingConvention(Func<string, string> converter)
+    {
+        _namingConventions.Add(NamingConvention.UseCustom(converter));
+        return this;
+    }
+
+    internal ConsumerConfigurationBuilder WithNamingConvention(NamingConvention namingConvention)
+    {
+        _namingConventions.Add(namingConvention);
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithEnvironmentStyle(string prefix = null, params string[] additionalPrefixes)
+    {
+        WithNamingConvention(NamingConvention.UseEnvironmentStyle(prefix));
+
+        foreach (var additionalPrefix in additionalPrefixes)
+        {
+            WithNamingConvention(NamingConvention.UseEnvironmentStyle(additionalPrefix));
         }
+
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithConfiguration(string key, string value)
+    {
+        _configurations[key] = value;
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithGroupId(string groupId)
+    {
+        return WithConfiguration(ConfigurationKey.GroupId, groupId);
+    }
+
+    public ConsumerConfigurationBuilder WithBootstrapServers(string bootstrapServers)
+    {
+        return WithConfiguration(ConfigurationKey.BootstrapServers, bootstrapServers);
+    }
+
+    public ConsumerConfigurationBuilder WithUnitOfWorkFactory(Func<IServiceProvider, IHandlerUnitOfWorkFactory> handlerUnitOfWorkFactory)
+    {
+        _handlerUnitOfWorkFactory = handlerUnitOfWorkFactory;
+        return this;
+    }
+
+    internal ConsumerConfigurationBuilder WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory)
+    {
+        _consumerScopeFactory = consumerScopeFactory;
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithUnconfiguredMessageHandlingStrategy(Func<IServiceProvider, IUnconfiguredMessageHandlingStrategy> unconfiguredMessageHandlingStrategy)
+    {
+        _unconfiguredMessageHandlingStrategy = unconfiguredMessageHandlingStrategy;
+        return this;
+    }
+        
+    public ConsumerConfigurationBuilder ReadFromBeginning()
+    {
+        _readFromBeginning = true;
+        return this;
+    }
+
+    public void WithMessageFilter(MessageFilter messageFilter)
+    {
+        _messageFilter = messageFilter;
+    }
+
+    public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
+        where TMessageHandler : IMessageHandler<TMessage>
+    {
+        _messageHandlerRegistry.Register<TMessage, TMessageHandler>(topic, messageType);
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithIncomingMessageFactory(Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory)
+    {
+        _incomingMessageFactory = incomingMessageFactory;
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithPoisonMessageHandling()
+    {
+        var inner = _incomingMessageFactory;
+        _incomingMessageFactory = provider => new PoisonAwareIncomingMessageFactory(
+            provider.GetRequiredService<ILogger<PoisonAwareIncomingMessageFactory>>(),
+            inner(provider)
+        );
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithConsumerErrorHandler(Func<Exception, Task<ConsumerFailureStrategy>> failureEvaluation)
+    {
+        _consumerErrorHandler = new ConsumerErrorHandler(failureEvaluation);
+        return this;
+    }
+
+    public ConsumerConfigurationBuilder WithMessageHandlerExecutionStrategyFactory(Func<IServiceProvider, IMessageHandlerExecutionStrategy> factory)
+    {
+        _messageHandlerExecutionStrategyFactory = factory;
+        return this;
+    }
+
+    public DeadLetterQueueOptions WithDeadLetterQueue(string topicName = null)
+    {
+        _deadLetterQueueOptions = new DeadLetterQueueOptions(topicName);
+        return _deadLetterQueueOptions;
+    }
+
+    internal ConsumerConfiguration Build()
+    {
+        var configurations = new ConfigurationBuilder()
+            .WithConfigurationKeys(DefaultConfigurationKeys)
+            .WithRequiredConfigurationKeys(RequiredConfigurationKeys)
+            .WithNamingConventions(_namingConventions.ToArray())
+            .WithConfigurationSource(_configurationSource)
+            .WithConfigurations(_configurations)
+            .Build();
+            
+        ApplyDefaults(configurations);
+
+        var consumerConfigurationFactories = new ConsumerConfigurationFactories(
+            UnitOfWorkFactory: _handlerUnitOfWorkFactory,
+            UnconfiguredMessageHandlingStrategy: _unconfiguredMessageHandlingStrategy,
+            ConsumerScopeFactory: _consumerScopeFactory,
+            IncomingMessageFactory: _incomingMessageFactory,
+            MessageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory);
+
+        var deadLetterQueueFactory = BuildDeadLetterQueueFactory(configurations);
+        var maxRetries = _deadLetterQueueOptions?.MaxRetries ?? 0;
+
+        return new ConsumerConfiguration(
+            configuration: configurations,
+            messageHandlerRegistry: _messageHandlerRegistry,
+            factories: consumerConfigurationFactories,
+            messageFilter: _messageFilter,
+            consumerErrorHandler: _consumerErrorHandler,
+            deadLetterQueueFactory: deadLetterQueueFactory,
+            maxRetries: maxRetries);
+    }
+
+    private Func<IServiceProvider, IDeadLetterQueue> BuildDeadLetterQueueFactory(IDictionary<string, string> configurations)
+    {
+        if (_deadLetterQueueOptions == null)
+        {
+            return _ => NullDeadLetterQueue.Instance;
+        }
+
+        var topicName = _deadLetterQueueOptions.TopicName;
+        
+        var producerConfiguration = configurations
+            .Where(pair => ConfigurationKey.GetAllProducerKeys().Any(key => key.ToString() == pair.Key))
+            .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+        return provider => new KafkaDeadLetterQueue(
+            provider.GetRequiredService<ILoggerFactory>(),
+            producerConfiguration,
+            topicName);
     }
 }

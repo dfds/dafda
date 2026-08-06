@@ -1,10 +1,11 @@
+namespace Dafda.Configuration;
+
 using System;
 using System.Threading.Tasks;
-using Dafda.Consuming;
-using Dafda.Consuming.MessageFilters;
+using Consuming;
+using Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Dafda.Configuration;
 
 /// <summary>
 /// Facilitates Dafda configuration in .NET applications using the <see cref="IServiceCollection"/>.
@@ -227,6 +228,26 @@ public sealed class ConsumerOptions
         Func<IServiceProvider, IMessageHandlerExecutionStrategy> factory)
     {
         Builder.WithMessageHandlerExecutionStrategyFactory(factory);
+    }
+
+    /// <summary>
+    /// Enable a dead letter queue for this consumer. When a message handler fails
+    /// (after any configured retries are exhausted), the original message is
+    /// published to the dead letter topic and the offset is committed so the
+    /// consumer can continue past the poison message.
+    /// </summary>
+    /// <param name="topicName">
+    /// The dead letter topic name. When omitted, the topic is derived from the
+    /// source topic of the failed message (e.g. <c>orders</c> becomes
+    /// <c>orders.dead-letter</c>).
+    /// </param>
+    /// <returns>
+    /// A <see cref="DeadLetterQueueOptions"/> to further configure the dead letter
+    /// queue, e.g. <c>WithMaxRetries(...)</c>.
+    /// </returns>
+    public DeadLetterQueueOptions WithDeadLetterQueue(string topicName = null)
+    {
+        return Builder.WithDeadLetterQueue(topicName);
     }
 
     private class DefaultConfigurationSource(Microsoft.Extensions.Configuration.IConfiguration configuration)

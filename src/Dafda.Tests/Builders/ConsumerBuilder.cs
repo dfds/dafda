@@ -1,78 +1,84 @@
-﻿using Dafda.Consuming;
+﻿namespace Dafda.Tests.Builders;
+
+using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
-using Dafda.Tests.TestDoubles;
+using TestDoubles;
 
-namespace Dafda.Tests.Builders
+internal class ConsumerBuilder
 {
-    internal class ConsumerBuilder
+    private IHandlerUnitOfWorkFactory _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
+    private IConsumerScopeFactory _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
+    private MessageHandlerRegistry _registry = new();
+    private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy = new RequireExplicitHandlers();
+    private readonly IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy = new DirectMessageHandlerExecutionStrategy();
+
+    private bool _enableAutoCommit;
+    private MessageFilter _messageFilter = MessageFilter.Default;
+    private IDeadLetterQueue _deadLetterQueue = NullDeadLetterQueue.Instance;
+    private int _maxRetries;
+
+    public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
     {
-        private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private IConsumerScopeFactory _consumerScopeFactory;
-        private MessageHandlerRegistry _registry;
-        private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy;
-        private IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy;
-
-        private bool _enableAutoCommit;
-        private MessageFilter _messageFilter = MessageFilter.Default;
-
-        public ConsumerBuilder()
-        {
-            _unitOfWorkFactory = new HandlerUnitOfWorkFactoryStub(null);
-            _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
-            _registry = new MessageHandlerRegistry();
-            _unconfiguredMessageStrategy = new RequireExplicitHandlers();
-            _messageHandlerExecutionStrategy = new DirectMessageHandlerExecutionStrategy();
-        }
-
-        public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
-        {
-            return WithUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
-        }
-
-        public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitofWorkFactory)
-        {
-            _unitOfWorkFactory = unitofWorkFactory;
-            return this;
-        }
-
-        public ConsumerBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
-        {
-            _consumerScopeFactory = consumerScopeFactory;
-            return this;
-        }
-
-        public ConsumerBuilder WithMessageHandlerRegistry(MessageHandlerRegistry registry)
-        {
-            _registry = registry;
-            return this;
-        }
-
-        public ConsumerBuilder WithEnableAutoCommit(bool enableAutoCommit)
-        {
-            _enableAutoCommit = enableAutoCommit;
-            return this;
-        }
-
-        public void WithMessageFilter(MessageFilter messageFilter)
-        {
-            _messageFilter = messageFilter;
-        }
-
-        public ConsumerBuilder WithUnconfiguredMessageStrategy(
-            IUnconfiguredMessageHandlingStrategy strategy)
-        {
-            _unconfiguredMessageStrategy = strategy;
-            return this;
-        }
-
-        public Consumer Build() =>
-            new Consumer(
-                _registry,
-                _unitOfWorkFactory,
-                _consumerScopeFactory,
-                _unconfiguredMessageStrategy,
-                _messageFilter,
-                _messageHandlerExecutionStrategy,
-                _enableAutoCommit);
+        return WithUnitOfWorkFactory(new HandlerUnitOfWorkFactoryStub(unitOfWork));
     }
+
+    public ConsumerBuilder WithUnitOfWorkFactory(IHandlerUnitOfWorkFactory unitofWorkFactory)
+    {
+        _unitOfWorkFactory = unitofWorkFactory;
+        return this;
+    }
+
+    public ConsumerBuilder WithConsumerScopeFactory(IConsumerScopeFactory consumerScopeFactory)
+    {
+        _consumerScopeFactory = consumerScopeFactory;
+        return this;
+    }
+
+    public ConsumerBuilder WithMessageHandlerRegistry(MessageHandlerRegistry registry)
+    {
+        _registry = registry;
+        return this;
+    }
+
+    public ConsumerBuilder WithEnableAutoCommit(bool enableAutoCommit)
+    {
+        _enableAutoCommit = enableAutoCommit;
+        return this;
+    }
+
+    public void WithMessageFilter(MessageFilter messageFilter)
+    {
+        _messageFilter = messageFilter;
+    }
+
+    public ConsumerBuilder WithUnconfiguredMessageStrategy(
+        IUnconfiguredMessageHandlingStrategy strategy)
+    {
+        _unconfiguredMessageStrategy = strategy;
+        return this;
+    }
+
+    public ConsumerBuilder WithDeadLetterQueue(IDeadLetterQueue deadLetterQueue)
+    {
+        _deadLetterQueue = deadLetterQueue;
+        return this;
+    }
+
+    public ConsumerBuilder WithMaxRetries(int maxRetries)
+    {
+        _maxRetries = maxRetries;
+        return this;
+    }
+
+    public Consumer Build() =>
+        new Consumer(
+            _registry,
+            _unitOfWorkFactory,
+            _consumerScopeFactory,
+            _unconfiguredMessageStrategy,
+            _messageFilter,
+            _messageHandlerExecutionStrategy,
+            _enableAutoCommit,
+            _deadLetterQueue,
+            _maxRetries);
 }
