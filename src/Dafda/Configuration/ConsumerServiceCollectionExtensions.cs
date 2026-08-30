@@ -48,7 +48,8 @@ public static class ConsumerServiceCollectionExtensions
                 configuration.DeadLetterQueueFactory(provider),
                 configuration.MaxRetries,
                 configuration.DeadLetterQueueBypass,
-                configuration.RetryBackoff
+                configuration.RetryBackoff,
+                provider.GetRequiredService<ILogger<Consumer>>()
             ),
             configuration.GroupId,
             configuration.ConsumerErrorHandler
@@ -86,7 +87,8 @@ public static class ConsumerServiceCollectionExtensions
                     configuration.DeadLetterQueueFactory(provider),
                     configuration.MaxRetries,
                     configuration.DeadLetterQueueBypass,
-                    configuration.RetryBackoff
+                    configuration.RetryBackoff,
+                    provider.GetRequiredService<ILogger<Consumer>>()
                 ),
                 configuration.GroupId,
                 configuration.ConsumerErrorHandler

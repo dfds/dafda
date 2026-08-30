@@ -519,6 +519,48 @@ public class TestConsumer
     }
 
     [Fact]
+    public async Task logs_error_when_exception_bypasses_the_dead_letter_queue()
+    {
+        var handler = new MessageHandlerSpy<FooMessage>(() => throw new InvalidOperationException("fatal"));
+
+        var loggerSpy = new LoggerSpy<Consumer>();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: new DeadLetterQueueSpy(),
+            deadLetterQueueBypass: exception => exception is InvalidOperationException,
+            logger: loggerSpy);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => sut.ConsumeSingle(CancellationToken.None));
+
+        var logEntry = Assert.Single(loggerSpy.LogEntries);
+        Assert.Equal(LogLevel.Error, logEntry.LogLevel);
+        Assert.IsType<InvalidOperationException>(logEntry.Exception);
+        Assert.Equal(
+            "Exception of type System.InvalidOperationException bypassed the dead letter queue for message with key (null) from topic topic. Failing the consumer",
+            logEntry.Message);
+    }
+
+    [Fact]
+    public async Task does_not_log_bypass_error_when_message_is_dead_lettered()
+    {
+        var handler = new MessageHandlerSpy<FooMessage>(() => throw new InvalidOperationException("boom"));
+
+        var loggerSpy = new LoggerSpy<Consumer>();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: new DeadLetterQueueSpy(),
+            deadLetterQueueBypass: exception => exception is FormatException,
+            logger: loggerSpy);
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Empty(loggerSpy.LogEntries);
+    }
+
+    [Fact]
     public async Task does_not_delay_between_retries_when_no_backoff_is_configured()
     {
         var handlerInvocations = 0;
@@ -626,7 +668,8 @@ public class TestConsumer
         IDeadLetterQueue deadLetterQueue = null,
         int maxRetries = 0,
         Func<Exception, bool> deadLetterQueueBypass = null,
-        Func<int, TimeSpan> retryBackoff = null)
+        Func<int, TimeSpan> retryBackoff = null,
+        ILogger<Consumer> logger = null)
     {
         var registration = new MessageRegistrationBuilder()
             .WithHandlerInstanceType(handler.GetType())
@@ -650,7 +693,8 @@ public class TestConsumer
             .WithMessageHandlerRegistry(registry)
             .WithMaxRetries(maxRetries)
             .WithDeadLetterQueueBypass(deadLetterQueueBypass)
-            .WithRetryBackoff(retryBackoff);
+            .WithRetryBackoff(retryBackoff)
+            .WithLogger(logger);
 
         if (deadLetterQueue != null)
         {
