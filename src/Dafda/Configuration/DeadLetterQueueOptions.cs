@@ -68,8 +68,8 @@ public sealed class DeadLetterQueueOptions
     /// <summary>
     /// Bypass the dead letter queue for the specified exception type (and any
     /// derived types). A matching exception is neither retried nor forwarded to the
-    /// dead letter queue: it propagates out of message dispatch without the offset
-    /// being committed, so the message is redelivered once consumption resumes.
+    /// dead letter queue: it propagates out of message dispatch, and Dafda does not
+    /// commit the offset for the message.
     /// </summary>
     /// <remarks>
     /// The exception is then passed to the configured consumer error handler (see
@@ -78,6 +78,14 @@ public sealed class DeadLetterQueueOptions
     /// If the handler returns <see cref="ConsumerFailureStrategy.RestartConsumer"/>
     /// the consumer is restarted and the redelivered message fails again, so only
     /// combine a bypass with a restart strategy that backs off.
+    /// <para>
+    /// Whether the bypassed message is actually redelivered depends on the commit
+    /// strategy. Dafda only commits the offset itself when <c>enable.auto.commit</c>
+    /// is <c>false</c>, so manual commits are required for redelivery. With automatic
+    /// commits (the default) the Kafka client stores and commits offsets on its own,
+    /// including when the consumer is closed, so a bypassed message may still be
+    /// marked as consumed and will not be redelivered.
+    /// </para>
     /// </remarks>
     /// <typeparam name="TException">The exception type to bypass the dead letter queue for.</typeparam>
     public DeadLetterQueueOptions BypassFor<TException>() where TException : Exception
@@ -90,8 +98,7 @@ public sealed class DeadLetterQueueOptions
     /// Bypass the dead letter queue for exceptions matching the supplied
     /// <paramref name="predicate"/>. When it returns <c>true</c>, the exception is
     /// neither retried nor forwarded to the dead letter queue: it propagates out of
-    /// message dispatch without the offset being committed, so the message is
-    /// redelivered once consumption resumes.
+    /// message dispatch, and Dafda does not commit the offset for the message.
     /// </summary>
     /// <remarks>
     /// The exception is then passed to the configured consumer error handler (see
@@ -100,6 +107,14 @@ public sealed class DeadLetterQueueOptions
     /// If the handler returns <see cref="ConsumerFailureStrategy.RestartConsumer"/>
     /// the consumer is restarted and the redelivered message fails again, so only
     /// combine a bypass with a restart strategy that backs off.
+    /// <para>
+    /// Whether the bypassed message is actually redelivered depends on the commit
+    /// strategy. Dafda only commits the offset itself when <c>enable.auto.commit</c>
+    /// is <c>false</c>, so manual commits are required for redelivery. With automatic
+    /// commits (the default) the Kafka client stores and commits offsets on its own,
+    /// including when the consumer is closed, so a bypassed message may still be
+    /// marked as consumed and will not be redelivered.
+    /// </para>
     /// </remarks>
     /// <param name="predicate">Evaluates a thrown exception and returns <c>true</c> to bypass the dead letter queue.</param>
     public DeadLetterQueueOptions BypassWhen(Func<Exception, bool> predicate)
