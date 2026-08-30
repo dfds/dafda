@@ -46,6 +46,75 @@ public sealed class DeadLetterQueueOptions
     }
 
     /// <summary>
+    /// Maps a retry attempt number (the first retry is attempt <c>1</c>) to the delay
+    /// awaited before that attempt is made. Returns <c>null</c> when no backoff has been
+    /// configured, in which case retries happen without any delay.
+    /// </summary>
+    internal Func<int, TimeSpan> RetryBackoff { get; private set; }
+
+    /// <summary>
+    /// Wait a fixed <paramref name="delay"/> before each retry attempt.
+    /// </summary>
+    /// <param name="delay">The delay awaited before every retry attempt. Must be zero or greater.</param>
+    public DeadLetterQueueOptions WithRetryBackoff(TimeSpan delay)
+    {
+        if (delay < TimeSpan.Zero)
+        {
+            throw new InvalidConfigurationException("The retry backoff delay for a dead letter queue cannot be negative.");
+        }
+
+        RetryBackoff = _ => delay;
+        return this;
+    }
+
+    /// <summary>
+    /// Wait an exponentially increasing delay before each retry attempt. The delay before
+    /// retry attempt <c>n</c> (the first retry being attempt <c>1</c>) is
+    /// <paramref name="initialDelay"/> multiplied by <paramref name="factor"/> raised to the
+    /// power of <c>n - 1</c>, optionally capped by <paramref name="maxDelay"/>.
+    /// </summary>
+    /// <param name="initialDelay">The delay awaited before the first retry attempt. Must be zero or greater.</param>
+    /// <param name="factor">The multiplier applied for each subsequent attempt. Must be greater than zero.</param>
+    /// <param name="maxDelay">An optional upper bound for the computed delay. Must be zero or greater when supplied.</param>
+    public DeadLetterQueueOptions WithExponentialRetryBackoff(TimeSpan initialDelay, double factor = 2.0, TimeSpan? maxDelay = null)
+    {
+        if (initialDelay < TimeSpan.Zero)
+        {
+            throw new InvalidConfigurationException("The retry backoff delay for a dead letter queue cannot be negative.");
+        }
+
+        if (factor <= 0)
+        {
+            throw new InvalidConfigurationException("The retry backoff factor for a dead letter queue must be greater than zero.");
+        }
+
+        if (maxDelay.HasValue && maxDelay.Value < TimeSpan.Zero)
+        {
+            throw new InvalidConfigurationException("The maximum retry backoff delay for a dead letter queue cannot be negative.");
+        }
+
+        RetryBackoff = attempt => CalculateExponentialDelay(initialDelay, factor, maxDelay, attempt);
+        return this;
+    }
+
+    private static TimeSpan CalculateExponentialDelay(TimeSpan initialDelay, double factor, TimeSpan? maxDelay, int attempt)
+    {
+        var exponent = attempt < 1 ? 0 : attempt - 1;
+        var ticks = initialDelay.Ticks * Math.Pow(factor, exponent);
+
+        var delay = ticks >= TimeSpan.MaxValue.Ticks
+            ? TimeSpan.MaxValue
+            : TimeSpan.FromTicks((long)ticks);
+
+        if (maxDelay.HasValue && delay > maxDelay.Value)
+        {
+            return maxDelay.Value;
+        }
+
+        return delay;
+    }
+
+    /// <summary>
     /// A predicate matching exceptions that should bypass the dead letter queue.
     /// When an exception matches, it is rethrown (crashing the consumer) instead
     /// of being retried or forwarded to the dead letter queue. Returns <c>null</c>

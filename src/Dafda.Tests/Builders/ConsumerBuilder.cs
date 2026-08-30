@@ -18,6 +18,7 @@ internal class ConsumerBuilder
     private IDeadLetterQueue _deadLetterQueue = NullDeadLetterQueue.Instance;
     private int _maxRetries;
     private Func<Exception, bool> _deadLetterQueueBypass;
+    private Func<int, TimeSpan> _retryBackoff;
 
     public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
     {
@@ -78,6 +79,12 @@ internal class ConsumerBuilder
         return this;
     }
 
+    public ConsumerBuilder WithRetryBackoff(Func<int, TimeSpan> retryBackoff)
+    {
+        _retryBackoff = retryBackoff;
+        return this;
+    }
+
     public Consumer Build() =>
         new Consumer(
             _registry,
@@ -89,5 +96,6 @@ internal class ConsumerBuilder
             _enableAutoCommit,
             _deadLetterQueue,
             _maxRetries,
-            _deadLetterQueueBypass);
+            _deadLetterQueueBypass,
+            _retryBackoff);
 }

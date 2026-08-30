@@ -511,12 +511,115 @@ public class TestConsumer
         Assert.Equal(1, deadLetterQueueSpy.SendCount);
     }
 
+    [Fact]
+    public async Task does_not_delay_between_retries_when_no_backoff_is_configured()
+    {
+        var handlerInvocations = 0;
+        var handler = new MessageHandlerSpy<FooMessage>(() =>
+        {
+            handlerInvocations++;
+            throw new InvalidOperationException("boom");
+        });
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            maxRetries: 2,
+            retryBackoff: null);
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Equal(3, handlerInvocations);
+        Assert.Equal(1, deadLetterQueueSpy.SendCount);
+    }
+
+    [Fact]
+    public async Task applies_retry_backoff_for_each_retry_attempt_and_dead_letters_after_max_retries()
+    {
+        var handlerInvocations = 0;
+        var handler = new MessageHandlerSpy<FooMessage>(() =>
+        {
+            handlerInvocations++;
+            throw new InvalidOperationException("boom");
+        });
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+        var backoffAttempts = new List<int>();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            maxRetries: 3,
+            retryBackoff: attempt =>
+            {
+                backoffAttempts.Add(attempt);
+                return TimeSpan.FromMilliseconds(1);
+            });
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Equal(new[] { 1, 2, 3 }, backoffAttempts);
+        Assert.Equal(4, handlerInvocations);
+        Assert.Equal(1, deadLetterQueueSpy.SendCount);
+    }
+
+    [Fact]
+    public async Task does_not_apply_retry_backoff_when_handler_succeeds()
+    {
+        var handler = new MessageHandlerSpy<FooMessage>(() => { });
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+        var backoffInvocations = 0;
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            maxRetries: 3,
+            retryBackoff: _ =>
+            {
+                backoffInvocations++;
+                return TimeSpan.Zero;
+            });
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Equal(0, backoffInvocations);
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+    }
+
+    [Fact]
+    public async Task does_not_dead_letter_when_cancelled_during_retry_backoff()
+    {
+        using var cts = new CancellationTokenSource();
+
+        var handler = new MessageHandlerSpy<FooMessage>(() => throw new InvalidOperationException("boom"));
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            maxRetries: 3,
+            retryBackoff: _ =>
+            {
+                cts.Cancel();
+                return TimeSpan.FromMinutes(5);
+            });
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => sut.ConsumeSingle(cts.Token));
+
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+    }
+
     private static Consumer BuildConsumerWithHandler(
         IMessageHandler<FooMessage> handler,
         Func<CancellationToken, Task> onCommit = null,
         IDeadLetterQueue deadLetterQueue = null,
         int maxRetries = 0,
-        Func<Exception, bool> deadLetterQueueBypass = null)
+        Func<Exception, bool> deadLetterQueueBypass = null,
+        Func<int, TimeSpan> retryBackoff = null)
     {
         var registration = new MessageRegistrationBuilder()
             .WithHandlerInstanceType(handler.GetType())
@@ -539,7 +642,8 @@ public class TestConsumer
             .WithUnitOfWork(new UnitOfWorkStub(handler))
             .WithMessageHandlerRegistry(registry)
             .WithMaxRetries(maxRetries)
-            .WithDeadLetterQueueBypass(deadLetterQueueBypass);
+            .WithDeadLetterQueueBypass(deadLetterQueueBypass)
+            .WithRetryBackoff(retryBackoff);
 
         if (deadLetterQueue != null)
         {
