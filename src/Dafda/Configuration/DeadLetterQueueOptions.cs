@@ -47,9 +47,9 @@ public sealed class DeadLetterQueueOptions
 
     /// <summary>
     /// A predicate matching exceptions that should bypass the dead letter queue.
-    /// When an exception matches, it is rethrown (crashing the consumer) instead
-    /// of being retried or forwarded to the dead letter queue. Returns <c>null</c>
-    /// when no bypass has been configured.
+    /// When an exception matches, it is rethrown instead of being retried or
+    /// forwarded to the dead letter queue. Returns <c>null</c> when no bypass has
+    /// been configured.
     /// </summary>
     internal Func<Exception, bool> BypassPredicate
     {
@@ -67,9 +67,18 @@ public sealed class DeadLetterQueueOptions
 
     /// <summary>
     /// Bypass the dead letter queue for the specified exception type (and any
-    /// derived types). When a message handler throws a matching exception, it is
-    /// rethrown so the consumer crashes instead of dead-lettering the message.
+    /// derived types). A matching exception is neither retried nor forwarded to the
+    /// dead letter queue: it propagates out of message dispatch without the offset
+    /// being committed, so the message is redelivered once consumption resumes.
     /// </summary>
+    /// <remarks>
+    /// The exception is then passed to the configured consumer error handler (see
+    /// <see cref="ConsumerOptions.WithConsumerErrorHandler"/>). With the default
+    /// handler, <see cref="ConsumerFailureStrategy.Default"/> stops the application.
+    /// If the handler returns <see cref="ConsumerFailureStrategy.RestartConsumer"/>
+    /// the consumer is restarted and the redelivered message fails again, so only
+    /// combine a bypass with a restart strategy that backs off.
+    /// </remarks>
     /// <typeparam name="TException">The exception type to bypass the dead letter queue for.</typeparam>
     public DeadLetterQueueOptions BypassFor<TException>() where TException : Exception
     {
@@ -80,8 +89,18 @@ public sealed class DeadLetterQueueOptions
     /// <summary>
     /// Bypass the dead letter queue for exceptions matching the supplied
     /// <paramref name="predicate"/>. When it returns <c>true</c>, the exception is
-    /// rethrown so the consumer crashes instead of dead-lettering the message.
+    /// neither retried nor forwarded to the dead letter queue: it propagates out of
+    /// message dispatch without the offset being committed, so the message is
+    /// redelivered once consumption resumes.
     /// </summary>
+    /// <remarks>
+    /// The exception is then passed to the configured consumer error handler (see
+    /// <see cref="ConsumerOptions.WithConsumerErrorHandler"/>). With the default
+    /// handler, <see cref="ConsumerFailureStrategy.Default"/> stops the application.
+    /// If the handler returns <see cref="ConsumerFailureStrategy.RestartConsumer"/>
+    /// the consumer is restarted and the redelivered message fails again, so only
+    /// combine a bypass with a restart strategy that backs off.
+    /// </remarks>
     /// <param name="predicate">Evaluates a thrown exception and returns <c>true</c> to bypass the dead letter queue.</param>
     public DeadLetterQueueOptions BypassWhen(Func<Exception, bool> predicate)
     {
