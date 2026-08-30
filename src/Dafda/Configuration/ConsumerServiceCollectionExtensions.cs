@@ -47,7 +47,8 @@ public static class ConsumerServiceCollectionExtensions
                 configuration.EnableAutoCommit,
                 configuration.DeadLetterQueueFactory(provider),
                 configuration.MaxRetries,
-                configuration.DeadLetterQueueBypass
+                configuration.DeadLetterQueueBypass,
+                provider.GetRequiredService<ILogger<Consumer>>()
             ),
             configuration.GroupId,
             configuration.ConsumerErrorHandler
@@ -84,7 +85,8 @@ public static class ConsumerServiceCollectionExtensions
                     configuration.EnableAutoCommit,
                     configuration.DeadLetterQueueFactory(provider),
                     configuration.MaxRetries,
-                    configuration.DeadLetterQueueBypass
+                    configuration.DeadLetterQueueBypass,
+                    provider.GetRequiredService<ILogger<Consumer>>()
                 ),
                 configuration.GroupId,
                 configuration.ConsumerErrorHandler

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Diagnostics;
 using Interfaces;
 using MessageFilters;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 internal class Consumer(
     MessageHandlerRegistry messageHandlerRegistry,
@@ -17,7 +19,8 @@ internal class Consumer(
     bool isAutoCommitEnabled = false,
     IDeadLetterQueue deadLetterQueue = null,
     int maxRetries = 0,
-    Func<Exception, bool> deadLetterQueueBypass = null)
+    Func<Exception, bool> deadLetterQueueBypass = null,
+    ILogger<Consumer> logger = null)
     : IConsumer, IDisposable
 {
     private readonly LocalMessageDispatcher _localMessageDispatcher = new(
@@ -27,6 +30,8 @@ internal class Consumer(
         messageHandlerExecutionStrategy);
 
     private readonly IDeadLetterQueue _deadLetterQueue = deadLetterQueue ?? NullDeadLetterQueue.Instance;
+
+    private readonly ILogger<Consumer> _logger = logger ?? NullLogger<Consumer>.Instance;
 
     public async Task ConsumeAll(CancellationToken cancellationToken)
     {
@@ -71,8 +76,20 @@ internal class Consumer(
                 await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
                 return;
             }
-            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested && !ShouldBypassDeadLetterQueue(exception))
+            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested)
             {
+                if (ShouldBypassDeadLetterQueue(exception))
+                {
+                    _logger.LogError(
+                        exception,
+                        "Exception of type {ExceptionType} bypassed the dead letter queue for message with key {Key} from topic {SourceTopic}. Failing the consumer",
+                        exception.GetType().FullName,
+                        messageResult.PartitionKey,
+                        messageResult.Topic);
+
+                    throw;
+                }
+
                 if (attempt++ < maxRetries)
                 {
                     continue;
