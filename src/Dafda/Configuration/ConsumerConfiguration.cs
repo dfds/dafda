@@ -14,7 +14,8 @@ internal class ConsumerConfiguration(
     IConsumerErrorHandler consumerErrorHandler,
     Func<IServiceProvider, IDeadLetterQueue> deadLetterQueueFactory,
     int maxRetries,
-    Func<Exception, bool> deadLetterQueueBypass)
+    Func<Exception, bool> deadLetterQueueBypass,
+    Func<int, TimeSpan> retryBackoff = null)
     : ConsumerConfigurationBase(configuration, factories.UnitOfWorkFactory, consumerErrorHandler)
 {
     public ConsumerConfigurationFactories Factories { get; } = factories;
@@ -23,4 +24,5 @@ internal class ConsumerConfiguration(
     public Func<IServiceProvider, IDeadLetterQueue> DeadLetterQueueFactory { get; } = deadLetterQueueFactory;
     public int MaxRetries { get; } = maxRetries;
     public Func<Exception, bool> DeadLetterQueueBypass { get; } = deadLetterQueueBypass;
+    public Func<int, TimeSpan> RetryBackoff { get; } = retryBackoff;
 }

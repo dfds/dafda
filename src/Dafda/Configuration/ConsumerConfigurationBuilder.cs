@@ -208,6 +208,7 @@ internal sealed class ConsumerConfigurationBuilder
         var deadLetterQueueFactory = BuildDeadLetterQueueFactory(configurations);
         var maxRetries = _deadLetterQueueOptions?.MaxRetries ?? 0;
         var deadLetterQueueBypass = _deadLetterQueueOptions?.BypassPredicate;
+        var retryBackoff = _deadLetterQueueOptions?.RetryBackoff;
 
         return new ConsumerConfiguration(
             configuration: configurations,
@@ -217,7 +218,8 @@ internal sealed class ConsumerConfigurationBuilder
             consumerErrorHandler: _consumerErrorHandler,
             deadLetterQueueFactory: deadLetterQueueFactory,
             maxRetries: maxRetries,
-            deadLetterQueueBypass: deadLetterQueueBypass);
+            deadLetterQueueBypass: deadLetterQueueBypass,
+            retryBackoff: retryBackoff);
     }
 
     private Func<IServiceProvider, IDeadLetterQueue> BuildDeadLetterQueueFactory(IDictionary<string, string> configurations)
