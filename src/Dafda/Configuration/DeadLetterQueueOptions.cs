@@ -51,10 +51,19 @@ public sealed class DeadLetterQueueOptions
     /// of being retried or forwarded to the dead letter queue. Returns <c>null</c>
     /// when no bypass has been configured.
     /// </summary>
-    internal Func<Exception, bool> BypassPredicate =>
-        _bypassPredicates.Count == 0
-            ? null
-            : exception => _bypassPredicates.Any(predicate => predicate(exception));
+    internal Func<Exception, bool> BypassPredicate
+    {
+        get
+        {
+            if (_bypassPredicates.Count == 0)
+            {
+                return null;
+            }
+
+            var snapshot = _bypassPredicates.ToArray();
+            return exception => snapshot.Any(predicate => predicate(exception));
+        }
+    }
 
     /// <summary>
     /// Bypass the dead letter queue for the specified exception type (and any
