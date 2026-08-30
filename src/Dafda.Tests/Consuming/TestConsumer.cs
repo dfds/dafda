@@ -480,9 +480,15 @@ public class TestConsumer
         });
 
         var deadLetterQueueSpy = new DeadLetterQueueSpy();
+        var committed = false;
 
         var sut = BuildConsumerWithHandler(
             handler,
+            onCommit: _ =>
+            {
+                committed = true;
+                return Task.CompletedTask;
+            },
             deadLetterQueue: deadLetterQueueSpy,
             maxRetries: 3,
             deadLetterQueueBypass: exception => exception is InvalidOperationException);
@@ -492,6 +498,7 @@ public class TestConsumer
 
         Assert.Equal(1, handlerInvocations);
         Assert.Equal(0, deadLetterQueueSpy.SendCount);
+        Assert.False(committed);
     }
 
     [Fact]
