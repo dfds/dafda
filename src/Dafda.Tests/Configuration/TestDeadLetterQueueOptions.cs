@@ -97,6 +97,66 @@ public class TestDeadLetterQueueOptions
     }
 
     [Fact]
+    public void throws_when_fixed_retry_backoff_delay_exceeds_the_supported_maximum()
+    {
+        var sut = new DeadLetterQueueOptions("dlq");
+
+        Assert.Throws<InvalidConfigurationException>(
+            () => sut.WithRetryBackoff(DeadLetterQueueOptions.MaxSupportedRetryDelay + TimeSpan.FromMilliseconds(1)));
+    }
+
+    [Fact]
+    public void throws_when_exponential_retry_backoff_initial_delay_exceeds_the_supported_maximum()
+    {
+        var sut = new DeadLetterQueueOptions("dlq");
+
+        Assert.Throws<InvalidConfigurationException>(
+            () => sut.WithExponentialRetryBackoff(DeadLetterQueueOptions.MaxSupportedRetryDelay + TimeSpan.FromMilliseconds(1)));
+    }
+
+    [Fact]
+    public void throws_when_exponential_retry_backoff_max_delay_exceeds_the_supported_maximum()
+    {
+        var sut = new DeadLetterQueueOptions("dlq");
+
+        Assert.Throws<InvalidConfigurationException>(
+            () => sut.WithExponentialRetryBackoff(
+                TimeSpan.FromSeconds(1),
+                maxDelay: DeadLetterQueueOptions.MaxSupportedRetryDelay + TimeSpan.FromMilliseconds(1)));
+    }
+
+    [Fact]
+    public void exponential_retry_backoff_clamps_overflow_to_the_supported_maximum()
+    {
+        var sut = new DeadLetterQueueOptions("dlq")
+            .WithExponentialRetryBackoff(TimeSpan.FromSeconds(1));
+
+        Assert.Equal(DeadLetterQueueOptions.MaxSupportedRetryDelay, sut.RetryBackoff(64));
+        Assert.Equal(DeadLetterQueueOptions.MaxSupportedRetryDelay, sut.RetryBackoff(int.MaxValue));
+    }
+
+    [Fact]
+    public void exponential_retry_backoff_prefers_an_explicit_max_delay_over_the_supported_maximum()
+    {
+        var sut = new DeadLetterQueueOptions("dlq")
+            .WithExponentialRetryBackoff(TimeSpan.FromSeconds(1), maxDelay: TimeSpan.FromSeconds(30));
+
+        Assert.Equal(TimeSpan.FromSeconds(30), sut.RetryBackoff(64));
+        Assert.Equal(TimeSpan.FromSeconds(30), sut.RetryBackoff(int.MaxValue));
+    }
+
+    [Fact]
+    public void exponential_retry_backoff_returns_zero_for_a_zero_initial_delay()
+    {
+        var sut = new DeadLetterQueueOptions("dlq")
+            .WithExponentialRetryBackoff(TimeSpan.Zero, factor: 1000);
+
+        Assert.Equal(TimeSpan.Zero, sut.RetryBackoff(1));
+        Assert.Equal(TimeSpan.Zero, sut.RetryBackoff(64));
+        Assert.Equal(TimeSpan.Zero, sut.RetryBackoff(int.MaxValue));
+    }
+
+    [Fact]
     public void throws_when_max_retries_is_negative()
     {
         var sut = new DeadLetterQueueOptions("dlq");

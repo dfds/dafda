@@ -53,15 +53,21 @@ public sealed class DeadLetterQueueOptions
     internal Func<int, TimeSpan> RetryBackoff { get; private set; }
 
     /// <summary>
+    /// The largest delay that can be awaited between retry attempts, limited by the
+    /// underlying platform timer.
+    /// </summary>
+    internal static readonly TimeSpan MaxSupportedRetryDelay = TimeSpan.FromMilliseconds(int.MaxValue);
+
+    /// <summary>
     /// Wait a fixed <paramref name="delay"/> before each retry attempt.
     /// </summary>
-    /// <param name="delay">The delay awaited before every retry attempt. Must be zero or greater.</param>
+    /// <param name="delay">
+    /// The delay awaited before every retry attempt. Must be zero or greater, and cannot
+    /// exceed <see cref="MaxSupportedRetryDelay"/>.
+    /// </param>
     public DeadLetterQueueOptions WithRetryBackoff(TimeSpan delay)
     {
-        if (delay < TimeSpan.Zero)
-        {
-            throw new InvalidConfigurationException("The retry backoff delay for a dead letter queue cannot be negative.");
-        }
+        EnsureDelayIsSupported(delay, "The retry backoff delay for a dead letter queue");
 
         RetryBackoff = _ => delay;
         return this;
@@ -73,28 +79,45 @@ public sealed class DeadLetterQueueOptions
     /// <paramref name="initialDelay"/> multiplied by <paramref name="factor"/> raised to the
     /// power of <c>n - 1</c>, optionally capped by <paramref name="maxDelay"/>.
     /// </summary>
-    /// <param name="initialDelay">The delay awaited before the first retry attempt. Must be zero or greater.</param>
+    /// <param name="initialDelay">
+    /// The delay awaited before the first retry attempt. Must be zero or greater, and cannot
+    /// exceed <see cref="MaxSupportedRetryDelay"/>.
+    /// </param>
     /// <param name="factor">The multiplier applied for each subsequent attempt. Must be greater than zero.</param>
-    /// <param name="maxDelay">An optional upper bound for the computed delay. Must be zero or greater when supplied.</param>
+    /// <param name="maxDelay">
+    /// An optional upper bound for the computed delay. Must be zero or greater and cannot exceed
+    /// <see cref="MaxSupportedRetryDelay"/> when supplied. When omitted, the computed delay is
+    /// still clamped to <see cref="MaxSupportedRetryDelay"/>.
+    /// </param>
     public DeadLetterQueueOptions WithExponentialRetryBackoff(TimeSpan initialDelay, double factor = 2.0, TimeSpan? maxDelay = null)
     {
-        if (initialDelay < TimeSpan.Zero)
-        {
-            throw new InvalidConfigurationException("The retry backoff delay for a dead letter queue cannot be negative.");
-        }
+        EnsureDelayIsSupported(initialDelay, "The retry backoff delay for a dead letter queue");
 
         if (factor <= 0)
         {
             throw new InvalidConfigurationException("The retry backoff factor for a dead letter queue must be greater than zero.");
         }
 
-        if (maxDelay.HasValue && maxDelay.Value < TimeSpan.Zero)
+        if (maxDelay.HasValue)
         {
-            throw new InvalidConfigurationException("The maximum retry backoff delay for a dead letter queue cannot be negative.");
+            EnsureDelayIsSupported(maxDelay.Value, "The maximum retry backoff delay for a dead letter queue");
         }
 
         RetryBackoff = attempt => CalculateExponentialDelay(initialDelay, factor, maxDelay, attempt);
         return this;
+    }
+
+    private static void EnsureDelayIsSupported(TimeSpan delay, string subject)
+    {
+        if (delay < TimeSpan.Zero)
+        {
+            throw new InvalidConfigurationException($"{subject} cannot be negative.");
+        }
+
+        if (delay > MaxSupportedRetryDelay)
+        {
+            throw new InvalidConfigurationException($"{subject} cannot exceed {MaxSupportedRetryDelay}.");
+        }
     }
 
     private static TimeSpan CalculateExponentialDelay(TimeSpan initialDelay, double factor, TimeSpan? maxDelay, int attempt)
@@ -102,16 +125,21 @@ public sealed class DeadLetterQueueOptions
         var exponent = attempt < 1 ? 0 : attempt - 1;
         var ticks = initialDelay.Ticks * Math.Pow(factor, exponent);
 
-        var delay = ticks >= TimeSpan.MaxValue.Ticks
-            ? TimeSpan.MaxValue
+        if (double.IsNaN(ticks) || ticks <= 0)
+        {
+            return TimeSpan.Zero;
+        }
+
+        var delay = ticks >= MaxSupportedRetryDelay.Ticks
+            ? MaxSupportedRetryDelay
             : TimeSpan.FromTicks((long)ticks);
 
         if (maxDelay.HasValue && delay > maxDelay.Value)
         {
-            return maxDelay.Value;
+            delay = maxDelay.Value;
         }
 
-        return delay;
+        return delay > MaxSupportedRetryDelay ? MaxSupportedRetryDelay : delay;
     }
 
     /// <summary>
