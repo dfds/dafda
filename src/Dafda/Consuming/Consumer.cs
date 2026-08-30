@@ -16,7 +16,8 @@ internal class Consumer(
     IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
     bool isAutoCommitEnabled = false,
     IDeadLetterQueue deadLetterQueue = null,
-    int maxRetries = 0)
+    int maxRetries = 0,
+    Func<Exception, bool> deadLetterQueueBypass = null)
     : IConsumer, IDisposable
 {
     private readonly LocalMessageDispatcher _localMessageDispatcher = new(
@@ -70,7 +71,7 @@ internal class Consumer(
                 await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
                 return;
             }
-            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested)
+            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested && !ShouldBypassDeadLetterQueue(exception))
             {
                 if (attempt++ < maxRetries)
                 {
@@ -81,6 +82,11 @@ internal class Consumer(
                 return;
             }
         }
+    }
+
+    private bool ShouldBypassDeadLetterQueue(Exception exception)
+    {
+        return deadLetterQueueBypass != null && deadLetterQueueBypass(exception);
     }
 
     public void Dispose()

@@ -469,11 +469,54 @@ public class TestConsumer
         Assert.Equal(1, deadLetterQueueSpy.DisposedCount);
     }
 
+    [Fact]
+    public async Task propagates_exception_and_bypasses_dead_letter_queue_for_bypassed_exception_type()
+    {
+        var handlerInvocations = 0;
+        var handler = new MessageHandlerSpy<FooMessage>(() =>
+        {
+            handlerInvocations++;
+            throw new InvalidOperationException("fatal");
+        });
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            maxRetries: 3,
+            deadLetterQueueBypass: exception => exception is InvalidOperationException);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => sut.ConsumeSingle(CancellationToken.None));
+
+        Assert.Equal(1, handlerInvocations);
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+    }
+
+    [Fact]
+    public async Task dead_letters_exceptions_that_do_not_match_the_bypass()
+    {
+        var handler = new MessageHandlerSpy<FooMessage>(() => throw new InvalidOperationException("boom"));
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            deadLetterQueueBypass: exception => exception is FormatException);
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Equal(1, deadLetterQueueSpy.SendCount);
+    }
+
     private static Consumer BuildConsumerWithHandler(
         IMessageHandler<FooMessage> handler,
         Func<CancellationToken, Task> onCommit = null,
         IDeadLetterQueue deadLetterQueue = null,
-        int maxRetries = 0)
+        int maxRetries = 0,
+        Func<Exception, bool> deadLetterQueueBypass = null)
     {
         var registration = new MessageRegistrationBuilder()
             .WithHandlerInstanceType(handler.GetType())
@@ -495,7 +538,8 @@ public class TestConsumer
             .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
             .WithUnitOfWork(new UnitOfWorkStub(handler))
             .WithMessageHandlerRegistry(registry)
-            .WithMaxRetries(maxRetries);
+            .WithMaxRetries(maxRetries)
+            .WithDeadLetterQueueBypass(deadLetterQueueBypass);
 
         if (deadLetterQueue != null)
         {
