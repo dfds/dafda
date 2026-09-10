@@ -3,6 +3,7 @@
 using System;
 using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
+using Microsoft.Extensions.Logging;
 using TestDoubles;
 
 internal class ConsumerBuilder
@@ -18,6 +19,7 @@ internal class ConsumerBuilder
     private IDeadLetterQueue _deadLetterQueue = NullDeadLetterQueue.Instance;
     private int _maxRetries;
     private Func<Exception, bool> _deadLetterQueueBypass;
+    private ILogger<Consumer> _logger;
 
     public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
     {
@@ -78,6 +80,12 @@ internal class ConsumerBuilder
         return this;
     }
 
+    public ConsumerBuilder WithLogger(ILogger<Consumer> logger)
+    {
+        _logger = logger;
+        return this;
+    }
+
     public Consumer Build() =>
         new Consumer(
             _registry,
@@ -89,5 +97,6 @@ internal class ConsumerBuilder
             _enableAutoCommit,
             _deadLetterQueue,
             _maxRetries,
-            _deadLetterQueueBypass);
+            _deadLetterQueueBypass,
+            _logger);
 }
