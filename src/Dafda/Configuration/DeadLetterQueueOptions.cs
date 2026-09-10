@@ -1,11 +1,17 @@
 namespace Dafda.Configuration;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 /// <summary>
 /// Fluent options for configuring a dead letter queue on a consumer.
 /// Returned by <see cref="ConsumerOptions.WithDeadLetterQueue"/>.
 /// </summary>
 public sealed class DeadLetterQueueOptions
 {
+    private readonly List<Func<Exception, bool>> _bypassPredicates = new();
+
     internal DeadLetterQueueOptions(string topicName)
     {
         TopicName = topicName;
@@ -36,6 +42,89 @@ public sealed class DeadLetterQueueOptions
         }
 
         MaxRetries = maxRetries;
+        return this;
+    }
+
+    /// <summary>
+    /// A predicate matching exceptions that should bypass the dead letter queue.
+    /// When an exception matches, it is rethrown instead of being retried or
+    /// forwarded to the dead letter queue. Returns <c>null</c> when no bypass has
+    /// been configured.
+    /// </summary>
+    internal Func<Exception, bool> BypassPredicate
+    {
+        get
+        {
+            if (_bypassPredicates.Count == 0)
+            {
+                return null;
+            }
+
+            var snapshot = _bypassPredicates.ToArray();
+            return exception => snapshot.Any(predicate => predicate(exception));
+        }
+    }
+
+    /// <summary>
+    /// Bypass the dead letter queue for the specified exception type (and any
+    /// derived types). A matching exception is neither retried nor forwarded to the
+    /// dead letter queue: it propagates out of message dispatch, and Dafda does not
+    /// commit the offset for the message.
+    /// </summary>
+    /// <remarks>
+    /// The exception is then passed to the configured consumer error handler (see
+    /// <see cref="ConsumerOptions.WithConsumerErrorHandler"/>). With the default
+    /// handler, <see cref="ConsumerFailureStrategy.Default"/> stops the application.
+    /// If the handler returns <see cref="ConsumerFailureStrategy.RestartConsumer"/>
+    /// the consumer is restarted and the redelivered message fails again, so only
+    /// combine a bypass with a restart strategy that backs off.
+    /// <para>
+    /// Whether the bypassed message is actually redelivered depends on the commit
+    /// strategy. Dafda only commits the offset itself when <c>enable.auto.commit</c>
+    /// is <c>false</c>, so manual commits are required for redelivery. With automatic
+    /// commits (the default) the Kafka client stores and commits offsets on its own,
+    /// including when the consumer is closed, so a bypassed message may still be
+    /// marked as consumed and will not be redelivered.
+    /// </para>
+    /// </remarks>
+    /// <typeparam name="TException">The exception type to bypass the dead letter queue for.</typeparam>
+    public DeadLetterQueueOptions BypassFor<TException>() where TException : Exception
+    {
+        _bypassPredicates.Add(exception => exception is TException);
+        return this;
+    }
+
+    /// <summary>
+    /// Bypass the dead letter queue for exceptions matching the supplied
+    /// <paramref name="predicate"/>. When it returns <c>true</c>, the exception is
+    /// neither retried nor forwarded to the dead letter queue: it propagates out of
+    /// message dispatch, and Dafda does not commit the offset for the message.
+    /// </summary>
+    /// <remarks>
+    /// The exception is then passed to the configured consumer error handler (see
+    /// <see cref="ConsumerOptions.WithConsumerErrorHandler"/>). With the default
+    /// handler, <see cref="ConsumerFailureStrategy.Default"/> stops the application.
+    /// If the handler returns <see cref="ConsumerFailureStrategy.RestartConsumer"/>
+    /// the consumer is restarted and the redelivered message fails again, so only
+    /// combine a bypass with a restart strategy that backs off.
+    /// <para>
+    /// Whether the bypassed message is actually redelivered depends on the commit
+    /// strategy. Dafda only commits the offset itself when <c>enable.auto.commit</c>
+    /// is <c>false</c>, so manual commits are required for redelivery. With automatic
+    /// commits (the default) the Kafka client stores and commits offsets on its own,
+    /// including when the consumer is closed, so a bypassed message may still be
+    /// marked as consumed and will not be redelivered.
+    /// </para>
+    /// </remarks>
+    /// <param name="predicate">Evaluates a thrown exception and returns <c>true</c> to bypass the dead letter queue.</param>
+    public DeadLetterQueueOptions BypassWhen(Func<Exception, bool> predicate)
+    {
+        if (predicate == null)
+        {
+            throw new InvalidConfigurationException("The dead letter queue bypass predicate cannot be null.");
+        }
+
+        _bypassPredicates.Add(predicate);
         return this;
     }
 }

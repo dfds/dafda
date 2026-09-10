@@ -46,7 +46,8 @@ public static class ConsumerServiceCollectionExtensions
                 configuration.Factories.MessageHandlerExecutionStrategyFactory(provider),
                 configuration.EnableAutoCommit,
                 configuration.DeadLetterQueueFactory(provider),
-                configuration.MaxRetries
+                configuration.MaxRetries,
+                configuration.DeadLetterQueueBypass
             ),
             configuration.GroupId,
             configuration.ConsumerErrorHandler
@@ -82,7 +83,8 @@ public static class ConsumerServiceCollectionExtensions
                     configuration.Factories.MessageHandlerExecutionStrategyFactory(provider),
                     configuration.EnableAutoCommit,
                     configuration.DeadLetterQueueFactory(provider),
-                    configuration.MaxRetries
+                    configuration.MaxRetries,
+                    configuration.DeadLetterQueueBypass
                 ),
                 configuration.GroupId,
                 configuration.ConsumerErrorHandler

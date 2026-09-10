@@ -1,5 +1,6 @@
 ﻿namespace Dafda.Tests.Builders;
 
+using System;
 using Dafda.Consuming;
 using Dafda.Consuming.MessageFilters;
 using TestDoubles;
@@ -16,6 +17,7 @@ internal class ConsumerBuilder
     private MessageFilter _messageFilter = MessageFilter.Default;
     private IDeadLetterQueue _deadLetterQueue = NullDeadLetterQueue.Instance;
     private int _maxRetries;
+    private Func<Exception, bool> _deadLetterQueueBypass;
 
     public ConsumerBuilder WithUnitOfWork(IHandlerUnitOfWork unitOfWork)
     {
@@ -70,6 +72,12 @@ internal class ConsumerBuilder
         return this;
     }
 
+    public ConsumerBuilder WithDeadLetterQueueBypass(Func<Exception, bool> deadLetterQueueBypass)
+    {
+        _deadLetterQueueBypass = deadLetterQueueBypass;
+        return this;
+    }
+
     public Consumer Build() =>
         new Consumer(
             _registry,
@@ -80,5 +88,6 @@ internal class ConsumerBuilder
             _messageHandlerExecutionStrategy,
             _enableAutoCommit,
             _deadLetterQueue,
-            _maxRetries);
+            _maxRetries,
+            _deadLetterQueueBypass);
 }
