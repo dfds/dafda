@@ -141,6 +141,7 @@ public class TestDeadLetterQueueOptions
     [Theory]
     [InlineData(0d)]
     [InlineData(-1d)]
+    [InlineData(double.NaN)]
     public void throws_when_exponential_retry_backoff_factor_is_not_positive(double factor)
     {
         var sut = new DeadLetterQueueOptions("dlq");

@@ -93,7 +93,7 @@ public sealed class DeadLetterQueueOptions
     {
         EnsureDelayIsSupported(initialDelay, "The retry backoff delay for a dead letter queue");
 
-        if (factor <= 0)
+        if (double.IsNaN(factor) || factor <= 0)
         {
             throw new InvalidConfigurationException("The retry backoff factor for a dead letter queue must be greater than zero.");
         }
