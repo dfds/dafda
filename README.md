@@ -8,32 +8,23 @@ See [dfds.github.io/dafda](https://dfds.github.io/dafda/) for more the documenta
 
 ## Building and Releasing
 
-Dafda is build and released using a combination of `make` and [GitHub Actions](https://github.com/dfds/dafda/blob/master/.github/workflows/release.yml)
+Dafda is built and released using [GitHub Actions](https://github.com/dfds/dafda/blob/master/.github/workflows/release.yml)
 
-You will need the dotnet sdk. Refer to the [Microsoft Documentation](https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu) on how to install
+You will need the dotnet sdk for local development. Refer to the [Microsoft Documentation](https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu) on how to install.
 
 Dafda is available on [NuGet](https://www.nuget.org/packages/Dafda/).
 
-### Versioning
+### Releases
 
-Run:
+Releases are created from the **Dafda Release** workflow in GitHub Actions.
 
-```bash
-make version
-```
+1. Open **Actions** in GitHub.
+2. Run **Dafda Release**.
+3. Enter the version to release (for example `1.2.3`).
 
-And input the new version of Dafda. This will update the `Dafda.csproj` with the new version.
+The workflow will update `src/Dafda/Dafda.csproj`, create and push a tag, build/test/pack, publish to NuGet, and create a GitHub release.
 
-### NuGet Packages
-
-Run:
-
-```bash
-make release
-git push --follow-tags
-```
-
-Will git tag with the current version (see [Versioning](#versioning), and GitHub Actions will take care of building, and pushing to NuGet.
+> Note: The repository must define a `NUGET_API_KEY` secret for publishing to nuget.org.
 
 ### Documentation
 
@@ -42,7 +33,8 @@ Documentation is written in markdown, and compiled to a static site using [MkDoc
 #### Development
 
 ```bash
-make docs-dev
+cd docs
+docker-compose up -d
 ```
 
 Uses `docker-compose` to run `MkDocs` development server, which watches changes to `/docs` folder. The website is available on [`http://localhost:8000`](`http://localhost:8000`).
@@ -50,7 +42,8 @@ Uses `docker-compose` to run `MkDocs` development server, which watches changes 
 #### Release
 
 ```bash
-make docs-deploy
+cd docs
+docker-compose run --rm mkdocs-deploy
 ```
 
 Will build and deploy the static site to GitHub Pages.

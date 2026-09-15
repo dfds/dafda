@@ -7,3 +7,11 @@ services:
       - 8000:8000
     volumes:
       - ${PWD}:/docs
+
+  mkdocs-deploy:
+    image: squidfunk/mkdocs-material:4.1.2
+    entrypoint: ["mkdocs"]
+    command: ["gh-deploy", "--clean", "--config-file", "mkdocs.yml"]
+    volumes:
+      - ${PWD}:/docs
+      - ~/.ssh:/root/.ssh
