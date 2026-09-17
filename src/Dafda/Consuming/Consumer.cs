@@ -115,9 +115,26 @@ internal class Consumer(
         return retryBackoff == null ? TimeSpan.Zero : retryBackoff(attempt);
     }
 
+    /// <summary>
+    /// Determines whether <paramref name="exception"/> should bypass the dead letter queue.
+    /// A predicate that itself throws is treated as a bypass, so the original exception
+    /// propagates rather than being replaced by the predicate's exception or dead-lettered.
+    /// </summary>
     private bool ShouldBypassDeadLetterQueue(Exception exception)
     {
-        return deadLetterQueueBypass != null && deadLetterQueueBypass(exception);
+        if (deadLetterQueueBypass == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            return deadLetterQueueBypass(exception);
+        }
+        catch
+        {
+            return true;
+        }
     }
 
     public void Dispose()

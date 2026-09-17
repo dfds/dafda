@@ -561,6 +561,26 @@ public class TestConsumer
     }
 
     [Fact]
+    public async Task propagates_the_original_exception_when_the_bypass_predicate_throws()
+    {
+        var handler = new MessageHandlerSpy<FooMessage>(() => throw new InvalidOperationException("original"));
+
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            maxRetries: 3,
+            deadLetterQueueBypass: _ => throw new FormatException("predicate blew up"));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => sut.ConsumeSingle(CancellationToken.None));
+
+        Assert.Equal("original", exception.Message);
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+    }
+
+    [Fact]
     public async Task does_not_delay_between_retries_when_no_backoff_is_configured()
     {
         var handlerInvocations = 0;
