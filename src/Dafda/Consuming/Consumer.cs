@@ -17,7 +17,8 @@ internal class Consumer(
     bool isAutoCommitEnabled = false,
     IDeadLetterQueue deadLetterQueue = null,
     int maxRetries = 0,
-    Func<Exception, bool> deadLetterQueueBypass = null)
+    Func<Exception, bool> deadLetterQueueBypass = null,
+    Func<int, TimeSpan> retryBackoff = null)
     : IConsumer, IDisposable
 {
     private readonly LocalMessageDispatcher _localMessageDispatcher = new(
@@ -73,8 +74,16 @@ internal class Consumer(
             }
             catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested && !ShouldBypassDeadLetterQueue(exception))
             {
-                if (attempt++ < maxRetries)
+                if (attempt < maxRetries)
                 {
+                    attempt++;
+
+                    var delay = GetRetryDelay(attempt);
+                    if (delay > TimeSpan.Zero)
+                    {
+                        await Task.Delay(delay, cancellationToken);
+                    }
+
                     continue;
                 }
 
@@ -82,6 +91,11 @@ internal class Consumer(
                 return;
             }
         }
+    }
+
+    private TimeSpan GetRetryDelay(int attempt)
+    {
+        return retryBackoff == null ? TimeSpan.Zero : retryBackoff(attempt);
     }
 
     private bool ShouldBypassDeadLetterQueue(Exception exception)
