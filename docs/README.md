@@ -23,5 +23,5 @@ docker run --rm -it -v ${PWD}:/docs squidfunk/mkdocs-material build
 ### Deploy documentation to GitHub Pages
 
 ```bash
-docker run --rm -it -v ~/.ssh:/root/.ssh -v ${PWD}:/docs squidfunk/mkdocs-material gh-deploy
+docker-compose run --rm mkdocs-deploy
 ```
