@@ -225,7 +225,8 @@ public void ConfigureServices(IServiceCollection services)
         options.WithDeadLetterQueue()
             .WithMaxRetries(3)
             .WithExponentialRetryBackoff(TimeSpan.FromSeconds(1), factor: 2, maxDelay: TimeSpan.FromSeconds(10))
-            .BypassFor<TimeoutException>();
+            .BypassFor<TimeoutException>()
+            .BypassWhen(ex => ex is HttpRequestException { StatusCode: HttpStatusCode.ServiceUnavailable });
     });
 }
 ```
