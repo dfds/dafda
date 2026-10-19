@@ -74,8 +74,10 @@ public sealed class DeadLetterQueueOptions
     /// Retries and retry delays block the consumer: no other messages are processed while a
     /// failing message is being retried. If the total time spent on a single message exceeds
     /// the Kafka <c>max.poll.interval.ms</c> setting (5 minutes by default), Kafka considers the
-    /// consumer stuck and takes its partitions away. The message has not been committed at that
-    /// point, so it may be delivered and processed again.
+    /// consumer stuck and takes its partitions away. With <c>enable.auto.commit=false</c>,
+    /// the message remains uncommitted while retries are running and may be delivered again.
+    /// With automatic commits (the default), its offset may already have been committed
+    /// before processing finishes, which can prevent redelivery.
     /// </remarks>
     /// <param name="delay">
     /// The delay awaited before every retry attempt. Must be zero or greater, and cannot
@@ -99,8 +101,10 @@ public sealed class DeadLetterQueueOptions
     /// Retries and retry delays block the consumer: no other messages are processed while a
     /// failing message is being retried. If the total time spent on a single message exceeds
     /// the Kafka <c>max.poll.interval.ms</c> setting (5 minutes by default), Kafka considers the
-    /// consumer stuck and takes its partitions away. The message has not been committed at that
-    /// point, so it may be delivered and processed again.
+    /// consumer stuck and takes its partitions away. With <c>enable.auto.commit=false</c>,
+    /// the message remains uncommitted while retries are running and may be delivered again.
+    /// With automatic commits (the default), its offset may already have been committed
+    /// before processing finishes, which can prevent redelivery.
     /// </remarks>
     /// <param name="initialDelay">
     /// The delay awaited before the first retry attempt. Must be zero or greater, and cannot
