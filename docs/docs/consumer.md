@@ -212,3 +212,39 @@ public void ConfigureServices(IServiceCollection services)
     });
 }
 ```
+
+#### Dead Letter Queue
+
+When a message handler throws, Dafda by default stops consuming and passes the exception to the consumer error handler. With a dead letter queue, the failing message is instead published to a dead letter topic and its offset is committed, so the consumer can move on:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddConsumer(options =>
+    {
+        options.WithDeadLetterQueue()
+            .WithMaxRetries(3)
+            .WithExponentialRetryBackoff(TimeSpan.FromSeconds(1), factor: 2, maxDelay: TimeSpan.FromSeconds(10))
+            .BypassFor<TimeoutException>();
+    });
+}
+```
+
+**Topic name.** Pass a name to `WithDeadLetterQueue("my-dead-letter-topic")`, or omit it to derive one from the source topic and consumer group id: `orders` consumed by group `order-processor` dead-letters to `orders.order-processor.dead-letter`. Make sure the topic exists, unless your cluster creates topics automatically.
+
+**Retries.** `WithMaxRetries` sets how many extra attempts are made before the message is dead-lettered (default `0`). Use `WithRetryBackoff` for a fixed delay between attempts, or `WithExponentialRetryBackoff` for an increasing delay.
+
+**Bypassing the dead letter queue.** Use `BypassFor<TException>()` or `BypassWhen(predicate)` for errors that should not be dead-lettered, such as a database being temporarily unavailable. Matching exceptions are neither retried nor dead-lettered; they go to the consumer error handler as if no dead letter queue was configured.
+
+**Headers.** The dead-lettered message keeps the original key and value, and gets these headers:
+
+| Header | Value |
+|---|---|
+| `dafda-dead-letter-source-topic` | The topic the message was consumed from |
+| `dafda-dead-letter-exception-type` | Full type name of the exception |
+| `dafda-dead-letter-exception-message` | The exception message |
+| `dafda-dead-letter-timestamp` | When the message was dead-lettered (UTC, ISO 8601) |
+
+!!! warning "Things to be aware of"
+    - Retries block the consumer: no other messages are processed while a failing message is being retried. If the total time spent on a single message exceeds the Kafka `max.poll.interval.ms` setting (5 minutes by default), Kafka considers the consumer stuck and takes its partitions away, and the message may be delivered and processed again.
+    - Messages that cannot be deserialized fail before they reach a message handler, so they are not dead-lettered. This keeps the existing behavior for deserialization failures unchanged, for backward compatibility. To dead-letter them, use `WithPoisonMessageHandling()` to turn them into `TransportLevelPoisonMessage` messages that go through the normal handler pipeline.

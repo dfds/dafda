@@ -33,6 +33,13 @@ public sealed class DeadLetterQueueOptions
     /// Set the maximum number of retries (additional attempts after the first
     /// delivery) before a failing message is sent to the dead letter queue.
     /// </summary>
+    /// <remarks>
+    /// Retries and retry delays block the consumer: no other messages are processed while a
+    /// failing message is being retried. If the total time spent on a single message exceeds
+    /// the Kafka <c>max.poll.interval.ms</c> setting (5 minutes by default), Kafka considers the
+    /// consumer stuck and takes its partitions away. The message has not been committed at that
+    /// point, so it may be delivered and processed again.
+    /// </remarks>
     /// <param name="maxRetries">The number of retries. Must be zero or greater.</param>
     public DeadLetterQueueOptions WithMaxRetries(int maxRetries)
     {
@@ -61,6 +68,13 @@ public sealed class DeadLetterQueueOptions
     /// <summary>
     /// Wait a fixed <paramref name="delay"/> before each retry attempt.
     /// </summary>
+    /// <remarks>
+    /// Retries and retry delays block the consumer: no other messages are processed while a
+    /// failing message is being retried. If the total time spent on a single message exceeds
+    /// the Kafka <c>max.poll.interval.ms</c> setting (5 minutes by default), Kafka considers the
+    /// consumer stuck and takes its partitions away. The message has not been committed at that
+    /// point, so it may be delivered and processed again.
+    /// </remarks>
     /// <param name="delay">
     /// The delay awaited before every retry attempt. Must be zero or greater, and cannot
     /// exceed <see cref="MaxSupportedRetryDelay"/>.
@@ -79,6 +93,13 @@ public sealed class DeadLetterQueueOptions
     /// <paramref name="initialDelay"/> multiplied by <paramref name="factor"/> raised to the
     /// power of <c>n - 1</c>, optionally capped by <paramref name="maxDelay"/>.
     /// </summary>
+    /// <remarks>
+    /// Retries and retry delays block the consumer: no other messages are processed while a
+    /// failing message is being retried. If the total time spent on a single message exceeds
+    /// the Kafka <c>max.poll.interval.ms</c> setting (5 minutes by default), Kafka considers the
+    /// consumer stuck and takes its partitions away. The message has not been committed at that
+    /// point, so it may be delivered and processed again.
+    /// </remarks>
     /// <param name="initialDelay">
     /// The delay awaited before the first retry attempt. Must be zero or greater, and cannot
     /// exceed <see cref="MaxSupportedRetryDelay"/>.

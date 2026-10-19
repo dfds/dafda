@@ -238,8 +238,8 @@ public sealed class ConsumerOptions
     /// </summary>
     /// <param name="topicName">
     /// The dead letter topic name. When omitted, the topic is derived from the
-    /// source topic of the failed message (e.g. <c>orders</c> becomes
-    /// <c>orders.dead-letter</c>).
+    /// source topic of the failed message and the consumer group id (e.g. <c>orders</c>
+    /// consumed by group <c>order-processor</c> becomes <c>orders.order-processor.dead-letter</c>).
     /// </param>
     /// <returns>
     /// A <see cref="DeadLetterQueueOptions"/> to further configure the dead letter
