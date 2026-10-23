@@ -11,7 +11,7 @@ internal class ConsumerBuilder
     private IConsumerScopeFactory _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
     private MessageHandlerRegistry _registry = new();
     private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy = new RequireExplicitHandlers();
-    private readonly IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy = new DirectMessageHandlerExecutionStrategy();
+    private IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy = new DirectMessageHandlerExecutionStrategy();
 
     private bool _enableAutoCommit;
     private MessageFilter _messageFilter = MessageFilter.Default;
@@ -58,6 +58,12 @@ internal class ConsumerBuilder
         IUnconfiguredMessageHandlingStrategy strategy)
     {
         _unconfiguredMessageStrategy = strategy;
+        return this;
+    }
+
+    public ConsumerBuilder WithMessageHandlerExecutionStrategy(IMessageHandlerExecutionStrategy strategy)
+    {
+        _messageHandlerExecutionStrategy = strategy;
         return this;
     }
 

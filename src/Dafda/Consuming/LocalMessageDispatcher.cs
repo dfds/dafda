@@ -72,35 +72,40 @@ namespace Dafda.Consuming
                 ?? throw new UnableToResolveUnitOfWorkForHandlerException($"Error! Unable to create unit of work for handler type \"{registration.HandlerInstanceType.FullName}\".");
         }
 
-        // Returns the handler's exception when it should be retried or dead-lettered, otherwise null.
-        // The unit of work creates the handler before the try, so creation failures are thrown as they are.
+        // Returns the handler's exception when the message should be retried or dead-lettered, otherwise null.
+        // The unit of work and execution strategy see the failure first. Only failures after the handler was
+        // invoked count, so failures before that, such as creating the handler, are thrown as they are.
         private async Task<Exception> RunHandler(IHandlerUnitOfWork unitOfWork, MessageRegistration registration, TransportLevelMessage message, object messageInstance, CancellationToken cancellationToken)
         {
             var handlerContext = new MessageHandlerContext(message.Metadata);
             var executionContext = new MessageExecutionContext(messageInstance, message.Metadata, registration.MessageInstanceType);
-            Exception failure = null;
+            var handlerInvoked = false;
 
-            await unitOfWork.Run(async (handler, cancellationToken) =>
+            try
             {
-                if (handler == null)
+                await unitOfWork.Run(async (handler, cancellationToken) =>
                 {
-                    throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
-                }
+                    if (handler == null)
+                    {
+                        throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
+                    }
 
-                try
-                {
                     await _messageHandlerExecutionStrategy.Execute(
-                        ct => ExecuteHandler((dynamic)messageInstance, (dynamic)handler, handlerContext, ct),
+                        ct =>
+                        {
+                            handlerInvoked = true;
+                            return ExecuteHandler((dynamic)messageInstance, (dynamic)handler, handlerContext, ct);
+                        },
                         executionContext,
                         cancellationToken);
-                }
-                catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
-                {
-                    failure = exception;
-                }
-            }, cancellationToken);
+                }, cancellationToken);
 
-            return failure;
+                return null;
+            }
+            catch (Exception exception) when (handlerInvoked && ShouldDeadLetter(exception, cancellationToken))
+            {
+                return exception;
+            }
         }
 
         private Task WaitBeforeRetry(int attempt, CancellationToken cancellationToken)

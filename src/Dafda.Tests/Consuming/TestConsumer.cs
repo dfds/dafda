@@ -396,6 +396,28 @@ public class TestConsumer
     }
 
     [Fact]
+    public async Task unit_of_work_and_execution_strategy_see_handler_failure_before_it_is_dead_lettered()
+    {
+        var failure = new InvalidOperationException("boom");
+        var handler = new MessageHandlerSpy<FooMessage>(() => throw failure);
+        var unitOfWork = new FailureRecordingUnitOfWork(handler);
+        var executionStrategy = new FailureRecordingExecutionStrategy();
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: deadLetterQueueSpy,
+            unitOfWork: unitOfWork,
+            executionStrategy: executionStrategy);
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Same(failure, executionStrategy.Failure);
+        Assert.Same(failure, unitOfWork.Failure);
+        Assert.Same(failure, deadLetterQueueSpy.LastException);
+    }
+
+    [Fact]
     public async Task does_not_dead_letter_poison_message_when_no_poison_handler_is_registered()
     {
         var poisonAwareFactory = new PoisonAwareIncomingMessageFactory(
@@ -811,7 +833,9 @@ public class TestConsumer
         IDeadLetterQueue deadLetterQueue = null,
         int maxRetries = 0,
         Func<Exception, bool> deadLetterQueueBypass = null,
-        Func<int, TimeSpan> retryBackoff = null)
+        Func<int, TimeSpan> retryBackoff = null,
+        IHandlerUnitOfWork unitOfWork = null,
+        IMessageHandlerExecutionStrategy executionStrategy = null)
     {
         var registration = new MessageRegistrationBuilder()
             .WithHandlerInstanceType(handler.GetType())
@@ -831,11 +855,16 @@ public class TestConsumer
 
         var builder = new ConsumerBuilder()
             .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
-            .WithUnitOfWork(new UnitOfWorkStub(handler))
+            .WithUnitOfWork(unitOfWork ?? new UnitOfWorkStub(handler))
             .WithMessageHandlerRegistry(registry)
             .WithMaxRetries(maxRetries)
             .WithDeadLetterQueueBypass(deadLetterQueueBypass)
             .WithRetryBackoff(retryBackoff);
+
+        if (executionStrategy != null)
+        {
+            builder.WithMessageHandlerExecutionStrategy(executionStrategy);
+        }
 
         if (deadLetterQueue != null)
         {
@@ -877,6 +906,42 @@ public class TestConsumer
     public class FooMessage
     {
         public string Value { get; set; }
+    }
+
+    private class FailureRecordingUnitOfWork(object handler) : IHandlerUnitOfWork
+    {
+        public Exception Failure { get; private set; }
+
+        public async Task Run(Func<object, CancellationToken, Task> handlingAction, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await handlingAction(handler, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                Failure = exception;
+                throw;
+            }
+        }
+    }
+
+    private class FailureRecordingExecutionStrategy : IMessageHandlerExecutionStrategy
+    {
+        public Exception Failure { get; private set; }
+
+        public async Task Execute(Func<CancellationToken, Task> action, MessageExecutionContext executionContext, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await action(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                Failure = exception;
+                throw;
+            }
+        }
     }
 
     private class DeadLetterQueueSpy : IDeadLetterQueue, IDisposable
