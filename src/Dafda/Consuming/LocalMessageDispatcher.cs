@@ -57,8 +57,7 @@ namespace Dafda.Consuming
 
             while (true)
             {
-                var unitOfWork = _unitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType)
-                    ?? throw new UnableToResolveUnitOfWorkForHandlerException($"Error! Unable to create unit of work for handler type \"{registration.HandlerInstanceType.FullName}\".");
+                var unitOfWork = CreateUnitOfWork(registration);
 
                 try
                 {
@@ -67,23 +66,28 @@ namespace Dafda.Consuming
                 }
                 catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
                 {
-                    if (attempt < _maxRetries)
+                    if (attempt >= _maxRetries)
                     {
-                        attempt++;
-
-                        var delay = _retryBackoff?.Invoke(attempt) ?? TimeSpan.Zero;
-                        if (delay > TimeSpan.Zero)
-                        {
-                            await Task.Delay(delay, cancellationToken);
-                        }
-
-                        continue;
+                        await _deadLetterQueue.Send(messageResult, exception, cancellationToken);
+                        return;
                     }
 
-                    await _deadLetterQueue.Send(messageResult, exception, cancellationToken);
-                    return;
+                    attempt++;
+                    await WaitBeforeRetry(attempt, cancellationToken);
                 }
             }
+        }
+
+        private IHandlerUnitOfWork CreateUnitOfWork(MessageRegistration registration)
+        {
+            return _unitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType)
+                ?? throw new UnableToResolveUnitOfWorkForHandlerException($"Error! Unable to create unit of work for handler type \"{registration.HandlerInstanceType.FullName}\".");
+        }
+
+        private Task WaitBeforeRetry(int attempt, CancellationToken cancellationToken)
+        {
+            var delay = _retryBackoff?.Invoke(attempt) ?? TimeSpan.Zero;
+            return delay > TimeSpan.Zero ? Task.Delay(delay, cancellationToken) : Task.CompletedTask;
         }
 
         private bool ShouldDeadLetter(Exception exception, CancellationToken cancellationToken)
