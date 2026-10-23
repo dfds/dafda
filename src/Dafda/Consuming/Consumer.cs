@@ -72,7 +72,7 @@ internal class Consumer(
                 await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
                 return;
             }
-            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested && !ShouldBypassDeadLetterQueue(exception))
+            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested && !ShouldBypassDeadLetterQueue(exception) && !IsDispatchConfigurationError(exception))
             {
                 if (attempt < maxRetries)
                 {
@@ -101,6 +101,15 @@ internal class Consumer(
     private bool ShouldBypassDeadLetterQueue(Exception exception)
     {
         return deadLetterQueueBypass != null && deadLetterQueueBypass(exception);
+    }
+
+    // Thrown by Dafda before a handler runs, when no handler can be found or created. No handler
+    // failed, so these are configuration errors and are not dead-lettered.
+    private static bool IsDispatchConfigurationError(Exception exception)
+    {
+        return exception is MissingMessageHandlerRegistrationException
+            or InvalidMessageHandlerException
+            or UnableToResolveUnitOfWorkForHandlerException;
     }
 
     public void Dispose()

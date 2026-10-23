@@ -1,4 +1,4 @@
-﻿namespace Dafda.Tests.Consuming;
+namespace Dafda.Tests.Consuming;
 
 using System;
 using System.Collections.Generic;
@@ -392,6 +392,61 @@ public class TestConsumer
         Assert.Equal(3, handlerInvocations);
         Assert.Equal(1, deadLetterQueueSpy.SendCount);
         Assert.True(committed);
+    }
+
+    [Fact]
+    public async Task does_not_dead_letter_poison_message_when_no_poison_handler_is_registered()
+    {
+        var poisonAwareFactory = new PoisonAwareIncomingMessageFactory(
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<PoisonAwareIncomingMessageFactory>.Instance,
+            new JsonIncomingMessageFactory());
+        var poisonMessage = poisonAwareFactory.Create("this is not json");
+
+        var handlerInvocations = 0;
+        var handler = new MessageHandlerSpy<FooMessage>(() => handlerInvocations++);
+        var registry = new MessageHandlerRegistry();
+        registry.Register(new MessageRegistrationBuilder()
+            .WithHandlerInstanceType(handler.GetType())
+            .WithMessageInstanceType(typeof(FooMessage))
+            .WithMessageType("foo")
+            .WithTopic("topic")
+            .Build());
+
+        var strategy = new CountingRequireExplicitHandlers();
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var messageResult = new MessageResultBuilder()
+            .WithTransportLevelMessage(poisonMessage)
+            .WithTopic("topic")
+            .Build();
+
+        var sut = new ConsumerBuilder()
+            .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+            .WithUnitOfWork(new UnitOfWorkStub(handler))
+            .WithMessageHandlerRegistry(registry)
+            .WithUnconfiguredMessageStrategy(strategy)
+            .WithDeadLetterQueue(deadLetterQueueSpy)
+            .WithMaxRetries(3)
+            .Build();
+
+        await Assert.ThrowsAsync<MissingMessageHandlerRegistrationException>(() => sut.ConsumeSingle(CancellationToken.None));
+
+        Assert.Equal(0, handlerInvocations);
+        Assert.Equal(1, strategy.Calls);
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+    }
+
+    private sealed class CountingRequireExplicitHandlers : IUnconfiguredMessageHandlingStrategy
+    {
+        private readonly RequireExplicitHandlers _inner = new();
+
+        public int Calls { get; private set; }
+
+        public MessageRegistration GetFallback(string messageType)
+        {
+            Calls++;
+            return _inner.GetFallback(messageType);
+        }
     }
 
     [Fact]
