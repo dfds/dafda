@@ -62,7 +62,6 @@ internal class Consumer(
 
     private async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
     {
-        var deadLetterQueueEnabled = _deadLetterQueue is not NullDeadLetterQueue;
         var attempt = 0;
 
         while (true)
@@ -72,7 +71,7 @@ internal class Consumer(
                 await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
                 return;
             }
-            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested && !ShouldBypassDeadLetterQueue(exception) && !IsDispatchConfigurationError(exception))
+            catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
             {
                 if (attempt < maxRetries)
                 {
@@ -96,6 +95,14 @@ internal class Consumer(
     private TimeSpan GetRetryDelay(int attempt)
     {
         return retryBackoff == null ? TimeSpan.Zero : retryBackoff(attempt);
+    }
+
+    private bool ShouldDeadLetter(Exception exception, CancellationToken cancellationToken)
+    {
+        return _deadLetterQueue is not NullDeadLetterQueue
+            && !cancellationToken.IsCancellationRequested
+            && !ShouldBypassDeadLetterQueue(exception)
+            && !IsDispatchConfigurationError(exception);
     }
 
     private bool ShouldBypassDeadLetterQueue(Exception exception)
