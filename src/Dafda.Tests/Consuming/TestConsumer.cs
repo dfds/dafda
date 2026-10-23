@@ -451,6 +451,36 @@ public class TestConsumer
     }
 
     [Fact]
+    public async Task does_not_dead_letter_when_unconfigured_message_strategy_throws()
+    {
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+        var messageResult = new MessageResultBuilder()
+            .WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("unknown").Build())
+            .WithTopic("topic")
+            .Build();
+
+        var sut = new ConsumerBuilder()
+            .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+            .WithUnconfiguredMessageStrategy(new ThrowingUnconfiguredMessageStrategy())
+            .WithDeadLetterQueue(deadLetterQueueSpy)
+            .WithMaxRetries(2)
+            .Build();
+
+        await Assert.ThrowsAsync<CustomFallbackException>(() => sut.ConsumeSingle(CancellationToken.None));
+
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+    }
+
+    private sealed class CustomFallbackException : Exception
+    {
+    }
+
+    private sealed class ThrowingUnconfiguredMessageStrategy : IUnconfiguredMessageHandlingStrategy
+    {
+        public MessageRegistration GetFallback(string messageType) => throw new CustomFallbackException();
+    }
+
+    [Fact]
     public async Task does_not_dead_letter_when_handler_cannot_be_constructed()
     {
         var deadLetterQueueSpy = new DeadLetterQueueSpy();

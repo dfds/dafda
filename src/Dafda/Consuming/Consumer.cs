@@ -25,9 +25,11 @@ internal class Consumer(
         messageHandlerRegistry,
         unitOfWorkFactory,
         fallbackHandler,
-        messageHandlerExecutionStrategy);
-
-    private readonly IDeadLetterQueue _deadLetterQueue = deadLetterQueue;
+        messageHandlerExecutionStrategy,
+        deadLetterQueue,
+        maxRetries,
+        deadLetterQueueBypass,
+        retryBackoff);
 
     public async Task ConsumeAll(CancellationToken cancellationToken)
     {
@@ -51,7 +53,7 @@ internal class Consumer(
 
         if (messageFilter.CanAcceptMessage(messageResult))
         {
-            await Dispatch(messageResult, cancellationToken);
+            await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
         }
 
         if (!isAutoCommitEnabled)
@@ -60,67 +62,8 @@ internal class Consumer(
         }
     }
 
-    private async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
-    {
-        var attempt = 0;
-
-        while (true)
-        {
-            try
-            {
-                await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
-                return;
-            }
-            catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
-            {
-                if (attempt < maxRetries)
-                {
-                    attempt++;
-
-                    var delay = GetRetryDelay(attempt);
-                    if (delay > TimeSpan.Zero)
-                    {
-                        await Task.Delay(delay, cancellationToken);
-                    }
-
-                    continue;
-                }
-
-                await _deadLetterQueue.Send(messageResult, exception, cancellationToken);
-                return;
-            }
-        }
-    }
-
-    private TimeSpan GetRetryDelay(int attempt)
-    {
-        return retryBackoff == null ? TimeSpan.Zero : retryBackoff(attempt);
-    }
-
-    private bool ShouldDeadLetter(Exception exception, CancellationToken cancellationToken)
-    {
-        return _deadLetterQueue != null
-            && !cancellationToken.IsCancellationRequested
-            && !ShouldBypassDeadLetterQueue(exception)
-            && !IsDispatchConfigurationError(exception);
-    }
-
-    private bool ShouldBypassDeadLetterQueue(Exception exception)
-    {
-        return deadLetterQueueBypass != null && deadLetterQueueBypass(exception);
-    }
-
-    // Thrown by Dafda before a handler runs, when no handler can be found or created. No handler
-    // failed, so these are configuration errors and are not dead-lettered.
-    private static bool IsDispatchConfigurationError(Exception exception)
-    {
-        return exception is MissingMessageHandlerRegistrationException
-            or InvalidMessageHandlerException
-            or UnableToResolveUnitOfWorkForHandlerException;
-    }
-
     public void Dispose()
     {
-        (_deadLetterQueue as IDisposable)?.Dispose();
+        (deadLetterQueue as IDisposable)?.Dispose();
     }
 }
