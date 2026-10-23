@@ -212,3 +212,44 @@ public void ConfigureServices(IServiceCollection services)
     });
 }
 ```
+
+#### Dead Letter Queue
+
+When a message handler throws, Dafda by default stops consuming and passes the exception to the consumer error handler. With a dead letter queue, the failing message is instead published to a dead letter topic and its offset is committed, so the consumer can move on:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddConsumer(options =>
+    {
+        options.WithDeadLetterQueue()
+            .WithMaxRetries(3)
+            .WithExponentialRetryBackoff(TimeSpan.FromSeconds(1), factor: 2, maxDelay: TimeSpan.FromSeconds(10))
+            .BypassFor<TimeoutException>()
+            .BypassWhen(ex => ex is HttpRequestException { StatusCode: HttpStatusCode.ServiceUnavailable });
+    });
+}
+```
+
+**Topic name.** Pass a name to `WithDeadLetterQueue("my-dead-letter-topic")`, or omit it to derive one from the consumer group id and source topic: `orders` consumed by group `order-processor` dead-letters to `order-processor.orders.dead-letter`. The group id comes first so the topic sits under the consumer's own topic prefix, which it is usually allowed to create and write to. Make sure the topic exists, unless your cluster creates topics automatically.
+
+**Retries.** `WithMaxRetries` sets how many extra attempts are made before the message is dead-lettered (default `0`). Use `WithRetryBackoff` for a fixed delay between attempts, or `WithExponentialRetryBackoff` for an increasing delay.
+
+**Bypassing the dead letter queue.** Use `BypassFor<TException>()` or `BypassWhen(predicate)` for errors that should not be dead-lettered, such as a database being temporarily unavailable. Matching exceptions are neither retried nor dead-lettered; they go to the consumer error handler as if no dead letter queue was configured.
+
+**Headers.** The dead-lettered message keeps the original key and value, and gets these headers:
+
+| Header | Value |
+|---|---|
+| `dafda-dead-letter-source-topic` | The topic the message was consumed from |
+| `dafda-dead-letter-exception-type` | Full type name of the exception |
+| `dafda-dead-letter-exception-message` | The exception message |
+| `dafda-dead-letter-timestamp` | When the message was dead-lettered (UTC, ISO 8601) |
+
+**Things to be aware of:**
+
+- Retries block the consumer: no other messages are processed while a failing message is being retried. If the total time spent on a single message exceeds the Kafka `max.poll.interval.ms` setting (5 minutes by default), Kafka considers the consumer stuck and takes its partitions away. With `enable.auto.commit=false`, the message remains uncommitted while retries are running and may be delivered again. With automatic commits (the default), its offset may already have been committed before processing finishes, which can prevent redelivery.
+- The dead letter queue catches failures while a message is dispatched: deserializing its payload and running its handler. If Dafda cannot find or create a handler for a message, that is a configuration error: the message is not dead-lettered, and the exception goes to the consumer error handler as if no dead letter queue was configured. This covers `MissingMessageHandlerRegistrationException`, `UnableToResolveUnitOfWorkForHandlerException` and `InvalidMessageHandlerException`, which is also thrown when a handler constructor dependency cannot be resolved.
+- Deserialization happens in two stages, and they are treated differently:
+    - The message envelope (such as `messageId`, `type` and the raw `data`) is parsed when the message is read, before dispatch. If that fails, the message is not dead-lettered. With `WithPoisonMessageHandling()` enabled, it is dispatched as `TransportLevelPoisonMessage` instead: if your handler for it throws, the message is retried and dead-lettered like any other; if no handler is registered, the [unconfigured message strategy](#unconfigured-messages) decides.
+    - The `data` payload is deserialized into your message type during dispatch. If that fails, for example because a field has the wrong type, the message is retried and dead-lettered, even though no handler ran. `WithPoisonMessageHandling()` does not cover this stage.

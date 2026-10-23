@@ -205,39 +205,35 @@ internal sealed class ConsumerConfigurationBuilder
             IncomingMessageFactory: _incomingMessageFactory,
             MessageHandlerExecutionStrategyFactory: _messageHandlerExecutionStrategyFactory);
 
-        var deadLetterQueueFactory = BuildDeadLetterQueueFactory(configurations);
-        var maxRetries = _deadLetterQueueOptions?.MaxRetries ?? 0;
-        var deadLetterQueueBypass = _deadLetterQueueOptions?.BypassPredicate;
-        var retryBackoff = _deadLetterQueueOptions?.RetryBackoff;
-
         return new ConsumerConfiguration(
             configuration: configurations,
             messageHandlerRegistry: _messageHandlerRegistry,
             factories: consumerConfigurationFactories,
             messageFilter: _messageFilter,
             consumerErrorHandler: _consumerErrorHandler,
-            deadLetterQueueFactory: deadLetterQueueFactory,
-            maxRetries: maxRetries,
-            deadLetterQueueBypass: deadLetterQueueBypass,
-            retryBackoff: retryBackoff);
+            deadLetterPolicyFactory: BuildDeadLetterPolicyFactory(configurations));
     }
 
-    private Func<IServiceProvider, IDeadLetterQueue> BuildDeadLetterQueueFactory(IDictionary<string, string> configurations)
+    private Func<IServiceProvider, DeadLetterPolicy> BuildDeadLetterPolicyFactory(IDictionary<string, string> configurations)
     {
         if (_deadLetterQueueOptions == null)
         {
-            return _ => NullDeadLetterQueue.Instance;
+            return _ => null;
         }
 
-        var topicName = _deadLetterQueueOptions.TopicName;
+        var options = _deadLetterQueueOptions;
         
         var producerConfiguration = configurations
             .Where(pair => ConfigurationKey.GetAllProducerKeys().Any(key => key.ToString() == pair.Key))
             .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-        return provider => new KafkaDeadLetterQueue(
-            provider.GetRequiredService<ILoggerFactory>(),
-            producerConfiguration,
-            topicName);
+        return provider => new DeadLetterPolicy(
+            new KafkaDeadLetterQueue(
+                provider.GetRequiredService<ILoggerFactory>(),
+                producerConfiguration,
+                options.TopicName),
+            options.MaxRetries,
+            options.BypassPredicate,
+            options.RetryBackoff);
     }
 }

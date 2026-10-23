@@ -10,12 +10,14 @@ namespace Dafda.Consuming
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private readonly IUnconfiguredMessageHandlingStrategy _fallbackHandler;
         private readonly IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy;
+        private readonly DeadLetterPolicy _deadLetterPolicy;
 
         public LocalMessageDispatcher(
             MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory,
             IUnconfiguredMessageHandlingStrategy fallbackHandler,
-            IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy)
+            IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
+            DeadLetterPolicy deadLetterPolicy = null)
         {
             _messageHandlerRegistry =
                 messageHandlerRegistry
@@ -28,6 +30,7 @@ namespace Dafda.Consuming
                 ?? throw new ArgumentNullException(nameof(fallbackHandler));
             _messageHandlerExecutionStrategy = messageHandlerExecutionStrategy
                 ?? throw new ArgumentNullException(nameof(messageHandlerExecutionStrategy));
+            _deadLetterPolicy = deadLetterPolicy;
         }
 
         private MessageRegistration GetMessageRegistrationFor(MessageResult messageResult)
@@ -38,14 +41,58 @@ namespace Dafda.Consuming
 
         public async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
         {
+            // Finding the handler and creating its unit of work are configuration concerns, so they
+            // happen outside the try and are never retried or dead-lettered.
             var registration = GetMessageRegistrationFor(messageResult);
+            var attempt = 0;
 
-            var unitOfWork = _unitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType);
-            if (unitOfWork == null)
+            while (true)
             {
-                throw new UnableToResolveUnitOfWorkForHandlerException($"Error! Unable to create unit of work for handler type \"{registration.HandlerInstanceType.FullName}\".");
-            }
+                var unitOfWork = CreateUnitOfWork(registration);
 
+                try
+                {
+                    await Process(messageResult, registration, unitOfWork, cancellationToken);
+                    return;
+                }
+                catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
+                {
+                    if (attempt >= _deadLetterPolicy.MaxRetries)
+                    {
+                        await _deadLetterPolicy.Queue.Send(messageResult, exception, cancellationToken);
+                        return;
+                    }
+
+                    attempt++;
+                    await WaitBeforeRetry(attempt, cancellationToken);
+                }
+            }
+        }
+
+        private IHandlerUnitOfWork CreateUnitOfWork(MessageRegistration registration)
+        {
+            return _unitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType)
+                ?? throw new UnableToResolveUnitOfWorkForHandlerException($"Error! Unable to create unit of work for handler type \"{registration.HandlerInstanceType.FullName}\".");
+        }
+
+        private Task WaitBeforeRetry(int attempt, CancellationToken cancellationToken)
+        {
+            var delay = _deadLetterPolicy.RetryBackoff?.Invoke(attempt) ?? TimeSpan.Zero;
+            return delay > TimeSpan.Zero ? Task.Delay(delay, cancellationToken) : Task.CompletedTask;
+        }
+
+        private bool ShouldDeadLetter(Exception exception, CancellationToken cancellationToken)
+        {
+            // InvalidMessageHandlerException is thrown inside Run when the handler cannot be created,
+            // so no handler failed and the message is not dead-lettered.
+            return _deadLetterPolicy != null
+                && !cancellationToken.IsCancellationRequested
+                && exception is not InvalidMessageHandlerException
+                && !(_deadLetterPolicy.Bypass?.Invoke(exception) ?? false);
+        }
+
+        private async Task Process(MessageResult messageResult, MessageRegistration registration, IHandlerUnitOfWork unitOfWork, CancellationToken cancellationToken)
+        {
             var message = messageResult.Message;
             var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
             var handlerContext = new MessageHandlerContext(message.Metadata);
