@@ -492,9 +492,8 @@ public class TestConsumer
             deadLetterQueueSpy,
             onCommit: () => committed = true);
 
-        var exception = await Assert.ThrowsAsync<InvalidMessageHandlerException>(() => sut.ConsumeSingle(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ConsumeSingle(CancellationToken.None));
 
-        Assert.IsType<InvalidOperationException>(exception.InnerException);
         Assert.Equal(0, deadLetterQueueSpy.SendCount);
         Assert.False(committed);
     }

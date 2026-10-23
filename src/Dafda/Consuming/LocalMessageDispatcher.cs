@@ -41,31 +41,28 @@ namespace Dafda.Consuming
 
         public async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
         {
-            // Finding the handler and creating its unit of work are configuration concerns, so they
-            // happen outside the try and are never retried or dead-lettered.
             var registration = GetMessageRegistrationFor(messageResult);
+            var messageInstance = messageResult.Message.ReadDataAs(registration.MessageInstanceType);
             var attempt = 0;
 
             while (true)
             {
                 var unitOfWork = CreateUnitOfWork(registration);
+                var failure = await RunHandler(unitOfWork, registration, messageResult.Message, messageInstance, cancellationToken);
 
-                try
+                if (failure == null)
                 {
-                    await Process(messageResult, registration, unitOfWork, cancellationToken);
                     return;
                 }
-                catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
-                {
-                    if (attempt >= _deadLetterPolicy.MaxRetries)
-                    {
-                        await _deadLetterPolicy.Queue.Send(messageResult, exception, cancellationToken);
-                        return;
-                    }
 
-                    attempt++;
-                    await WaitBeforeRetry(attempt, cancellationToken);
+                if (attempt >= _deadLetterPolicy.MaxRetries)
+                {
+                    await _deadLetterPolicy.Queue.Send(messageResult, failure, cancellationToken);
+                    return;
                 }
+
+                attempt++;
+                await WaitBeforeRetry(attempt, cancellationToken);
             }
         }
 
@@ -73,6 +70,37 @@ namespace Dafda.Consuming
         {
             return _unitOfWorkFactory.CreateForHandlerType(registration.HandlerInstanceType)
                 ?? throw new UnableToResolveUnitOfWorkForHandlerException($"Error! Unable to create unit of work for handler type \"{registration.HandlerInstanceType.FullName}\".");
+        }
+
+        // Returns the handler's exception when it should be retried or dead-lettered, otherwise null.
+        // The unit of work creates the handler before the try, so creation failures are thrown as they are.
+        private async Task<Exception> RunHandler(IHandlerUnitOfWork unitOfWork, MessageRegistration registration, TransportLevelMessage message, object messageInstance, CancellationToken cancellationToken)
+        {
+            var handlerContext = new MessageHandlerContext(message.Metadata);
+            var executionContext = new MessageExecutionContext(messageInstance, message.Metadata, registration.MessageInstanceType);
+            Exception failure = null;
+
+            await unitOfWork.Run(async (handler, cancellationToken) =>
+            {
+                if (handler == null)
+                {
+                    throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
+                }
+
+                try
+                {
+                    await _messageHandlerExecutionStrategy.Execute(
+                        ct => ExecuteHandler((dynamic)messageInstance, (dynamic)handler, handlerContext, ct),
+                        executionContext,
+                        cancellationToken);
+                }
+                catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
+                {
+                    failure = exception;
+                }
+            }, cancellationToken);
+
+            return failure;
         }
 
         private Task WaitBeforeRetry(int attempt, CancellationToken cancellationToken)
@@ -83,32 +111,9 @@ namespace Dafda.Consuming
 
         private bool ShouldDeadLetter(Exception exception, CancellationToken cancellationToken)
         {
-            // InvalidMessageHandlerException is thrown inside Run when the handler cannot be created,
-            // so no handler failed and the message is not dead-lettered.
             return _deadLetterPolicy != null
                 && !cancellationToken.IsCancellationRequested
-                && exception is not InvalidMessageHandlerException
                 && !(_deadLetterPolicy.Bypass?.Invoke(exception) ?? false);
-        }
-
-        private async Task Process(MessageResult messageResult, MessageRegistration registration, IHandlerUnitOfWork unitOfWork, CancellationToken cancellationToken)
-        {
-            var message = messageResult.Message;
-            var messageInstance = message.ReadDataAs(registration.MessageInstanceType);
-            var handlerContext = new MessageHandlerContext(message.Metadata);
-            var executionContext = new MessageExecutionContext(messageInstance, message.Metadata, registration.MessageInstanceType);
-            await unitOfWork.Run(async (handler, cancellationToken) =>
-            {
-                if (handler == null)
-                {
-                    throw new InvalidMessageHandlerException($"Error! Message handler of type \"{registration.HandlerInstanceType.FullName}\" not instantiated in unit of work and message instance type of \"{registration.MessageInstanceType}\" for message type \"{registration.MessageType}\" can therefor not be handled.");
-                }
-
-                await _messageHandlerExecutionStrategy.Execute(
-                    ct => ExecuteHandler((dynamic)messageInstance, (dynamic)handler, handlerContext, ct),
-                    executionContext,
-                    cancellationToken);
-            }, cancellationToken);
         }
 
         private static Task ExecuteHandler<TMessage>(
