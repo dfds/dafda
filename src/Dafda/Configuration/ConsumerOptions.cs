@@ -231,7 +231,8 @@ public sealed class ConsumerOptions
     }
 
     /// <summary>
-    /// Enable a dead letter queue for this consumer. When a message handler fails
+    /// Enable a dead letter queue for this consumer. When a message fails during
+    /// dispatch, because its payload cannot be deserialized or its handler throws
     /// (after any configured retries are exhausted), the original message is
     /// published to the dead letter topic and the offset is committed so the
     /// consumer can continue past the poison message.
