@@ -226,7 +226,7 @@ internal sealed class ConsumerConfigurationBuilder
     {
         if (_deadLetterQueueOptions == null)
         {
-            return _ => NullDeadLetterQueue.Instance;
+            return _ => null;
         }
 
         var topicName = _deadLetterQueueOptions.TopicName;

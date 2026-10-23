@@ -15,7 +15,7 @@ internal class ConsumerBuilder
 
     private bool _enableAutoCommit;
     private MessageFilter _messageFilter = MessageFilter.Default;
-    private IDeadLetterQueue _deadLetterQueue = NullDeadLetterQueue.Instance;
+    private IDeadLetterQueue _deadLetterQueue;
     private int _maxRetries;
     private Func<Exception, bool> _deadLetterQueueBypass;
     private Func<int, TimeSpan> _retryBackoff;

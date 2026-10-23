@@ -27,7 +27,7 @@ internal class Consumer(
         fallbackHandler,
         messageHandlerExecutionStrategy);
 
-    private readonly IDeadLetterQueue _deadLetterQueue = deadLetterQueue ?? NullDeadLetterQueue.Instance;
+    private readonly IDeadLetterQueue _deadLetterQueue = deadLetterQueue;
 
     public async Task ConsumeAll(CancellationToken cancellationToken)
     {
@@ -99,7 +99,7 @@ internal class Consumer(
 
     private bool ShouldDeadLetter(Exception exception, CancellationToken cancellationToken)
     {
-        return _deadLetterQueue is not NullDeadLetterQueue
+        return _deadLetterQueue != null
             && !cancellationToken.IsCancellationRequested
             && !ShouldBypassDeadLetterQueue(exception)
             && !IsDispatchConfigurationError(exception);
