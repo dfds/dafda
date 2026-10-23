@@ -27,8 +27,19 @@ public class ServiceProviderUnitOfWorkFactory : IHandlerUnitOfWorkFactory
         public async Task Run(Func<object, CancellationToken, Task> handlingAction, CancellationToken cancellationToken)
         {
             using var scope = serviceProvider.CreateScope();
-            var handlerInstance = ActivatorUtilities.CreateInstance(scope.ServiceProvider, handlerType);
-            await handlingAction(handlerInstance, cancellationToken);
+            await handlingAction(CreateHandler(scope.ServiceProvider), cancellationToken);
+        }
+
+        private object CreateHandler(IServiceProvider scopedServiceProvider)
+        {
+            try
+            {
+                return ActivatorUtilities.CreateInstance(scopedServiceProvider, handlerType);
+            }
+            catch (Exception exception)
+            {
+                throw new InvalidMessageHandlerException($"Error! Unable to create message handler of type \"{handlerType.FullName}\".", exception);
+            }
         }
     }
 }

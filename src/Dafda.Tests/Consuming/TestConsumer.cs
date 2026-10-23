@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Builders;
 using Dafda.Consuming;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TestDoubles;
@@ -446,6 +447,102 @@ public class TestConsumer
         {
             Calls++;
             return _inner.GetFallback(messageType);
+        }
+    }
+
+    [Fact]
+    public async Task does_not_dead_letter_when_handler_cannot_be_constructed()
+    {
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+        var committed = false;
+
+        var sut = BuildConsumerWithServiceProviderHandler(
+            typeof(HandlerWithMissingDependency),
+            new ServiceCollection().BuildServiceProvider(),
+            deadLetterQueueSpy,
+            onCommit: () => committed = true);
+
+        var exception = await Assert.ThrowsAsync<InvalidMessageHandlerException>(() => sut.ConsumeSingle(CancellationToken.None));
+
+        Assert.IsType<InvalidOperationException>(exception.InnerException);
+        Assert.Equal(0, deadLetterQueueSpy.SendCount);
+        Assert.False(committed);
+    }
+
+    [Fact]
+    public async Task dead_letters_invalid_operation_thrown_by_handler_created_from_service_provider()
+    {
+        var invocations = new HandlerInvocations();
+        var deadLetterQueueSpy = new DeadLetterQueueSpy();
+
+        var sut = BuildConsumerWithServiceProviderHandler(
+            typeof(ThrowingHandlerWithDependency),
+            new ServiceCollection().AddSingleton(invocations).BuildServiceProvider(),
+            deadLetterQueueSpy);
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Equal(3, invocations.Count);
+        Assert.Equal(1, deadLetterQueueSpy.SendCount);
+        Assert.IsType<InvalidOperationException>(deadLetterQueueSpy.LastException);
+    }
+
+    private static Consumer BuildConsumerWithServiceProviderHandler(
+        Type handlerType,
+        IServiceProvider serviceProvider,
+        IDeadLetterQueue deadLetterQueue,
+        Action onCommit = null)
+    {
+        var registry = new MessageHandlerRegistry();
+        registry.Register(new MessageRegistrationBuilder()
+            .WithHandlerInstanceType(handlerType)
+            .WithMessageInstanceType(typeof(FooMessage))
+            .WithMessageType("foo")
+            .WithTopic("topic")
+            .Build());
+
+        var messageResult = new MessageResultBuilder()
+            .WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("foo").Build())
+            .WithTopic("topic")
+            .WithOnCommit(_ =>
+            {
+                onCommit?.Invoke();
+                return Task.CompletedTask;
+            })
+            .Build();
+
+        return new ConsumerBuilder()
+            .WithConsumerScopeFactory(new ConsumerScopeFactoryStub(new ConsumerScopeStub(messageResult)))
+            .WithUnitOfWorkFactory(new ServiceProviderUnitOfWorkFactory(serviceProvider))
+            .WithMessageHandlerRegistry(registry)
+            .WithDeadLetterQueue(deadLetterQueue)
+            .WithMaxRetries(2)
+            .Build();
+    }
+
+    public interface IMissingDependency
+    {
+    }
+
+    public class HandlerWithMissingDependency(IMissingDependency dependency) : IMessageHandler<FooMessage>
+    {
+        public Task Handle(FooMessage message, MessageHandlerContext context, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    public class HandlerInvocations
+    {
+        public int Count { get; set; }
+    }
+
+    public class ThrowingHandlerWithDependency(HandlerInvocations invocations) : IMessageHandler<FooMessage>
+    {
+        public Task Handle(FooMessage message, MessageHandlerContext context, CancellationToken cancellationToken)
+        {
+            invocations.Count++;
+            throw new InvalidOperationException("boom");
         }
     }
 
