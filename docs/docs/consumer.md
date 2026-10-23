@@ -231,7 +231,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-**Topic name.** Pass a name to `WithDeadLetterQueue("my-dead-letter-topic")`, or omit it to derive one from the source topic and consumer group id: `orders` consumed by group `order-processor` dead-letters to `orders.order-processor.dead-letter`. Make sure the topic exists, unless your cluster creates topics automatically.
+**Topic name.** Pass a name to `WithDeadLetterQueue("my-dead-letter-topic")`, or omit it to derive one from the consumer group id and source topic: `orders` consumed by group `order-processor` dead-letters to `order-processor.orders.dead-letter`. The group id comes first so the topic sits under the consumer's own topic prefix, which it is usually allowed to create and write to. Make sure the topic exists, unless your cluster creates topics automatically.
 
 **Retries.** `WithMaxRetries` sets how many extra attempts are made before the message is dead-lettered (default `0`). Use `WithRetryBackoff` for a fixed delay between attempts, or `WithExponentialRetryBackoff` for an increasing delay.
 
