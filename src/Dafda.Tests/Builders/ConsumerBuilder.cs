@@ -94,8 +94,7 @@ internal class ConsumerBuilder
             _messageFilter,
             _messageHandlerExecutionStrategy,
             _enableAutoCommit,
-            _deadLetterQueue,
-            _maxRetries,
-            _deadLetterQueueBypass,
-            _retryBackoff);
+            _deadLetterQueue == null
+                ? null
+                : new DeadLetterPolicy(_deadLetterQueue, _maxRetries, _deadLetterQueueBypass, _retryBackoff));
 }

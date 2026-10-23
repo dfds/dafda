@@ -15,10 +15,7 @@ internal class Consumer(
     MessageFilter messageFilter,
     IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
     bool isAutoCommitEnabled = false,
-    IDeadLetterQueue deadLetterQueue = null,
-    int maxRetries = 0,
-    Func<Exception, bool> deadLetterQueueBypass = null,
-    Func<int, TimeSpan> retryBackoff = null)
+    DeadLetterPolicy deadLetterPolicy = null)
     : IConsumer, IDisposable
 {
     private readonly LocalMessageDispatcher _localMessageDispatcher = new(
@@ -26,10 +23,7 @@ internal class Consumer(
         unitOfWorkFactory,
         fallbackHandler,
         messageHandlerExecutionStrategy,
-        deadLetterQueue,
-        maxRetries,
-        deadLetterQueueBypass,
-        retryBackoff);
+        deadLetterPolicy);
 
     public async Task ConsumeAll(CancellationToken cancellationToken)
     {
@@ -64,6 +58,6 @@ internal class Consumer(
 
     public void Dispose()
     {
-        (deadLetterQueue as IDisposable)?.Dispose();
+        (deadLetterPolicy?.Queue as IDisposable)?.Dispose();
     }
 }

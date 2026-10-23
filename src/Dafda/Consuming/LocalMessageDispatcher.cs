@@ -10,20 +10,14 @@ namespace Dafda.Consuming
         private readonly IHandlerUnitOfWorkFactory _unitOfWorkFactory;
         private readonly IUnconfiguredMessageHandlingStrategy _fallbackHandler;
         private readonly IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy;
-        private readonly IDeadLetterQueue _deadLetterQueue;
-        private readonly int _maxRetries;
-        private readonly Func<Exception, bool> _deadLetterQueueBypass;
-        private readonly Func<int, TimeSpan> _retryBackoff;
+        private readonly DeadLetterPolicy _deadLetterPolicy;
 
         public LocalMessageDispatcher(
             MessageHandlerRegistry messageHandlerRegistry,
             IHandlerUnitOfWorkFactory handlerUnitOfWorkFactory,
             IUnconfiguredMessageHandlingStrategy fallbackHandler,
             IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
-            IDeadLetterQueue deadLetterQueue = null,
-            int maxRetries = 0,
-            Func<Exception, bool> deadLetterQueueBypass = null,
-            Func<int, TimeSpan> retryBackoff = null)
+            DeadLetterPolicy deadLetterPolicy = null)
         {
             _messageHandlerRegistry =
                 messageHandlerRegistry
@@ -36,10 +30,7 @@ namespace Dafda.Consuming
                 ?? throw new ArgumentNullException(nameof(fallbackHandler));
             _messageHandlerExecutionStrategy = messageHandlerExecutionStrategy
                 ?? throw new ArgumentNullException(nameof(messageHandlerExecutionStrategy));
-            _deadLetterQueue = deadLetterQueue;
-            _maxRetries = maxRetries;
-            _deadLetterQueueBypass = deadLetterQueueBypass;
-            _retryBackoff = retryBackoff;
+            _deadLetterPolicy = deadLetterPolicy;
         }
 
         private MessageRegistration GetMessageRegistrationFor(MessageResult messageResult)
@@ -66,9 +57,9 @@ namespace Dafda.Consuming
                 }
                 catch (Exception exception) when (ShouldDeadLetter(exception, cancellationToken))
                 {
-                    if (attempt >= _maxRetries)
+                    if (attempt >= _deadLetterPolicy.MaxRetries)
                     {
-                        await _deadLetterQueue.Send(messageResult, exception, cancellationToken);
+                        await _deadLetterPolicy.Queue.Send(messageResult, exception, cancellationToken);
                         return;
                     }
 
@@ -86,7 +77,7 @@ namespace Dafda.Consuming
 
         private Task WaitBeforeRetry(int attempt, CancellationToken cancellationToken)
         {
-            var delay = _retryBackoff?.Invoke(attempt) ?? TimeSpan.Zero;
+            var delay = _deadLetterPolicy.RetryBackoff?.Invoke(attempt) ?? TimeSpan.Zero;
             return delay > TimeSpan.Zero ? Task.Delay(delay, cancellationToken) : Task.CompletedTask;
         }
 
@@ -94,10 +85,10 @@ namespace Dafda.Consuming
         {
             // InvalidMessageHandlerException is thrown inside Run when the handler cannot be created,
             // so no handler failed and the message is not dead-lettered.
-            return _deadLetterQueue != null
+            return _deadLetterPolicy != null
                 && !cancellationToken.IsCancellationRequested
                 && exception is not InvalidMessageHandlerException
-                && !(_deadLetterQueueBypass?.Invoke(exception) ?? false);
+                && !(_deadLetterPolicy.Bypass?.Invoke(exception) ?? false);
         }
 
         private async Task Process(MessageResult messageResult, MessageRegistration registration, IHandlerUnitOfWork unitOfWork, CancellationToken cancellationToken)

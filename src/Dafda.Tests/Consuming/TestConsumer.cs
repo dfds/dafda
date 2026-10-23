@@ -554,8 +554,12 @@ public class TestConsumer
     {
     }
 
-    public class HandlerWithMissingDependency(IMissingDependency dependency) : IMessageHandler<FooMessage>
+    public class HandlerWithMissingDependency : IMessageHandler<FooMessage>
     {
+        public HandlerWithMissingDependency(IMissingDependency dependency)
+        {
+        }
+
         public Task Handle(FooMessage message, MessageHandlerContext context, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
