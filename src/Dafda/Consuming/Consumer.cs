@@ -15,19 +15,15 @@ internal class Consumer(
     MessageFilter messageFilter,
     IMessageHandlerExecutionStrategy messageHandlerExecutionStrategy,
     bool isAutoCommitEnabled = false,
-    IDeadLetterQueue deadLetterQueue = null,
-    int maxRetries = 0,
-    Func<Exception, bool> deadLetterQueueBypass = null,
-    Func<int, TimeSpan> retryBackoff = null)
+    DeadLetterPolicy deadLetterPolicy = null)
     : IConsumer, IDisposable
 {
     private readonly LocalMessageDispatcher _localMessageDispatcher = new(
         messageHandlerRegistry,
         unitOfWorkFactory,
         fallbackHandler,
-        messageHandlerExecutionStrategy);
-
-    private readonly IDeadLetterQueue _deadLetterQueue = deadLetterQueue ?? NullDeadLetterQueue.Instance;
+        messageHandlerExecutionStrategy,
+        deadLetterPolicy);
 
     public async Task ConsumeAll(CancellationToken cancellationToken)
     {
@@ -51,7 +47,7 @@ internal class Consumer(
 
         if (messageFilter.CanAcceptMessage(messageResult))
         {
-            await Dispatch(messageResult, cancellationToken);
+            await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
         }
 
         if (!isAutoCommitEnabled)
@@ -60,51 +56,8 @@ internal class Consumer(
         }
     }
 
-    private async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
-    {
-        var deadLetterQueueEnabled = _deadLetterQueue is not NullDeadLetterQueue;
-        var attempt = 0;
-
-        while (true)
-        {
-            try
-            {
-                await _localMessageDispatcher.Dispatch(messageResult, cancellationToken);
-                return;
-            }
-            catch (Exception exception) when (deadLetterQueueEnabled && !cancellationToken.IsCancellationRequested && !ShouldBypassDeadLetterQueue(exception))
-            {
-                if (attempt < maxRetries)
-                {
-                    attempt++;
-
-                    var delay = GetRetryDelay(attempt);
-                    if (delay > TimeSpan.Zero)
-                    {
-                        await Task.Delay(delay, cancellationToken);
-                    }
-
-                    continue;
-                }
-
-                await _deadLetterQueue.Send(messageResult, exception, cancellationToken);
-                return;
-            }
-        }
-    }
-
-    private TimeSpan GetRetryDelay(int attempt)
-    {
-        return retryBackoff == null ? TimeSpan.Zero : retryBackoff(attempt);
-    }
-
-    private bool ShouldBypassDeadLetterQueue(Exception exception)
-    {
-        return deadLetterQueueBypass != null && deadLetterQueueBypass(exception);
-    }
-
     public void Dispose()
     {
-        (_deadLetterQueue as IDisposable)?.Dispose();
+        (deadLetterPolicy?.Queue as IDisposable)?.Dispose();
     }
 }

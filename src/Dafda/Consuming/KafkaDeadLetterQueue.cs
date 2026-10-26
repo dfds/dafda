@@ -11,7 +11,8 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Publishes failed messages to a Kafka dead letter topic. When no explicit
 /// topic name is configured, the target topic is derived from the source
-/// topic of the message using the <see cref="DefaultTopicSuffix"/>.
+/// topic of the message and the consumer group id, as
+/// <c>&lt;groupId&gt;.&lt;sourceTopic&gt;</c> plus the <see cref="DefaultTopicSuffix"/>.
 /// </summary>
 internal sealed class KafkaDeadLetterQueue(
     ILoggerFactory loggerFactory,
@@ -36,9 +37,12 @@ internal sealed class KafkaDeadLetterQueue(
             return configuredTopicName;
         }
 
-        return string.IsNullOrEmpty(groupId)
-            ? $"{sourceTopic}{DefaultTopicSuffix}"
-            : $"{sourceTopic}.{groupId}{DefaultTopicSuffix}";
+        if (string.IsNullOrEmpty(groupId))
+        {
+            throw new InvalidOperationException("A consumer group id is required to derive the dead letter topic name.");
+        }
+
+        return $"{groupId}.{sourceTopic}{DefaultTopicSuffix}";
     }
 
     public async Task Send(MessageResult message, Exception exception, CancellationToken cancellationToken)
