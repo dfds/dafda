@@ -827,6 +827,24 @@ public class TestConsumer
         Assert.Equal(0, deadLetterQueueSpy.SendCount);
     }
 
+    [Fact]
+    public async Task each_retry_gets_a_freshly_deserialized_message()
+    {
+        var metadata = new Metadata { MessageId = "foo-message-id", Type = "foo" };
+        var message = new TransportLevelMessage(metadata, _ => new FooMessage { Value = "original" });
+        var handler = new MutatingThenFailingOnceHandler();
+
+        var sut = BuildConsumerWithHandler(
+            handler,
+            deadLetterQueue: new DeadLetterQueueSpy(),
+            maxRetries: 1,
+            message: message);
+
+        await sut.ConsumeSingle(CancellationToken.None);
+
+        Assert.Equal(new[] { "original", "original" }, handler.ReceivedValues);
+    }
+
     private static Consumer BuildConsumerWithHandler(
         IMessageHandler<FooMessage> handler,
         Func<CancellationToken, Task> onCommit = null,
@@ -835,7 +853,8 @@ public class TestConsumer
         Func<Exception, bool> deadLetterQueueBypass = null,
         Func<int, TimeSpan> retryBackoff = null,
         IHandlerUnitOfWork unitOfWork = null,
-        IMessageHandlerExecutionStrategy executionStrategy = null)
+        IMessageHandlerExecutionStrategy executionStrategy = null,
+        TransportLevelMessage message = null)
     {
         var registration = new MessageRegistrationBuilder()
             .WithHandlerInstanceType(handler.GetType())
@@ -848,7 +867,7 @@ public class TestConsumer
         registry.Register(registration);
 
         var messageResult = new MessageResultBuilder()
-            .WithTransportLevelMessage(new TransportLevelMessageBuilder().WithType("foo").Build())
+            .WithTransportLevelMessage(message ?? new TransportLevelMessageBuilder().WithType("foo").Build())
             .WithTopic("topic")
             .WithOnCommit(onCommit ?? (_ => Task.CompletedTask))
             .Build();
@@ -906,6 +925,24 @@ public class TestConsumer
     public class FooMessage
     {
         public string Value { get; set; }
+    }
+
+    private class MutatingThenFailingOnceHandler : IMessageHandler<FooMessage>
+    {
+        public List<string> ReceivedValues { get; } = new();
+
+        public Task Handle(FooMessage message, MessageHandlerContext context, CancellationToken cancellationToken = default)
+        {
+            ReceivedValues.Add(message.Value);
+            message.Value = "changed";
+
+            if (ReceivedValues.Count == 1)
+            {
+                throw new InvalidOperationException("first attempt fails");
+            }
+
+            return Task.CompletedTask;
+        }
     }
 
     private class FailureRecordingUnitOfWork(object handler) : IHandlerUnitOfWork

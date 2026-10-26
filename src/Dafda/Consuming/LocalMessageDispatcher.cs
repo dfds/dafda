@@ -42,11 +42,11 @@ namespace Dafda.Consuming
         public async Task Dispatch(MessageResult messageResult, CancellationToken cancellationToken)
         {
             var registration = GetMessageRegistrationFor(messageResult);
-            var messageInstance = messageResult.Message.ReadDataAs(registration.MessageInstanceType);
             var attempt = 0;
 
             while (true)
             {
+                var messageInstance = messageResult.Message.ReadDataAs(registration.MessageInstanceType);
                 var unitOfWork = CreateUnitOfWork(registration);
                 var failure = await RunHandler(unitOfWork, registration, messageResult.Message, messageInstance, cancellationToken);
 
