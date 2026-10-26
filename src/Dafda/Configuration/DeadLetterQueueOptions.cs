@@ -19,7 +19,7 @@ public sealed class DeadLetterQueueOptions
 
     /// <summary>
     /// The explicit dead letter topic name. When <c>null</c>, the topic is
-    /// derived from the source topic of the failed message.
+    /// derived from the consumer group id and the source topic of the failed message.
     /// </summary>
     internal string TopicName { get; }
 

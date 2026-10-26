@@ -233,8 +233,7 @@ public void ConfigureServices(IServiceCollection services)
 
 **Topic name.** Pass a name to `WithDeadLetterQueue("my-dead-letter-topic")`, or omit it to derive one from the consumer group id and source topic: `orders` consumed by group `order-processor` dead-letters to `order-processor.orders.dead-letter`. The group id comes first so the topic sits under the consumer's own topic prefix, which it is usually allowed to create and write to. Make sure the topic exists, unless your cluster creates topics automatically.
 
-**Retries.** `WithMaxRetries` sets how many extra attempts are made before the message is dead-lettered (default `0`). Use `WithRetryBackoff` for a fixed delay between attempts, or `WithExponentialRetryBackoff` for an increasing delay.
-
+**Retries.** `WithMaxRetries` sets how many extra attempts are made before the message is dead-lettered (default `0`). Use `WithRetryBackoff` for a fixed delay between attempts, or `WithExponentialRetryBackoff` for an increasing delay. If your [execution strategy](#message-handler-execution-strategy) also retries, the two multiply: a strategy that tries 3 times combined with `WithMaxRetries(2)` runs the handler up to 9 times. With a dead letter queue, use `WithMaxRetries` for retries and keep the execution strategy for things like tracing, timeouts and circuit breakers.
 **Bypassing the dead letter queue.** Use `BypassFor<TException>()` or `BypassWhen(predicate)` for errors that should not be dead-lettered, such as a database being temporarily unavailable. Matching exceptions are neither retried nor dead-lettered; they go to the consumer error handler as if no dead letter queue was configured.
 
 **Headers.** The dead-lettered message keeps the original key and value, and gets these headers:
