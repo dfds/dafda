@@ -45,7 +45,7 @@ public static class ConsumerServiceCollectionExtensions
                 configuration.MessageFilter,
                 configuration.Factories.MessageHandlerExecutionStrategyFactory(provider),
                 configuration.EnableAutoCommit,
-                configuration.DeadLetterPolicyFactory(provider)
+                configuration.DeadLetterPolicyFactory?.Invoke(provider)
             ),
             configuration.GroupId,
             configuration.ConsumerErrorHandler
@@ -80,7 +80,7 @@ public static class ConsumerServiceCollectionExtensions
                     configuration.MessageFilter,
                     configuration.Factories.MessageHandlerExecutionStrategyFactory(provider),
                     configuration.EnableAutoCommit,
-                    configuration.DeadLetterPolicyFactory(provider)
+                    configuration.DeadLetterPolicyFactory?.Invoke(provider)
                 ),
                 configuration.GroupId,
                 configuration.ConsumerErrorHandler

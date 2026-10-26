@@ -216,13 +216,12 @@ internal sealed class ConsumerConfigurationBuilder
 
     private Func<IServiceProvider, DeadLetterPolicy> BuildDeadLetterPolicyFactory(IDictionary<string, string> configurations)
     {
-        if (_deadLetterQueueOptions == null)
+        var options = _deadLetterQueueOptions;
+        if (options == null)
         {
-            return _ => null;
+            return null;
         }
 
-        var options = _deadLetterQueueOptions;
-        
         var producerConfiguration = configurations
             .Where(pair => ConfigurationKey.GetAllProducerKeys().Any(key => key.ToString() == pair.Key))
             .ToDictionary(pair => pair.Key, pair => pair.Value);
