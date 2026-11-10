@@ -12,17 +12,11 @@ internal class ConsumerConfiguration(
     ConsumerConfigurationFactories factories,
     MessageFilter messageFilter,
     IConsumerErrorHandler consumerErrorHandler,
-    Func<IServiceProvider, IDeadLetterQueue> deadLetterQueueFactory,
-    int maxRetries,
-    Func<Exception, bool> deadLetterQueueBypass,
-    Func<int, TimeSpan> retryBackoff = null)
+    Func<IServiceProvider, DeadLetterPolicy> deadLetterPolicyFactory)
     : ConsumerConfigurationBase(configuration, factories.UnitOfWorkFactory, consumerErrorHandler)
 {
     public ConsumerConfigurationFactories Factories { get; } = factories;
     public MessageHandlerRegistry MessageHandlerRegistry { get; } = messageHandlerRegistry;
     public MessageFilter MessageFilter { get; } = messageFilter;
-    public Func<IServiceProvider, IDeadLetterQueue> DeadLetterQueueFactory { get; } = deadLetterQueueFactory;
-    public int MaxRetries { get; } = maxRetries;
-    public Func<Exception, bool> DeadLetterQueueBypass { get; } = deadLetterQueueBypass;
-    public Func<int, TimeSpan> RetryBackoff { get; } = retryBackoff;
+    public Func<IServiceProvider, DeadLetterPolicy> DeadLetterPolicyFactory { get; } = deadLetterPolicyFactory;
 }

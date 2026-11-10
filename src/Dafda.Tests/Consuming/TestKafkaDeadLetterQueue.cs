@@ -14,18 +14,18 @@ public class TestKafkaDeadLetterQueue
     }
 
     [Fact]
-    public void derives_topic_name_from_source_topic_and_group_id_when_not_provided()
+    public void derives_topic_name_from_group_id_and_source_topic_when_not_provided()
     {
         var topic = KafkaDeadLetterQueue.ResolveTopicName(null, "orders", "order-processor");
 
-        Assert.Equal("orders.order-processor.dead-letter", topic);
+        Assert.Equal("order-processor.orders.dead-letter", topic);
     }
 
-    [Fact]
-    public void derives_topic_name_from_source_topic_only_when_group_id_is_missing()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void throws_when_group_id_is_missing(string groupId)
     {
-        var topic = KafkaDeadLetterQueue.ResolveTopicName(null, "orders", null);
-
-        Assert.Equal("orders.dead-letter", topic);
+        Assert.Throws<System.InvalidOperationException>(() => KafkaDeadLetterQueue.ResolveTopicName(null, "orders", groupId));
     }
 }

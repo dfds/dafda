@@ -231,15 +231,15 @@ public sealed class ConsumerOptions
     }
 
     /// <summary>
-    /// Enable a dead letter queue for this consumer. When a message handler fails
+    /// Enable a dead letter queue for this consumer. When a message handler throws
     /// (after any configured retries are exhausted), the original message is
     /// published to the dead letter topic and the offset is committed so the
     /// consumer can continue past the poison message.
     /// </summary>
     /// <param name="topicName">
     /// The dead letter topic name. When omitted, the topic is derived from the
-    /// source topic of the failed message (e.g. <c>orders</c> becomes
-    /// <c>orders.dead-letter</c>).
+    /// source topic of the failed message and the consumer group id (e.g. <c>orders</c>
+    /// consumed by group <c>order-processor</c> becomes <c>order-processor.orders.dead-letter</c>).
     /// </param>
     /// <returns>
     /// A <see cref="DeadLetterQueueOptions"/> to further configure the dead letter

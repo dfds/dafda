@@ -11,11 +11,11 @@ internal class ConsumerBuilder
     private IConsumerScopeFactory _consumerScopeFactory = new ConsumerScopeFactoryStub(new ConsumerScopeStub(new MessageResultBuilder().Build()));
     private MessageHandlerRegistry _registry = new();
     private IUnconfiguredMessageHandlingStrategy _unconfiguredMessageStrategy = new RequireExplicitHandlers();
-    private readonly IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy = new DirectMessageHandlerExecutionStrategy();
+    private IMessageHandlerExecutionStrategy _messageHandlerExecutionStrategy = new DirectMessageHandlerExecutionStrategy();
 
     private bool _enableAutoCommit;
     private MessageFilter _messageFilter = MessageFilter.Default;
-    private IDeadLetterQueue _deadLetterQueue = NullDeadLetterQueue.Instance;
+    private IDeadLetterQueue _deadLetterQueue;
     private int _maxRetries;
     private Func<Exception, bool> _deadLetterQueueBypass;
     private Func<int, TimeSpan> _retryBackoff;
@@ -61,6 +61,12 @@ internal class ConsumerBuilder
         return this;
     }
 
+    public ConsumerBuilder WithMessageHandlerExecutionStrategy(IMessageHandlerExecutionStrategy strategy)
+    {
+        _messageHandlerExecutionStrategy = strategy;
+        return this;
+    }
+
     public ConsumerBuilder WithDeadLetterQueue(IDeadLetterQueue deadLetterQueue)
     {
         _deadLetterQueue = deadLetterQueue;
@@ -94,8 +100,7 @@ internal class ConsumerBuilder
             _messageFilter,
             _messageHandlerExecutionStrategy,
             _enableAutoCommit,
-            _deadLetterQueue,
-            _maxRetries,
-            _deadLetterQueueBypass,
-            _retryBackoff);
+            _deadLetterQueue == null
+                ? null
+                : new DeadLetterPolicy(_deadLetterQueue, _maxRetries, _deadLetterQueueBypass, _retryBackoff));
 }
