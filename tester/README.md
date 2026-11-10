@@ -9,7 +9,7 @@ First create a local nuget package with your changes. Update the nuget reference
 Run:
 
 ```bash
-make package
+dotnet pack src/Dafda/Dafda.csproj --configuration Release --output .output
 ```
 
 To start a local Kafka instance, run:
